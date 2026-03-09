@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { CardType, CARD_TYPE_META, CARD_TYPE_FIELDS, DuoCard } from '@/types/card';
-import { Car, ShoppingBag, CreditCard, Calendar, Wrench, ArrowLeftRight, ChevronLeft } from 'lucide-react';
+import { Car, ShoppingBag, CreditCard, Calendar, Wrench, ArrowLeftRight, ChevronLeft, LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const iconMap: Record<string, React.FC<{ className?: string; size?: number }>> = {
+const iconMap: Record<string, LucideIcon> = {
   Car, ShoppingBag, CreditCard, Calendar, Wrench, ArrowLeftRight,
 };
 

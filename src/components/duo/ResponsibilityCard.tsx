@@ -1,7 +1,7 @@
 import { DuoCard, CARD_TYPE_META, CardState } from '@/types/card';
-import { Car, ShoppingBag, CreditCard, Calendar, Wrench, ArrowLeftRight } from 'lucide-react';
+import { Car, ShoppingBag, CreditCard, Calendar, Wrench, ArrowLeftRight, LucideIcon } from 'lucide-react';
 
-const iconMap: Record<string, React.FC<{ className?: string; size?: number }>> = {
+const iconMap: Record<string, LucideIcon> = {
   Car, ShoppingBag, CreditCard, Calendar, Wrench, ArrowLeftRight,
 };
 

@@ -1,5 +1,5 @@
 import { DuoCard, CARD_TYPE_META, CardState } from '@/types/card';
-import { Car, ShoppingBag, CreditCard, Calendar, Wrench, ArrowLeftRight, ChevronLeft, MoreHorizontal } from 'lucide-react';
+import { Car, ShoppingBag, CreditCard, Calendar, Wrench, ArrowLeftRight, ChevronLeft, MoreHorizontal, LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const iconMap: Record<string, React.FC<{ className?: string; size?: number }>> = {
+const iconMap: Record<string, LucideIcon> = {
   Car, ShoppingBag, CreditCard, Calendar, Wrench, ArrowLeftRight,
 };
 
