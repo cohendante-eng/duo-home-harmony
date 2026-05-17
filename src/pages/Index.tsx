@@ -23,6 +23,8 @@ import TopBar from '../components/duo/TopBar';
 
 import FloatingCreateButton from '../components/duo/FloatingCreateButton';
 
+import EmptyState from '../components/duo/EmptyState';
+
 import {
   UserId,
 } from '../types/card';
@@ -138,79 +140,107 @@ export default function Index() {
       />
 
       {tab === 'main' && (
-        <div
-          style={{
-            display: 'flex',
+        <>
+          {sortedVisibleCards.length ===
+          0 ? (
+            <EmptyState
+              title="All good"
+              description="No active responsibilities need your attention right now."
+            />
+          ) : (
+            <div
+              style={{
+                display: 'flex',
 
-            flexDirection:
-              'column',
+                flexDirection:
+                  'column',
 
-            gap: 10,
-          }}
-        >
-          {sortedVisibleCards.map(
-            (card) => (
-              <ResponsibilityCard
-                key={card.id}
-                card={card}
-                onOpen={(c) =>
-                  setSelectedId(
-                    c.id
-                  )
-                }
-              />
-            )
+                gap: 10,
+              }}
+            >
+              {sortedVisibleCards.map(
+                (card) => (
+                  <ResponsibilityCard
+                    key={card.id}
+                    card={card}
+                    onOpen={(c) =>
+                      setSelectedId(
+                        c.id
+                      )
+                    }
+                  />
+                )
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
 
       {tab === 'created' && (
-        <div
-          style={{
-            display: 'flex',
+        <>
+          {createdCards.length === 0 ? (
+            <EmptyState
+              title="Nothing created"
+              description="Responsibilities you create for your partner will appear here as a quiet reference."
+            />
+          ) : (
+            <div
+              style={{
+                display: 'flex',
 
-            flexDirection:
-              'column',
+                flexDirection:
+                  'column',
 
-            gap: 10,
-          }}
-        >
-          {createdCards.map(
-            (card) => (
-              <CreatedCard
-                key={card.id}
-                card={card}
-                onOpen={(c) =>
-                  setSelectedId(
-                    c.id
-                  )
-                }
-              />
-            )
+                gap: 10,
+              }}
+            >
+              {createdCards.map(
+                (card) => (
+                  <CreatedCard
+                    key={card.id}
+                    card={card}
+                    onOpen={(c) =>
+                      setSelectedId(
+                        c.id
+                      )
+                    }
+                  />
+                )
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
 
       {tab === 'history' && (
-        <div
-          style={{
-            display: 'flex',
+        <>
+          {historyCards.length === 0 ? (
+            <EmptyState
+              title="No history yet"
+              description="Done, cancelled, stopped, and expired responsibilities will appear here."
+            />
+          ) : (
+            <div
+              style={{
+                display: 'flex',
 
-            flexDirection:
-              'column',
+                flexDirection:
+                  'column',
 
-            gap: 10,
-          }}
-        >
-          {historyCards.map(
-            (card) => (
-              <HistoryCard
-                key={card.id}
-                card={card}
-              />
-            )
+                gap: 10,
+              }}
+            >
+              {historyCards.map(
+                (card) => (
+                  <HistoryCard
+                    key={card.id}
+                    card={card}
+                  />
+                )
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
 
       {shouldShowCreateButton && (
