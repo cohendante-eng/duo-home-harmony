@@ -1,87 +1,254 @@
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
-import { useCards } from '@/store/useCards';
-import { DuoCard, CardState } from '@/types/card';
-import ResponsibilityCard from '@/components/duo/ResponsibilityCard';
-import ExpandedCard from '@/components/duo/ExpandedCard';
-import CreateFlow from '@/components/duo/CreateFlow';
+import {
+  useMemo,
+  useState,
+} from 'react';
 
-type View = 'list' | 'expanded' | 'create';
+import { useCards } from '../store/useCards';
 
-const Index = () => {
-  const { cards, addCard, updateState } = useCards();
-  const [view, setView] = useState<View>('list');
-  const [activeCard, setActiveCard] = useState<DuoCard | null>(null);
+import ResponsibilityCard from '../components/duo/ResponsibilityCard';
 
-  const handleTap = (card: DuoCard) => {
-    setActiveCard(card);
-    setView('expanded');
-  };
+import CreatedCard from '../components/duo/CreatedCard';
 
-  const handleAction = (id: string, state: CardState) => {
-    updateState(id, state);
-    setView('list');
-    setActiveCard(null);
-  };
+import CreateFlow from '../components/duo/CreateFlow';
 
-  const handleCreate = (card: DuoCard) => {
-    addCard(card);
-    setView('list');
-  };
+import ExpandedCard from '../components/duo/ExpandedCard';
 
-  if (view === 'expanded' && activeCard) {
-    // find latest version
-    const latest = cards.find((c) => c.id === activeCard.id) || activeCard;
-    return (
-      <ExpandedCard
-        card={latest}
-        onBack={() => { setView('list'); setActiveCard(null); }}
-        onAction={handleAction}
-      />
-    );
+import SettingsPanel from '../components/duo/SettingsPanel';
+
+import BottomNav from '../components/duo/BottomNav';
+
+import HistoryCard from '../components/duo/HistoryCard';
+
+import TopBar from '../components/duo/TopBar';
+
+import FloatingCreateButton from '../components/duo/FloatingCreateButton';
+
+import {
+  UserId,
+} from '../types/card';
+
+import {
+  getVisibleCardsForUser,
+  getCreatedCardsForUser,
+  sortHomeCards,
+} from '../lib/duoViews';
+
+import {
+  useDuoLifecycle,
+} from '../hooks/useDuoLifecycle';
+
+type Tab =
+  | 'main'
+  | 'created'
+  | 'history';
+
+export default function Index() {
+  useDuoLifecycle();
+
+  const [selectedId, setSelectedId] =
+    useState<string | null>(null);
+
+  const [createOpen, setCreateOpen] =
+    useState(false);
+
+  const [settingsOpen, setSettingsOpen] =
+    useState(false);
+
+  const [tab, setTab] =
+    useState<Tab>('main');
+
+  const activeCards =
+    useCards((s) => s.activeCards);
+
+  const historyCards =
+    useCards((s) => s.historyCards);
+
+  const currentUser =
+    useCards((s) => s.currentUser);
+
+  const setUser =
+    useCards.setState;
+
+  function setCurrentUser(
+    user: UserId
+  ) {
+    setUser({
+      currentUser: user,
+    });
   }
 
-  if (view === 'create') {
-    return <CreateFlow onClose={() => setView('list')} onCreate={handleCreate} />;
-  }
+  const visibleCards =
+    useMemo(() => {
+      return getVisibleCardsForUser(
+        activeCards,
+        currentUser
+      );
+    }, [
+      activeCards,
+      currentUser,
+    ]);
+
+  const createdCards =
+    useMemo(() => {
+      return getCreatedCardsForUser(
+        activeCards,
+        currentUser
+      );
+    }, [
+      activeCards,
+      currentUser,
+    ]);
+
+  const sortedVisibleCards =
+    useMemo(() => {
+      return sortHomeCards(
+        visibleCards,
+        currentUser
+      );
+    }, [
+      visibleCards,
+      currentUser,
+    ]);
+
+  const shouldShowCreateButton =
+    !selectedId &&
+    !createOpen &&
+    !settingsOpen;
 
   return (
-    <div className="flex flex-col min-h-screen bg-background max-w-md mx-auto">
-      {/* Header */}
-      <div className="px-6 pt-safe-top">
-        <div className="flex items-center justify-between h-16">
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">Duo</h1>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-signal-accepted" />
-            <span className="text-xs text-muted-foreground">Synced</span>
-          </div>
+    <div
+      style={{
+        padding: 24,
+
+        paddingBottom: 120,
+
+        maxWidth: 520,
+
+        margin: '0 auto',
+      }}
+    >
+      <TopBar
+        currentUser={currentUser}
+        setCurrentUser={
+          setCurrentUser
+        }
+        onOpenSettings={() =>
+          setSettingsOpen(true)
+        }
+      />
+
+      {tab === 'main' && (
+        <div
+          style={{
+            display: 'flex',
+
+            flexDirection:
+              'column',
+
+            gap: 10,
+          }}
+        >
+          {sortedVisibleCards.map(
+            (card) => (
+              <ResponsibilityCard
+                key={card.id}
+                card={card}
+                onOpen={(c) =>
+                  setSelectedId(
+                    c.id
+                  )
+                }
+              />
+            )
+          )}
         </div>
-      </div>
+      )}
 
-      {/* Card List */}
-      <div className="flex-1 px-4 pb-24">
-        <div className="space-y-2">
-          {cards.map((card) => (
-            <ResponsibilityCard key={card.id} card={card} onTap={handleTap} />
-          ))}
+      {tab === 'created' && (
+        <div
+          style={{
+            display: 'flex',
+
+            flexDirection:
+              'column',
+
+            gap: 10,
+          }}
+        >
+          {createdCards.map(
+            (card) => (
+              <CreatedCard
+                key={card.id}
+                card={card}
+                onOpen={(c) =>
+                  setSelectedId(
+                    c.id
+                  )
+                }
+              />
+            )
+          )}
         </div>
+      )}
 
-        {cards.length === 0 && (
-          <div className="flex flex-col items-center justify-center pt-32">
-            <p className="text-sm text-muted-foreground">No active cards</p>
-          </div>
-        )}
-      </div>
+      {tab === 'history' && (
+        <div
+          style={{
+            display: 'flex',
 
-      {/* FAB */}
-      <button
-        onClick={() => setView('create')}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-2xl bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200"
-      >
-        <Plus size={22} />
-      </button>
+            flexDirection:
+              'column',
+
+            gap: 10,
+          }}
+        >
+          {historyCards.map(
+            (card) => (
+              <HistoryCard
+                key={card.id}
+                card={card}
+              />
+            )
+          )}
+        </div>
+      )}
+
+      {shouldShowCreateButton && (
+        <FloatingCreateButton
+          onClick={() =>
+            setCreateOpen(true)
+          }
+        />
+      )}
+
+      <BottomNav
+        tab={tab}
+        setTab={setTab}
+      />
+
+      <CreateFlow
+        open={createOpen}
+        onClose={() =>
+          setCreateOpen(false)
+        }
+      />
+
+      {selectedId && (
+        <ExpandedCard
+          cardId={selectedId}
+          onClose={() =>
+            setSelectedId(null)
+          }
+        />
+      )}
+
+      {settingsOpen && (
+        <SettingsPanel
+          onClose={() =>
+            setSettingsOpen(false)
+          }
+        />
+      )}
     </div>
   );
-};
-
-export default Index;
+}

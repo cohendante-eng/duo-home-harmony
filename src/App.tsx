@@ -1,27 +1,90 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import { useCards } from './store/useCards';
 
-const queryClient = new QueryClient();
+import Index from './pages/Index';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+export default function App() {
+  const toast =
+    useCards((s) => s.toast);
 
-export default App;
+  const hideToast =
+    useCards((s) => s.hideToast);
+
+  return (
+    <>
+      <Index />
+
+      {toast.visible && (
+        <div
+          style={{
+            position: 'fixed',
+
+            left: '50%',
+
+            bottom: 96,
+
+            transform:
+              'translateX(-50%)',
+
+            background:
+              'rgba(20,20,20,0.94)',
+
+            color: '#fff',
+
+            minHeight: 44,
+
+            borderRadius: 14,
+
+            padding:
+              '0 14px',
+
+            display: 'flex',
+
+            alignItems:
+              'center',
+
+            gap: 14,
+
+            zIndex: 999999,
+
+            fontSize: 14,
+
+            boxShadow:
+              '0 10px 30px rgba(0,0,0,0.18)',
+
+            backdropFilter:
+              'blur(8px)',
+          }}
+        >
+          <span>
+            {toast.message}
+          </span>
+
+          {toast.undoAction && (
+            <button
+              onClick={() => {
+                toast.undoAction?.();
+
+                hideToast();
+              }}
+              style={{
+                border: 'none',
+
+                background:
+                  'transparent',
+
+                color: '#fff',
+
+                fontWeight: 700,
+
+                cursor:
+                  'pointer',
+              }}
+            >
+              Undo
+            </button>
+          )}
+        </div>
+      )}
+    </>
+  );
+}

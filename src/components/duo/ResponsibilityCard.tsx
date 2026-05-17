@@ -1,85 +1,412 @@
-import { DuoCard, CardType, CardState } from '../../types/card';
-import { Car, ShoppingBag, CreditCard, Calendar, Wrench, ArrowLeftRight, LucideIcon } from 'lucide-react';
+import {
+  CarFront,
+  CreditCard,
+  ShoppingBag,
+  Calendar,
+  Wrench,
+  Clock3,
+} from 'lucide-react';
 
-const iconMap: Record<CardType, LucideIcon> = {
-  transport: Car,
-  acquire: ShoppingBag,
-  pay: CreditCard,
-  appointment: Calendar,
-  maintenance: Wrench,
-  coordination: ArrowLeftRight,
-};
-const typeLabelMap: Record<CardType, string> = {
-  transport: 'Transport',
-  acquire: 'Acquire',
-  pay: 'Pay',
-  appointment: 'Appointment',
-  maintenance: 'Maintenance',
-  coordination: 'Coordination',
-};
-const stateStyles: Record<CardState, string> = {
-  requested: 'bg-signal-requested/12 text-signal-requested',
-  accepted: 'bg-signal-accepted/12 text-signal-accepted',
-  done: 'bg-muted text-muted-foreground',
-  blocked: 'bg-signal-blocked/12 text-signal-blocked',
-  delayed: 'bg-signal-delayed/12 text-signal-delayed',
-  skipped: 'bg-muted text-muted-foreground',
-};
+import { DuoCard } from '../../types/card';
 
-const stateLabel: Record<CardState, string> = {
-  requested: 'Requested',
-  accepted: 'Accepted',
-  done: 'Done',
-  blocked: 'Blocked',
-  delayed: 'Delayed',
-  skipped: 'Skipped',
-};
+import { useCards } from '../../store/useCards';
 
-interface Props {
+type Props = {
   card: DuoCard;
-  onTap: (card: DuoCard) => void;
+
+  onOpen: (card: DuoCard) => void;
+};
+
+function getTitle(card: DuoCard) {
+  switch (card.type) {
+    case 'transport':
+      return card.payload.title;
+
+    case 'pay':
+      return card.payload.title;
+
+    case 'acquire':
+      return card.payload.item;
+
+    case 'appointment':
+      return card.payload.title;
+
+    case 'maintenance':
+      return card.payload.title;
+
+    default:
+      return '';
+  }
 }
 
-export default function ResponsibilityCard({ card, onTap }: Props) {
-  const Icon = iconMap[card.type];
-  const titleMap: Record<CardType, (card: DuoCard) => string> = {
-    transport: (card) => card.payload.item || 'Transport',
-    acquire: (card) => card.payload.item || 'Acquire item',
-    pay: (card) => `${card.payload.what || 'Payment'} bill`,
-    appointment: (card) => card.payload.with || 'Appointment',
-    maintenance: (card) => card.payload.what || 'Maintenance',
-    coordination: (card) => card.payload.topic || 'Coordination',
-  };
-  
-  const contextMap: Record<CardType, (card: DuoCard) => string> = {
-    transport: (card) => [card.payload.from, card.payload.to].filter(Boolean).join(' → '),
-    acquire: (card) => [card.payload.source, card.payload.quantity].filter(Boolean).join(' · '),
-    pay: (card) => [card.payload.amount, card.payload.to].filter(Boolean).join(' · '),
-    appointment: (card) => [card.payload.location, card.payload.with].filter(Boolean).join(' · '),
-    maintenance: (card) => [card.payload.location, card.payload.detail].filter(Boolean).join(' · '),
-    coordination: (card) => [card.payload.person, card.payload.detail].filter(Boolean).join(' · '),
-  };
-  
-  const title = titleMap[card.type](card);
-  const context = contextMap[card.type](card);
-  const timeText = card.dueAt ? new Date(card.dueAt).toLocaleString() : '';
+function getSubtitle(card: DuoCard) {
+  switch (card.type) {
+    case 'transport':
+      return `${card.payload.from || ''} → ${
+        card.payload.to || ''
+      }`;
+
+    case 'pay':
+      return `${card.payload.amount || ''} → ${
+        card.payload.recipient || ''
+      }`;
+
+    case 'acquire':
+      return `${card.payload.source || ''} · ${
+        card.payload.quantity || ''
+      }`;
+
+    case 'appointment':
+      return `${card.payload.location || ''}`;
+
+    case 'maintenance':
+      return `${card.payload.location || ''}`;
+
+    default:
+      return '';
+  }
+}
+
+function getIcon(card: DuoCard) {
+  switch (card.type) {
+    case 'transport':
+      return CarFront;
+
+    case 'pay':
+      return CreditCard;
+
+    case 'acquire':
+      return ShoppingBag;
+
+    case 'appointment':
+      return Calendar;
+
+    case 'maintenance':
+      return Wrench;
+
+    default:
+      return CarFront;
+  }
+}
+
+function getStateLabel(card: DuoCard) {
+  if (card.state === 'requested') {
+    return 'Requested';
+  }
+
+  if (card.state === 'accepted') {
+    return 'Accepted';
+  }
+
+  if (card.state === 'delayed') {
+    return 'Delayed';
+  }
+
+  return card.state;
+}
+
+function formatDueAt(
+  dueAt?: number
+) {
+  if (!dueAt) return '';
+
+  const now =
+    new Date();
+
+  const date =
+    new Date(dueAt);
+
+  const today =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+  const targetDay =
+    new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+
+  const diffDays =
+    Math.round(
+      (
+        targetDay.getTime() -
+        today.getTime()
+      ) /
+        (1000 *
+          60 *
+          60 *
+          24)
+    );
+
+  const time =
+    date.toLocaleTimeString(
+      [],
+      {
+        hour: '2-digit',
+        minute: '2-digit',
+      }
+    );
+
+  if (diffDays === 0) {
+    return `Today · ${time}`;
+  }
+
+  if (diffDays === 1) {
+    return `Tomorrow · ${time}`;
+  }
+
+  return `${date.toLocaleDateString(
+    [],
+    {
+      weekday: 'short',
+    }
+  )} · ${time}`;
+}
+
+export default function ResponsibilityCard({
+  card,
+  onOpen,
+}: Props) {
+  const currentUser =
+    useCards((s) => s.currentUser);
+
+  const isMine =
+    card.ownerId === currentUser;
+
+  const isRequested =
+    card.state ===
+    'requested';
+
+  const isAccepted =
+    card.state ===
+    'accepted';
+
+  const isDelayed =
+    card.state ===
+    'delayed';
+
+  const title =
+    getTitle(card);
+
+  const subtitle =
+    getSubtitle(card);
+
+  const Icon =
+    getIcon(card);
+
   return (
     <button
-      onClick={() => onTap(card)}
-      className="w-full flex items-center gap-4 p-4 rounded-2xl bg-card border border-border/60 hover:border-border transition-all duration-200 active:scale-[0.98] text-left"
+      onClick={() => onOpen(card)}
+      style={{
+        width: '100%',
+
+        border:
+          '1px solid rgba(0,0,0,0.06)',
+
+        borderRadius: 22,
+
+        padding: 18,
+
+        display: 'flex',
+
+        alignItems: 'flex-start',
+
+        justifyContent:
+          'space-between',
+
+        gap: 18,
+
+        background: '#fff',
+
+        textAlign: 'left',
+
+        cursor: 'pointer',
+
+        opacity: isMine
+          ? 1
+          : 0.42,
+
+        transition:
+          'opacity 0.2s ease',
+      }}
     >
-      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-        <Icon size={18} className="text-secondary-foreground" />
+      <div
+        style={{
+          display: 'flex',
+
+          alignItems: 'flex-start',
+
+          gap: 16,
+
+          minWidth: 0,
+
+          flex: 1,
+        }}
+      >
+        <div
+          style={{
+            width: 54,
+
+            height: 54,
+
+            borderRadius: 17,
+
+            background:
+              'rgba(0,0,0,0.04)',
+
+            display: 'flex',
+
+            alignItems: 'center',
+
+            justifyContent:
+              'center',
+
+            color: '#444',
+
+            flexShrink: 0,
+          }}
+        >
+          <Icon size={27} />
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+
+            flexDirection:
+              'column',
+
+            gap: 5,
+
+            minWidth: 0,
+
+            paddingTop: 2,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 19,
+
+              fontWeight: 700,
+
+              color: '#111',
+
+              lineHeight: 1.12,
+
+              letterSpacing: -0.15,
+            }}
+          >
+            {title}
+          </div>
+
+          <div
+            style={{
+              fontSize: 15,
+
+              color: '#666',
+
+              lineHeight: 1.25,
+
+              fontWeight: 500,
+            }}
+          >
+            {subtitle}
+          </div>
+
+          {card.dueAt && (
+            <div
+              style={{
+                display:
+                  'inline-flex',
+
+                alignItems:
+                  'center',
+
+                gap: 6,
+
+                marginTop: 8,
+
+                fontSize: 13,
+
+                color: isDelayed
+                  ? '#a16207'
+                  : '#666',
+
+                fontWeight:
+                  isDelayed
+                    ? 700
+                    : 600,
+              }}
+            >
+              <Clock3
+                size={14}
+              />
+
+              {formatDueAt(
+                card.dueAt
+              )}
+            </div>
+          )}
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-      <p className="text-sm font-medium text-foreground truncate">{title}</p>
-      <p className="text-xs text-muted-foreground truncate mt-0.5">{context}</p>
-      </div>
-      <div className="flex-shrink-0 flex flex-col items-end gap-1">
-      <span className="text-[11px] text-muted-foreground">{timeText}</span>
-        <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${stateStyles[card.state]}`}>
-          {stateLabel[card.state]}
-        </span>
+
+      <div
+        style={{
+          flexShrink: 0,
+
+          paddingTop: 2,
+        }}
+      >
+        <div
+          style={{
+            display: 'inline-flex',
+
+            alignItems: 'center',
+
+            height: 28,
+
+            padding:
+              '0 12px',
+
+            borderRadius: 999,
+
+            fontSize: 11,
+
+            fontWeight: 800,
+
+            letterSpacing: 0.35,
+
+            textTransform:
+              'uppercase',
+
+            background:
+              isDelayed
+                ? 'rgba(217, 119, 6, 0.12)'
+                : isRequested
+                ? 'rgba(0,0,0,0.06)'
+                : 'rgba(52, 168, 83, 0.08)',
+
+            color:
+              isDelayed
+                ? '#a16207'
+                : isRequested
+                ? '#555'
+                : '#2e7d32',
+
+            border:
+              isAccepted
+                ? '1px solid rgba(52, 168, 83, 0.14)'
+                : isDelayed
+                ? '1px solid rgba(217, 119, 6, 0.14)'
+                : 'none',
+          }}
+        >
+          {getStateLabel(card)}
+        </div>
       </div>
     </button>
   );

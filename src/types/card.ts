@@ -1,31 +1,87 @@
-export type CardType =
-  | 'transport'
-  | 'acquire'
-  | 'pay'
-  | 'appointment'
-  | 'maintenance'
-  | 'coordination';
+export type UserId = 'me' | 'partner';
 
 export type CardState =
   | 'requested'
   | 'accepted'
-  | 'done'
-  | 'blocked'
   | 'delayed'
-  | 'skipped';
+  | 'done'
+  | 'stopped'
+  | 'cancelled'
+  | 'expired';
 
-export interface DuoCard {
+export type CardModifier =
+  | 'updated'
+  | 'returned'
+  | null;
+
+export type TransportPayload = {
+  title: string;
+  from: string;
+  to: string;
+};
+
+export type PayPayload = {
+  title: string;
+  amount: string;
+  recipient: string;
+};
+
+export type AcquirePayload = {
+  item: string;
+  source: string;
+  quantity: string;
+};
+
+export type AppointmentPayload = {
+  title: string;
+  location: string;
+  time: string;
+};
+
+export type MaintenancePayload = {
+  title: string;
+  location: string;
+};
+
+type BaseCard = {
   id: string;
-  type: CardType;
+
   state: CardState;
 
-  ownerId: string;
-  creatorId: string;
+  ownerId: UserId;
+  creatorId: UserId;
 
-  dueAt?: string | null;
+  blockCount?: number;
+  dueAt?: number;
 
-  payload: Record<string, string>;
+  reminderSentAt?: number;
 
-  createdAt: string;
-  updatedAt: string;
-}
+  modifier?: CardModifier;
+  modifierFor?: UserId;
+};
+
+export type DuoCard =
+  | (BaseCard & {
+      type: 'transport';
+      payload: TransportPayload;
+    })
+
+  | (BaseCard & {
+      type: 'pay';
+      payload: PayPayload;
+    })
+
+  | (BaseCard & {
+      type: 'acquire';
+      payload: AcquirePayload;
+    })
+
+  | (BaseCard & {
+      type: 'appointment';
+      payload: AppointmentPayload;
+    })
+
+  | (BaseCard & {
+      type: 'maintenance';
+      payload: MaintenancePayload;
+    });
