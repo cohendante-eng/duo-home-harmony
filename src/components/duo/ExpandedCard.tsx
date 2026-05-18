@@ -1,6 +1,12 @@
 import {
   Clock3,
   MoreHorizontal,
+  X,
+  CarFront,
+  CreditCard,
+  ShoppingBag,
+  Calendar,
+  Wrench,
 } from 'lucide-react';
 
 import { useState } from 'react';
@@ -73,6 +79,112 @@ function formatDueAt(
       weekday: 'short',
     }
   )} · ${time}`;
+}
+
+function getTitle(card: any) {
+  if ('title' in card.payload) {
+    return card.payload.title;
+  }
+
+  if ('item' in card.payload) {
+    return card.payload.item;
+  }
+
+  return '';
+}
+
+function getContext(card: any) {
+  if (card.type === 'transport') {
+    return `${card.payload.from || ''} → ${
+      card.payload.to || ''
+    }`;
+  }
+
+  if (card.type === 'pay') {
+    return `${card.payload.amount || ''} → ${
+      card.payload.recipient || ''
+    }`;
+  }
+
+  if (card.type === 'acquire') {
+    return `${card.payload.source || ''} · ${
+      card.payload.quantity || ''
+    }`;
+  }
+
+  if (card.type === 'appointment') {
+    return card.payload.location || '';
+  }
+
+  if (card.type === 'maintenance') {
+    return card.payload.location || '';
+  }
+
+  return '';
+}
+
+function getIcon(card: any) {
+  if (card.type === 'transport') {
+    return <CarFront size={26} />;
+  }
+
+  if (card.type === 'pay') {
+    return <CreditCard size={26} />;
+  }
+
+  if (card.type === 'acquire') {
+    return <ShoppingBag size={26} />;
+  }
+
+  if (card.type === 'appointment') {
+    return <Calendar size={26} />;
+  }
+
+  if (card.type === 'maintenance') {
+    return <Wrench size={26} />;
+  }
+
+  return null;
+}
+
+function getStateLabel(state: string) {
+  if (state === 'requested') {
+    return 'Requested';
+  }
+
+  if (state === 'accepted') {
+    return 'Accepted';
+  }
+
+  if (state === 'delayed') {
+    return 'Delayed';
+  }
+
+  return state;
+}
+
+function getStateColor(state: string) {
+  if (state === 'delayed') {
+    return '#a16207';
+  }
+
+  if (state === 'accepted') {
+    return '#2e7d32';
+  }
+
+  return '#555';
+}
+
+function getStateBackground(state: string) {
+  if (state === 'delayed') {
+    return 'rgba(217, 119, 6, 0.12)';
+  }
+
+  if (state === 'accepted') {
+    return 'rgba(52, 168, 83, 0.08)';
+  }
+
+  return 'rgba(0,0,0,0.06)';
 }
 
 export default function ExpandedCard({
@@ -149,6 +261,12 @@ export default function ExpandedCard({
     isCreator &&
     blockCount >= 2;
 
+  const title =
+    getTitle(card);
+
+  const context =
+    getContext(card);
+
   function handleAccept() {
     acceptCard(card.id);
 
@@ -215,10 +333,11 @@ export default function ExpandedCard({
 
         padding: 24,
 
+        paddingBottom: 100,
+
         display: 'flex',
 
-        flexDirection:
-          'column',
+        flexDirection: 'column',
       }}
     >
       <div
@@ -229,35 +348,114 @@ export default function ExpandedCard({
             'space-between',
 
           alignItems:
-            'flex-start',
+            'center',
 
-          marginBottom: 32,
+          marginBottom: 34,
         }}
       >
         <div
           style={{
-            fontSize: 28,
+            display: 'flex',
 
-            fontWeight: 700,
+            alignItems: 'center',
 
-            textTransform:
-              'capitalize',
+            gap: 14,
           }}
         >
-          {card.type}
+          <div
+            style={{
+              width: 52,
+
+              height: 52,
+
+              borderRadius: 17,
+
+              background:
+                'rgba(0,0,0,0.04)',
+
+              display: 'flex',
+
+              alignItems:
+                'center',
+
+              justifyContent:
+                'center',
+
+              color: '#444',
+            }}
+          >
+            {getIcon(card)}
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontSize: 13,
+
+                color: '#999',
+
+                fontWeight: 650,
+
+                textTransform:
+                  'capitalize',
+
+                marginBottom: 3,
+              }}
+            >
+              {card.type}
+            </div>
+
+            <div
+              style={{
+                display:
+                  'inline-flex',
+
+                alignItems:
+                  'center',
+
+                height: 24,
+
+                padding:
+                  '0 10px',
+
+                borderRadius: 999,
+
+                background:
+                  getStateBackground(
+                    card.state
+                  ),
+
+                color:
+                  getStateColor(
+                    card.state
+                  ),
+
+                fontSize: 10,
+
+                fontWeight: 800,
+
+                letterSpacing: 0.35,
+
+                textTransform:
+                  'uppercase',
+              }}
+            >
+              {getStateLabel(
+                card.state
+              )}
+            </div>
+          </div>
         </div>
 
         <div
           style={{
             display: 'flex',
 
-            alignItems:
-              'center',
+            alignItems: 'center',
 
             gap: 10,
 
-            position:
-              'relative',
+            position: 'relative',
           }}
         >
           {(isOwner ||
@@ -269,18 +467,16 @@ export default function ExpandedCard({
                 )
               }
               style={{
-                width: 36,
+                width: 40,
 
-                height: 36,
+                height: 40,
 
-                borderRadius:
-                  999,
+                borderRadius: 999,
 
                 border:
                   '1px solid rgba(0,0,0,0.06)',
 
-                background:
-                  '#fff',
+                background: '#fff',
 
                 display: 'flex',
 
@@ -290,12 +486,11 @@ export default function ExpandedCard({
                 justifyContent:
                   'center',
 
-                cursor:
-                  'pointer',
+                cursor: 'pointer',
               }}
             >
               <MoreHorizontal
-                size={18}
+                size={19}
               />
             </button>
           )}
@@ -303,16 +498,29 @@ export default function ExpandedCard({
           <button
             onClick={onClose}
             style={{
-              border: 'none',
+              width: 40,
 
-              background:
-                'none',
+              height: 40,
 
-              cursor:
-                'pointer',
+              borderRadius: 999,
+
+              border:
+                '1px solid rgba(0,0,0,0.06)',
+
+              background: '#fff',
+
+              display: 'flex',
+
+              alignItems:
+                'center',
+
+              justifyContent:
+                'center',
+
+              cursor: 'pointer',
             }}
           >
-            Close
+            <X size={18} />
           </button>
 
           {showMenu && (
@@ -321,26 +529,23 @@ export default function ExpandedCard({
                 position:
                   'absolute',
 
-                top: 44,
+                top: 48,
 
-                right: 52,
+                right: 48,
 
                 width: 220,
 
-                borderRadius:
-                  14,
+                borderRadius: 16,
 
                 border:
                   '1px solid rgba(0,0,0,0.06)',
 
-                background:
-                  '#fff',
+                background: '#fff',
 
                 boxShadow:
-                  '0 8px 30px rgba(0,0,0,0.08)',
+                  '0 12px 36px rgba(0,0,0,0.1)',
 
-                overflow:
-                  'hidden',
+                overflow: 'hidden',
 
                 zIndex: 200,
               }}
@@ -354,27 +559,22 @@ export default function ExpandedCard({
                       );
                     }}
                     style={{
-                      width:
-                        '100%',
+                      width: '100%',
 
                       height: 48,
 
-                      border:
-                        'none',
+                      border: 'none',
 
-                      background:
-                        '#fff',
+                      background: '#fff',
 
-                      textAlign:
-                        'left',
+                      textAlign: 'left',
 
                       padding:
                         '0 16px',
 
-                      fontWeight: 500,
+                      fontWeight: 600,
 
-                      cursor:
-                        'pointer',
+                      cursor: 'pointer',
                     }}
                   >
                     Reschedule
@@ -401,13 +601,11 @@ export default function ExpandedCard({
                       )
                     }
                     style={{
-                      width:
-                        '100%',
+                      width: '100%',
 
                       height: 44,
 
-                      border:
-                        'none',
+                      border: 'none',
 
                       background:
                         'transparent',
@@ -432,13 +630,11 @@ export default function ExpandedCard({
                       )
                     }
                     style={{
-                      width:
-                        '100%',
+                      width: '100%',
 
                       height: 44,
 
-                      border:
-                        'none',
+                      border: 'none',
 
                       background:
                         'transparent',
@@ -463,13 +659,11 @@ export default function ExpandedCard({
                       )
                     }
                     style={{
-                      width:
-                        '100%',
+                      width: '100%',
 
                       height: 44,
 
-                      border:
-                        'none',
+                      border: 'none',
 
                       background:
                         'transparent',
@@ -495,27 +689,22 @@ export default function ExpandedCard({
                     handleDecline
                   }
                   style={{
-                    width:
-                      '100%',
+                    width: '100%',
 
                     height: 48,
 
-                    border:
-                      'none',
+                    border: 'none',
 
-                    background:
-                      '#fff',
+                    background: '#fff',
 
-                    textAlign:
-                      'left',
+                    textAlign: 'left',
 
                     padding:
                       '0 16px',
 
-                    fontWeight: 500,
+                    fontWeight: 600,
 
-                    cursor:
-                      'pointer',
+                    cursor: 'pointer',
                   }}
                 >
                   Decline
@@ -528,30 +717,24 @@ export default function ExpandedCard({
                     handleStop
                   }
                   style={{
-                    width:
-                      '100%',
+                    width: '100%',
 
                     height: 48,
 
-                    border:
-                      'none',
+                    border: 'none',
 
-                    background:
-                      '#fff',
+                    background: '#fff',
 
-                    textAlign:
-                      'left',
+                    textAlign: 'left',
 
                     padding:
                       '0 16px',
 
-                    color:
-                      '#777',
+                    color: '#777',
 
-                    fontWeight: 500,
+                    fontWeight: 600,
 
-                    cursor:
-                      'pointer',
+                    cursor: 'pointer',
                   }}
                 >
                   Stop
@@ -564,30 +747,24 @@ export default function ExpandedCard({
                     handleCancel
                   }
                   style={{
-                    width:
-                      '100%',
+                    width: '100%',
 
                     height: 48,
 
-                    border:
-                      'none',
+                    border: 'none',
 
-                    background:
-                      '#fff',
+                    background: '#fff',
 
-                    textAlign:
-                      'left',
+                    textAlign: 'left',
 
                     padding:
                       '0 16px',
 
-                    color:
-                      '#777',
+                    color: '#777',
 
-                    fontWeight: 500,
+                    fontWeight: 600,
 
-                    cursor:
-                      'pointer',
+                    cursor: 'pointer',
                   }}
                 >
                   Cancel Task
@@ -600,108 +777,78 @@ export default function ExpandedCard({
 
       <div
         style={{
-          display: 'flex',
-
-          flexDirection:
-            'column',
-
-          gap: 22,
+          marginTop: 10,
         }}
       >
-        <div>
-          <div
-            style={{
-              fontSize: 13,
+        <div
+          style={{
+            fontSize: 30,
 
-              opacity: 0.45,
+            fontWeight: 780,
 
-              marginBottom: 6,
-            }}
-          >
-            TITLE
-          </div>
+            letterSpacing: -0.5,
 
-          <div
-            style={{
-              fontSize: 22,
+            color: '#111',
 
-              fontWeight: 600,
-            }}
-          >
-            {'title' in
-            card.payload
-              ? card.payload.title
-              : card.payload.item}
-          </div>
+            lineHeight: 1.1,
+
+            marginBottom: 10,
+          }}
+        >
+          {title}
         </div>
 
-        {card.dueAt && (
-          <div>
-            <div
-              style={{
-                fontSize: 13,
+        {context && (
+          <div
+            style={{
+              fontSize: 17,
 
-                opacity: 0.45,
+              color: '#777',
 
-                marginBottom: 6,
-              }}
-            >
-              TIME
-            </div>
+              lineHeight: 1.35,
 
-            <div
-              style={{
-                display:
-                  'inline-flex',
+              fontWeight: 500,
 
-                alignItems:
-                  'center',
-
-                gap: 8,
-
-                fontSize: 15,
-
-                fontWeight: 500,
-
-                color:
-                  isDelayed
-                    ? '#a16207'
-                    : '#111',
-              }}
-            >
-              <Clock3
-                size={16}
-              />
-
-              {formatDueAt(
-                card.dueAt
-              )}
-            </div>
+              marginBottom: 26,
+            }}
+          >
+            {context}
           </div>
         )}
 
-        <div>
+        {card.dueAt && (
           <div
             style={{
-              fontSize: 13,
+              display: 'inline-flex',
 
-              opacity: 0.45,
+              alignItems: 'center',
 
-              marginBottom: 6,
+              gap: 8,
+
+              padding:
+                '10px 12px',
+
+              borderRadius: 999,
+
+              background:
+                isDelayed
+                  ? 'rgba(217, 119, 6, 0.1)'
+                  : 'rgba(0,0,0,0.045)',
+
+              color: isDelayed
+                ? '#a16207'
+                : '#555',
+
+              fontSize: 14,
+
+              fontWeight: 700,
             }}
           >
-            STATUS
-          </div>
+            <Clock3 size={16} />
 
-          <div
-            style={{
-              textTransform:
-                'capitalize',
-            }}
-          >
-            {card.state}
+            {formatDueAt(card.dueAt)}
           </div>
-        </div>
+        )}
       </div>
 
       <div
@@ -715,20 +862,21 @@ export default function ExpandedCard({
             style={{
               width: '100%',
 
-              height: 56,
+              height: 58,
 
-              borderRadius: 14,
+              borderRadius: 18,
 
               border: 'none',
 
-              background:
-                '#111',
+              background: '#111',
 
               color: '#fff',
 
               fontSize: 16,
 
-              fontWeight: 600,
+              fontWeight: 750,
+
+              cursor: 'pointer',
             }}
           >
             Take
@@ -744,20 +892,21 @@ export default function ExpandedCard({
               style={{
                 width: '100%',
 
-                height: 56,
+                height: 58,
 
-                borderRadius: 14,
+                borderRadius: 18,
 
                 border: 'none',
 
-                background:
-                  '#111',
+                background: '#111',
 
                 color: '#fff',
 
                 fontSize: 16,
 
-                fontWeight: 600,
+                fontWeight: 750,
+
+                cursor: 'pointer',
               }}
             >
               Accept
@@ -771,20 +920,21 @@ export default function ExpandedCard({
               style={{
                 width: '100%',
 
-                height: 56,
+                height: 58,
 
-                borderRadius: 14,
+                borderRadius: 18,
 
                 border: 'none',
 
-                background:
-                  '#111',
+                background: '#111',
 
                 color: '#fff',
 
                 fontSize: 16,
 
-                fontWeight: 600,
+                fontWeight: 750,
+
+                cursor: 'pointer',
               }}
             >
               Done

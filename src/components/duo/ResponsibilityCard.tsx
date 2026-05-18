@@ -388,18 +388,18 @@ export default function ResponsibilityCard({
                 ? 'rgba(217, 119, 6, 0.12)'
                 : isRequested
                 ? 'rgba(0,0,0,0.06)'
-                : 'rgba(52, 168, 83, 0.08)',
+                : 'rgba(34, 197, 94, 0.14)',
 
             color:
               isDelayed
                 ? '#a16207'
                 : isRequested
                 ? '#555'
-                : '#2e7d32',
+                : '#15803d',
 
             border:
               isAccepted
-                ? '1px solid rgba(52, 168, 83, 0.14)'
+                ? '1px solid rgba(34, 197, 94, 0.28)'
                 : isDelayed
                 ? '1px solid rgba(217, 119, 6, 0.14)'
                 : 'none',
