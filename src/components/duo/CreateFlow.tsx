@@ -2,6 +2,12 @@ import { useState } from 'react';
 
 import {
   ChevronLeft,
+  X,
+  CarFront,
+  CreditCard,
+  ShoppingBag,
+  Calendar,
+  Wrench,
 } from 'lucide-react';
 
 import {
@@ -30,11 +36,88 @@ type Step =
   | 'types'
   | 'fields';
 
+type TimeMode =
+  | 'none'
+  | 'today'
+  | 'tomorrow'
+  | 'other';
+
 type Props = {
   open: boolean;
 
   onClose: () => void;
 };
+
+function getTypeIcon(
+  type: DuoCard['type']
+) {
+  if (type === 'transport') {
+    return <CarFront size={22} />;
+  }
+
+  if (type === 'pay') {
+    return <CreditCard size={22} />;
+  }
+
+  if (type === 'acquire') {
+    return <ShoppingBag size={22} />;
+  }
+
+  if (type === 'appointment') {
+    return <Calendar size={22} />;
+  }
+
+  if (type === 'maintenance') {
+    return <Wrench size={22} />;
+  }
+
+  return null;
+}
+
+function getTypeDescription(
+  type: DuoCard['type']
+) {
+  if (type === 'transport') {
+    return 'Move a person or item from one place to another.';
+  }
+
+  if (type === 'pay') {
+    return 'Track a payment responsibility.';
+  }
+
+  if (type === 'acquire') {
+    return 'Get something from a store, place, or source.';
+  }
+
+  if (type === 'appointment') {
+    return 'Handle a scheduled visit or meeting.';
+  }
+
+  if (type === 'maintenance') {
+    return 'Fix, check, repair, or maintain something.';
+  }
+
+  return '';
+}
+
+function getDateString(
+  date: Date
+) {
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1
+    ).padStart(2, '0');
+
+  const day =
+    String(
+      date.getDate()
+    ).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
 
 export default function CreateFlow({
   open,
@@ -67,11 +150,29 @@ export default function CreateFlow({
   const [payload, setPayload] =
     useState<any>({});
 
+  const [timeMode, setTimeMode] =
+    useState<TimeMode>('none');
+
   const [dueDate, setDueDate] =
     useState('');
 
   const [dueTime, setDueTime] =
     useState('');
+
+  const selectedTemplate =
+    selectedType
+      ? CARD_TEMPLATES.find(
+          (template) =>
+            template.type ===
+            selectedType
+        )
+      : null;
+
+  const canCreate =
+    Boolean(
+      payload.title ||
+        payload.item
+    );
 
   function resetFlow() {
     setStep('types');
@@ -79,6 +180,8 @@ export default function CreateFlow({
     setSelectedType(null);
 
     setPayload({});
+
+    setTimeMode('none');
 
     setDueDate('');
 
@@ -90,20 +193,57 @@ export default function CreateFlow({
   }
 
   function buildDueAt() {
-    if (!dueDate) {
+    if (timeMode === 'none') {
       return undefined;
     }
 
-    const time =
-      dueTime || '12:00';
+    const now =
+      new Date();
 
-    return new Date(
-      `${dueDate}T${time}`
-    ).getTime();
+    if (timeMode === 'today') {
+      const today =
+        getDateString(now);
+
+      return new Date(
+        `${today}T18:00`
+      ).getTime();
+    }
+
+    if (timeMode === 'tomorrow') {
+      const tomorrow =
+        new Date(now);
+
+      tomorrow.setDate(
+        tomorrow.getDate() + 1
+      );
+
+      return new Date(
+        `${getDateString(
+          tomorrow
+        )}T09:00`
+      ).getTime();
+    }
+
+    if (
+      timeMode === 'other' &&
+      dueDate
+    ) {
+      const time =
+        dueTime || '12:00';
+
+      return new Date(
+        `${dueDate}T${time}`
+      ).getTime();
+    }
+
+    return undefined;
   }
 
   function handleCreate() {
-    if (!selectedType) {
+    if (
+      !selectedType ||
+      !canCreate
+    ) {
       return;
     }
 
@@ -183,6 +323,39 @@ export default function CreateFlow({
     }
   }
 
+  function getTimeButtonStyle(
+    mode: TimeMode
+  ) {
+    const selected =
+      timeMode === mode;
+
+    return {
+      height: 40,
+
+      padding: '0 14px',
+
+      borderRadius: 999,
+
+      border: selected
+        ? '1px solid #111'
+        : '1px solid rgba(0,0,0,0.07)',
+
+      background: selected
+        ? '#111'
+        : '#fff',
+
+      color: selected
+        ? '#fff'
+        : '#777',
+
+      fontSize: 13,
+
+      fontWeight: 700,
+
+      cursor: 'pointer',
+    };
+  }
+
   if (!open) {
     return null;
   }
@@ -200,9 +373,9 @@ export default function CreateFlow({
 
         overflowY: 'auto',
 
-        padding: 20,
+        padding: 24,
 
-        paddingBottom: 140,
+        paddingBottom: 190,
       }}
     >
       <div
@@ -214,23 +387,39 @@ export default function CreateFlow({
 
           alignItems: 'center',
 
-          marginBottom: 34,
+          marginBottom: 30,
         }}
       >
-        <div
-          style={{
-            fontSize: 22,
+        <div>
+          <div
+            style={{
+              fontSize: 28,
 
-            fontWeight: 700,
-          }}
-        >
-          {selectedType
-            ? CARD_TEMPLATES.find(
-                (t) =>
-                  t.type ===
-                  selectedType
-              )?.label
-            : 'Create'}
+              fontWeight: 750,
+
+              letterSpacing: -0.4,
+
+              color: '#111',
+            }}
+          >
+            {selectedTemplate
+              ? selectedTemplate.label
+              : 'Create'}
+          </div>
+
+          <div
+            style={{
+              marginTop: 6,
+
+              fontSize: 13,
+
+              color: '#999',
+            }}
+          >
+            {step === 'types'
+              ? 'Choose the responsibility type.'
+              : 'Fill only what is needed.'}
+          </div>
         </div>
 
         <button
@@ -238,9 +427,17 @@ export default function CreateFlow({
             if (
               step === 'fields'
             ) {
-              setStep(
-                'types'
-              );
+              setStep('types');
+
+              setSelectedType(null);
+
+              setPayload({});
+
+              setTimeMode('none');
+
+              setDueDate('');
+
+              setDueTime('');
 
               return;
             }
@@ -248,31 +445,33 @@ export default function CreateFlow({
             resetFlow();
           }}
           style={{
-            width: 42,
+            width: 40,
 
-            height: 42,
+            height: 40,
 
-            borderRadius: 14,
+            borderRadius: 999,
 
             border:
-              '1px solid rgba(0,0,0,0.08)',
+              '1px solid rgba(0,0,0,0.06)',
 
             background: '#fff',
 
             display: 'flex',
 
-            alignItems:
-              'center',
+            alignItems: 'center',
 
-            justifyContent:
-              'center',
+            justifyContent: 'center',
 
             cursor: 'pointer',
           }}
         >
-          <ChevronLeft
-            size={18}
-          />
+          {step === 'fields' ? (
+            <ChevronLeft
+              size={19}
+            />
+          ) : (
+            <X size={18} />
+          )}
         </button>
       </div>
 
@@ -303,12 +502,12 @@ export default function CreateFlow({
                   );
                 }}
                 style={{
-                  height: 64,
+                  minHeight: 76,
 
-                  borderRadius: 18,
+                  borderRadius: 20,
 
                   border:
-                    '1px solid rgba(0,0,0,0.08)',
+                    '1px solid rgba(0,0,0,0.06)',
 
                   background:
                     '#fff',
@@ -316,19 +515,81 @@ export default function CreateFlow({
                   textAlign:
                     'left',
 
-                  padding:
-                    '0 18px',
+                  padding: 16,
 
-                  fontSize: 16,
+                  display:
+                    'flex',
 
-                  fontWeight: 600,
+                  alignItems:
+                    'center',
 
-                  cursor: 'pointer',
+                  gap: 14,
+
+                  cursor:
+                    'pointer',
                 }}
               >
-                {
-                  template.label
-                }
+                <div
+                  style={{
+                    width: 46,
+
+                    height: 46,
+
+                    borderRadius: 15,
+
+                    background:
+                      'rgba(0,0,0,0.04)',
+
+                    display:
+                      'flex',
+
+                    alignItems:
+                      'center',
+
+                    justifyContent:
+                      'center',
+
+                    color: '#555',
+
+                    flexShrink: 0,
+                  }}
+                >
+                  {getTypeIcon(
+                    template.type
+                  )}
+                </div>
+
+                <div>
+                  <div
+                    style={{
+                      fontSize: 16,
+
+                      fontWeight: 700,
+
+                      color: '#111',
+
+                      marginBottom: 4,
+                    }}
+                  >
+                    {
+                      template.label
+                    }
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 13,
+
+                      lineHeight: 1.35,
+
+                      color: '#888',
+                    }}
+                  >
+                    {getTypeDescription(
+                      template.type
+                    )}
+                  </div>
+                </div>
               </button>
             )
           )}
@@ -337,159 +598,344 @@ export default function CreateFlow({
 
       {step === 'fields' && (
         <>
-          <div
+          <section
             style={{
-              display: 'flex',
-
-              gap: 10,
-
               marginBottom: 28,
             }}
           >
-            <button
-              onClick={() =>
-                setOwnerId(
-                  'me'
-                )
-              }
+            <div
               style={{
-                height: 42,
+                fontSize: 12,
 
-                padding:
-                  '0 16px',
+                fontWeight: 750,
 
-                borderRadius: 14,
+                letterSpacing: 0.6,
 
-                border:
-                  ownerId ===
-                  'me'
-                    ? '1px solid #111'
-                    : '1px solid rgba(0,0,0,0.08)',
+                textTransform:
+                  'uppercase',
 
-                background:
-                  ownerId ===
-                  'me'
-                    ? '#111'
-                    : '#fff',
+                color: '#aaa',
 
-                color:
-                  ownerId ===
-                  'me'
-                    ? '#fff'
-                    : '#111',
+                marginBottom: 10,
               }}
             >
-              Me
-            </button>
+              Responsibility
+            </div>
 
-            <button
-              onClick={() =>
-                setOwnerId(
-                  'partner'
-                )
-              }
+            <div
               style={{
-                height: 42,
+                display:
+                  'inline-flex',
 
-                padding:
-                  '0 16px',
+                padding: 4,
 
-                borderRadius: 14,
-
-                border:
-                  ownerId ===
-                  'partner'
-                    ? '1px solid #111'
-                    : '1px solid rgba(0,0,0,0.08)',
+                borderRadius: 999,
 
                 background:
-                  ownerId ===
-                  'partner'
-                    ? '#111'
-                    : '#fff',
+                  'rgba(0,0,0,0.035)',
 
-                color:
-                  ownerId ===
-                  'partner'
-                    ? '#fff'
-                    : '#111',
+                border:
+                  '1px solid rgba(0,0,0,0.04)',
               }}
             >
-              Partner
-            </button>
-          </div>
+              <button
+                onClick={() =>
+                  setOwnerId('me')
+                }
+                style={{
+                  height: 34,
 
-          <div
+                  padding:
+                    '0 16px',
+
+                  borderRadius: 999,
+
+                  border: 'none',
+
+                  background:
+                    ownerId === 'me'
+                      ? '#111'
+                      : 'transparent',
+
+                  color:
+                    ownerId === 'me'
+                      ? '#fff'
+                      : '#777',
+
+                  cursor: 'pointer',
+
+                  fontWeight: 700,
+
+                  fontSize: 13,
+                }}
+              >
+                Me
+              </button>
+
+              <button
+                onClick={() =>
+                  setOwnerId(
+                    'partner'
+                  )
+                }
+                style={{
+                  height: 34,
+
+                  padding:
+                    '0 16px',
+
+                  borderRadius: 999,
+
+                  border: 'none',
+
+                  background:
+                    ownerId ===
+                    'partner'
+                      ? '#111'
+                      : 'transparent',
+
+                  color:
+                    ownerId ===
+                    'partner'
+                      ? '#fff'
+                      : '#777',
+
+                  cursor: 'pointer',
+
+                  fontWeight: 700,
+
+                  fontSize: 13,
+                }}
+              >
+                Partner
+              </button>
+            </div>
+          </section>
+
+          <section
             style={{
-              display: 'flex',
-
-              flexDirection:
-                'column',
-
-              gap: 18,
+              marginBottom: 28,
             }}
           >
-            {renderFields()}
-
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) =>
-                setDueDate(
-                  e.target.value
-                )
-              }
+            <div
               style={{
-                height: 52,
+                fontSize: 12,
 
-                borderRadius: 16,
+                fontWeight: 750,
 
-                border:
-                  '1px solid rgba(0,0,0,0.08)',
+                letterSpacing: 0.6,
 
-                padding:
-                  '0 16px',
+                textTransform:
+                  'uppercase',
 
-                fontSize: 16,
+                color: '#aaa',
+
+                marginBottom: 10,
               }}
-            />
+            >
+              Details
+            </div>
 
-            <input
-              type="time"
-              value={dueTime}
-              onChange={(e) =>
-                setDueTime(
-                  e.target.value
-                )
-              }
+            <div
               style={{
-                height: 52,
+                display: 'flex',
 
-                borderRadius: 16,
+                flexDirection:
+                  'column',
 
-                border:
-                  '1px solid rgba(0,0,0,0.08)',
-
-                padding:
-                  '0 16px',
-
-                fontSize: 16,
+                gap: 14,
               }}
-            />
-          </div>
+            >
+              {renderFields()}
+            </div>
+          </section>
+
+          <section>
+            <div
+              style={{
+                fontSize: 12,
+
+                fontWeight: 750,
+
+                letterSpacing: 0.6,
+
+                textTransform:
+                  'uppercase',
+
+                color: '#aaa',
+
+                marginBottom: 10,
+              }}
+            >
+              Time
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+
+                flexWrap: 'wrap',
+
+                gap: 8,
+
+                marginBottom: 14,
+              }}
+            >
+              <button
+                onClick={() => {
+                  setTimeMode('none');
+
+                  setDueDate('');
+
+                  setDueTime('');
+                }}
+                style={getTimeButtonStyle(
+                  'none'
+                )}
+              >
+                No time
+              </button>
+
+              <button
+                onClick={() => {
+                  setTimeMode('today');
+
+                  setDueDate('');
+
+                  setDueTime('');
+                }}
+                style={getTimeButtonStyle(
+                  'today'
+                )}
+              >
+                Today
+              </button>
+
+              <button
+                onClick={() => {
+                  setTimeMode(
+                    'tomorrow'
+                  );
+
+                  setDueDate('');
+
+                  setDueTime('');
+                }}
+                style={getTimeButtonStyle(
+                  'tomorrow'
+                )}
+              >
+                Tomorrow
+              </button>
+
+              <button
+                onClick={() =>
+                  setTimeMode('other')
+                }
+                style={getTimeButtonStyle(
+                  'other'
+                )}
+              >
+                Other
+              </button>
+            </div>
+
+            <div
+              style={{
+                minHeight: 54,
+
+                transition:
+                  'opacity 0.16s ease',
+
+                opacity:
+                  timeMode === 'other'
+                    ? 1
+                    : 0,
+
+                pointerEvents:
+                  timeMode === 'other'
+                    ? 'auto'
+                    : 'none',
+              }}
+            >
+              <div
+                style={{
+                  display: 'grid',
+
+                  gridTemplateColumns:
+                    '1fr 1fr',
+
+                  gap: 10,
+                }}
+              >
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) =>
+                    setDueDate(
+                      e.target.value
+                    )
+                  }
+                  style={{
+                    height: 52,
+
+                    borderRadius: 17,
+
+                    border:
+                      '1px solid rgba(0,0,0,0.08)',
+
+                    padding:
+                      '0 14px',
+
+                    fontSize: 15,
+
+                    background:
+                      '#fff',
+                  }}
+                />
+
+                <input
+                  type="time"
+                  value={dueTime}
+                  onChange={(e) =>
+                    setDueTime(
+                      e.target.value
+                    )
+                  }
+                  style={{
+                    height: 52,
+
+                    borderRadius: 17,
+
+                    border:
+                      '1px solid rgba(0,0,0,0.08)',
+
+                    padding:
+                      '0 14px',
+
+                    fontSize: 15,
+
+                    background:
+                      '#fff',
+                  }}
+                />
+              </div>
+            </div>
+          </section>
 
           <button
             onClick={
               handleCreate
             }
+            disabled={!canCreate}
             style={{
               position: 'fixed',
 
-              left: 20,
+              left: 24,
 
-              right: 20,
+              right: 24,
 
-              bottom: 96,
+              bottom: 28,
 
               height: 58,
 
@@ -498,16 +944,25 @@ export default function CreateFlow({
               border: 'none',
 
               background:
-                '#111',
+                canCreate
+                  ? '#111'
+                  : 'rgba(0,0,0,0.12)',
 
               color: '#fff',
 
               fontSize: 16,
 
-              fontWeight: 700,
+              fontWeight: 750,
 
               boxShadow:
-                '0 10px 30px rgba(0,0,0,0.12)',
+                canCreate
+                  ? '0 10px 30px rgba(0,0,0,0.12)'
+                  : 'none',
+
+              cursor:
+                canCreate
+                  ? 'pointer'
+                  : 'default',
 
               zIndex: 120,
             }}
