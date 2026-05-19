@@ -25,6 +25,8 @@ import FloatingCreateButton from '../components/duo/FloatingCreateButton';
 
 import EmptyState from '../components/duo/EmptyState';
 
+import AuthScreen from '../components/duo/AuthScreen';
+
 import {
   UserId,
 } from '../types/card';
@@ -39,6 +41,10 @@ import {
   useDuoLifecycle,
 } from '../hooks/useDuoLifecycle';
 
+import {
+  useAuth,
+} from '../hooks/useAuth';
+
 type Tab =
   | 'main'
   | 'created'
@@ -46,6 +52,11 @@ type Tab =
 
 export default function Index() {
   useDuoLifecycle();
+
+  const {
+    session,
+    loading,
+  } = useAuth();
 
   const [selectedId, setSelectedId] =
     useState<string | null>(null);
@@ -116,6 +127,32 @@ export default function Index() {
     !selectedId &&
     !createOpen &&
     !settingsOpen;
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+
+          display: 'flex',
+
+          alignItems: 'center',
+
+          justifyContent: 'center',
+
+          color: '#999',
+
+          fontSize: 14,
+        }}
+      >
+        Loading Duo
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <AuthScreen />;
+  }
 
   return (
     <div
