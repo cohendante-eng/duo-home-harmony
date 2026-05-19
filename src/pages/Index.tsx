@@ -28,10 +28,6 @@ import EmptyState from '../components/duo/EmptyState';
 import AuthScreen from '../components/duo/AuthScreen';
 
 import {
-  UserId,
-} from '../types/card';
-
-import {
   getVisibleCardsForUser,
   getCreatedCardsForUser,
   sortHomeCards,
@@ -56,6 +52,7 @@ export default function Index() {
   const {
     session,
     loading,
+    email,
   } = useAuth();
 
   const [selectedId, setSelectedId] =
@@ -78,17 +75,6 @@ export default function Index() {
 
   const currentUser =
     useCards((s) => s.currentUser);
-
-  const setUser =
-    useCards.setState;
-
-  function setCurrentUser(
-    user: UserId
-  ) {
-    setUser({
-      currentUser: user,
-    });
-  }
 
   const visibleCards =
     useMemo(() => {
@@ -167,10 +153,7 @@ export default function Index() {
       }}
     >
       <TopBar
-        currentUser={currentUser}
-        setCurrentUser={
-          setCurrentUser
-        }
+        email={email}
         onOpenSettings={() =>
           setSettingsOpen(true)
         }
