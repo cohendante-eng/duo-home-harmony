@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -75,6 +76,14 @@ export default function Index() {
 
   const currentUser =
     useCards((s) => s.currentUser);
+
+  useEffect(() => {
+    if (session) {
+      useCards.setState({
+        currentUser: 'me',
+      });
+    }
+  }, [session]);
 
   const visibleCards =
     useMemo(() => {
