@@ -27,14 +27,14 @@ export default function SettingsPanel({
       (s) => s.status
     );
 
-  const partnerName =
+  const partner =
     usePartner(
-      (s) => s.partnerName
+      (s) => s.partner
     );
 
-  const partnerEmail =
+  const pendingInvite =
     usePartner(
-      (s) => s.partnerEmail
+      (s) => s.pendingInvite
     );
 
   const invitePartner =
@@ -45,6 +45,11 @@ export default function SettingsPanel({
   const connectMockPartner =
     usePartner(
       (s) => s.connectMockPartner
+    );
+
+  const cancelInvite =
+    usePartner(
+      (s) => s.cancelInvite
     );
 
   const disconnectPartner =
@@ -210,8 +215,8 @@ export default function SettingsPanel({
               </div>
 
               <button
-                onClick={
-                  invitePartner
+                onClick={() =>
+                  invitePartner()
                 }
                 style={{
                   height: 44,
@@ -264,7 +269,8 @@ export default function SettingsPanel({
                 }}
               >
                 Waiting for{' '}
-                {partnerEmail}
+                {pendingInvite?.email ??
+                  'partner'}
                 {' '}to accept the connection.
               </div>
 
@@ -305,7 +311,7 @@ export default function SettingsPanel({
 
                 <button
                   onClick={
-                    disconnectPartner
+                    cancelInvite
                   }
                   style={{
                     height: 44,
@@ -347,7 +353,8 @@ export default function SettingsPanel({
                 }}
               >
                 Connected to{' '}
-                {partnerName}
+                {partner?.name ??
+                  'Partner'}
               </div>
 
               <div
@@ -363,6 +370,22 @@ export default function SettingsPanel({
               >
                 Duo is paired with one household partner.
               </div>
+
+              {partner?.email && (
+                <div
+                  style={{
+                    fontSize: 13,
+
+                    color: '#999',
+
+                    lineHeight: 1.45,
+
+                    marginBottom: 16,
+                  }}
+                >
+                  {partner.email}
+                </div>
+              )}
 
               <button
                 onClick={

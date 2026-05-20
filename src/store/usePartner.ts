@@ -7,16 +7,34 @@ type PartnerStatus =
   | 'pending'
   | 'connected';
 
+type Partner = {
+  id: string;
+
+  name: string;
+
+  email: string;
+};
+
+type PartnerInvite = {
+  email: string;
+
+  createdAt: number;
+};
+
 type PartnerStore = {
   status: PartnerStatus;
 
-  partnerName: string | null;
+  partner: Partner | null;
 
-  partnerEmail: string | null;
+  pendingInvite: PartnerInvite | null;
 
-  invitePartner: () => void;
+  invitePartner: (
+    email?: string
+  ) => void;
 
   connectMockPartner: () => void;
+
+  cancelInvite: () => void;
 
   disconnectPartner: () => void;
 };
@@ -24,38 +42,68 @@ type PartnerStore = {
 export const usePartner =
   create<PartnerStore>()(
     persist(
-      (set) => ({
+      (set, get) => ({
         status:
           'not_connected',
 
-        partnerName:
+        partner:
           null,
 
-        partnerEmail:
+        pendingInvite:
           null,
 
-        invitePartner: () =>
+        invitePartner: (
+          email =
+            'partner@example.com'
+        ) =>
           set({
             status:
               'pending',
 
-            partnerName:
+            partner:
               null,
 
-            partnerEmail:
-              'partner@example.com',
+            pendingInvite: {
+              email,
+
+              createdAt:
+                Date.now(),
+            },
           }),
 
-        connectMockPartner: () =>
+        connectMockPartner: () => {
+          const invite =
+            get().pendingInvite;
+
           set({
             status:
               'connected',
 
-            partnerName:
-              'Partner',
+            partner: {
+              id: 'mock-partner',
 
-            partnerEmail:
-              'partner@example.com',
+              name: 'Partner',
+
+              email:
+                invite?.email ??
+                'partner@example.com',
+            },
+
+            pendingInvite:
+              null,
+          });
+        },
+
+        cancelInvite: () =>
+          set({
+            status:
+              'not_connected',
+
+            partner:
+              null,
+
+            pendingInvite:
+              null,
           }),
 
         disconnectPartner: () =>
@@ -63,10 +111,10 @@ export const usePartner =
             status:
               'not_connected',
 
-            partnerName:
+            partner:
               null,
 
-            partnerEmail:
+            pendingInvite:
               null,
           }),
       }),
@@ -78,11 +126,11 @@ export const usePartner =
           status:
             state.status,
 
-          partnerName:
-            state.partnerName,
+          partner:
+            state.partner,
 
-          partnerEmail:
-            state.partnerEmail,
+          pendingInvite:
+            state.pendingInvite,
         }),
       }
     )
