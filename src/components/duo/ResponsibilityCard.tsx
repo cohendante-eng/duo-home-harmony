@@ -178,16 +178,13 @@ export default function ResponsibilityCard({
     card.ownerId === currentUser;
 
   const isRequested =
-    card.state ===
-    'requested';
+    card.state === 'requested';
 
   const isAccepted =
-    card.state ===
-    'accepted';
+    card.state === 'accepted';
 
   const isDelayed =
-    card.state ===
-    'delayed';
+    card.state === 'delayed';
 
   const title =
     getTitle(card);
@@ -204,12 +201,16 @@ export default function ResponsibilityCard({
       style={{
         width: '100%',
 
+        height: 88,
+
+        boxSizing: 'border-box',
+
         border:
-          '1px solid rgba(0,0,0,0.06)',
+          '1px solid rgba(0,0,0,0.065)',
 
-        borderRadius: 22,
+        borderRadius: 18,
 
-        padding: 18,
+        padding: 16,
 
         display: 'flex',
 
@@ -218,9 +219,12 @@ export default function ResponsibilityCard({
         justifyContent:
           'space-between',
 
-        gap: 18,
+        gap: 14,
 
-        background: '#fff',
+        background:
+          isMine
+            ? '#fbfbfa'
+            : '#fff',
 
         textAlign: 'left',
 
@@ -231,7 +235,7 @@ export default function ResponsibilityCard({
           : 0.42,
 
         transition:
-          'opacity 0.2s ease',
+          'opacity 0.2s ease, background 0.2s ease',
       }}
     >
       <div
@@ -240,7 +244,7 @@ export default function ResponsibilityCard({
 
           alignItems: 'flex-start',
 
-          gap: 16,
+          gap: 13,
 
           minWidth: 0,
 
@@ -249,14 +253,14 @@ export default function ResponsibilityCard({
       >
         <div
           style={{
-            width: 54,
+            width: 46,
 
-            height: 54,
+            height: 46,
 
-            borderRadius: 17,
+            borderRadius: 15,
 
             background:
-              'rgba(0,0,0,0.04)',
+              'rgba(0,0,0,0.055)',
 
             display: 'flex',
 
@@ -270,7 +274,7 @@ export default function ResponsibilityCard({
             flexShrink: 0,
           }}
         >
-          <Icon size={27} />
+          <Icon size={23} />
         </div>
 
         <div
@@ -280,24 +284,30 @@ export default function ResponsibilityCard({
             flexDirection:
               'column',
 
-            gap: 5,
+            gap: 4,
 
             minWidth: 0,
 
-            paddingTop: 2,
+            paddingTop: 1,
           }}
         >
           <div
             style={{
-              fontSize: 19,
+              fontSize: 17,
 
-              fontWeight: 700,
+              fontWeight: 760,
 
               color: '#111',
 
-              lineHeight: 1.12,
+              lineHeight: 1.14,
 
-              letterSpacing: -0.15,
+              letterSpacing: -0.1,
+
+              overflow: 'hidden',
+
+              textOverflow: 'ellipsis',
+
+              whiteSpace: 'nowrap',
             }}
           >
             {title}
@@ -305,13 +315,19 @@ export default function ResponsibilityCard({
 
           <div
             style={{
-              fontSize: 15,
+              fontSize: 14,
 
               color: '#666',
 
               lineHeight: 1.25,
 
-              fontWeight: 500,
+              fontWeight: 550,
+
+              overflow: 'hidden',
+
+              textOverflow: 'ellipsis',
+
+              whiteSpace: 'nowrap',
             }}
           >
             {subtitle}
@@ -328,9 +344,9 @@ export default function ResponsibilityCard({
 
                 gap: 6,
 
-                marginTop: 8,
+                marginTop: 5,
 
-                fontSize: 13,
+                fontSize: 12,
 
                 color: isDelayed
                   ? '#a16207'
@@ -340,10 +356,16 @@ export default function ResponsibilityCard({
                   isDelayed
                     ? 700
                     : 600,
+
+                overflow: 'hidden',
+
+                textOverflow: 'ellipsis',
+
+                whiteSpace: 'nowrap',
               }}
             >
               <Clock3
-                size={14}
+                size={13}
               />
 
               {formatDueAt(
@@ -358,7 +380,7 @@ export default function ResponsibilityCard({
         style={{
           flexShrink: 0,
 
-          paddingTop: 2,
+          paddingTop: 1,
         }}
       >
         <div
@@ -367,14 +389,14 @@ export default function ResponsibilityCard({
 
             alignItems: 'center',
 
-            height: 28,
+            height: 26,
 
             padding:
-              '0 12px',
+              '0 11px',
 
             borderRadius: 999,
 
-            fontSize: 11,
+            fontSize: 10,
 
             fontWeight: 800,
 

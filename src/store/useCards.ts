@@ -590,9 +590,6 @@ export const useCards =
         name: 'duo-cards-storage',
 
         partialize: (state) => ({
-          currentUser:
-            state.currentUser,
-
           activeCards:
             state.activeCards,
 

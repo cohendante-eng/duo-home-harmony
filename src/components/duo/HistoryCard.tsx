@@ -33,7 +33,7 @@ function getStatusColor(
   card: DuoCard
 ) {
   if (card.state === 'expired') {
-    return '#999';
+    return '#888';
   }
 
   if (card.state === 'cancelled') {
@@ -53,6 +53,12 @@ export default function HistoryCard({
   return (
     <div
       style={{
+        width: '100%',
+
+        height: 88,
+
+        boxSizing: 'border-box',
+
         padding: 16,
 
         borderRadius: 18,
@@ -64,76 +70,102 @@ export default function HistoryCard({
 
         display: 'flex',
 
-        flexDirection:
-          'column',
+        alignItems: 'flex-start',
 
-        gap: 7,
+        justifyContent:
+          'space-between',
+
+        gap: 14,
       }}
     >
       <div
         style={{
-          display: 'flex',
+          minWidth: 0,
 
-          justifyContent:
-            'space-between',
+          flex: 1,
 
-          alignItems:
-            'flex-start',
-
-          gap: 12,
+          paddingTop: 1,
         }}
       >
-        <div>
-          <div
-            style={{
-              fontSize: 15,
+        <div
+          style={{
+            fontSize: 16,
 
-              fontWeight: 650,
+            fontWeight: 700,
 
-              color: '#111',
-            }}
-          >
-            {getCardTitle(card)}
-          </div>
+            color: '#111',
 
-          <div
-            style={{
-              marginTop: 7,
+            lineHeight: 1.16,
 
-              fontSize: 13,
+            letterSpacing: -0.05,
 
-              color: '#888',
-            }}
-          >
-            {getCardContext(card)}
-          </div>
+            overflow: 'hidden',
+
+            textOverflow: 'ellipsis',
+
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {getCardTitle(card)}
         </div>
 
         <div
           style={{
-            padding:
-              '6px 9px',
+            marginTop: 8,
 
-            borderRadius: 999,
+            fontSize: 13,
 
-            background:
-              'rgba(0,0,0,0.035)',
+            color: '#888',
 
-            fontSize: 10,
+            lineHeight: 1.25,
 
-            fontWeight: 750,
+            fontWeight: 500,
 
-            letterSpacing: 0.6,
+            overflow: 'hidden',
 
-            color:
-              getStatusColor(card),
+            textOverflow: 'ellipsis',
 
-            whiteSpace:
-              'nowrap',
+            whiteSpace: 'nowrap',
           }}
         >
-          {getStatusLabel(card)}
+          {getCardContext(card)}
         </div>
+      </div>
+
+      <div
+        style={{
+          flexShrink: 0,
+
+          display: 'inline-flex',
+
+          alignItems: 'center',
+
+          height: 26,
+
+          padding:
+            '0 10px',
+
+          borderRadius: 999,
+
+          background:
+            'rgba(0,0,0,0.035)',
+
+          fontSize: 10,
+
+          fontWeight: 800,
+
+          letterSpacing: 0.55,
+
+          color:
+            getStatusColor(card),
+
+          whiteSpace: 'nowrap',
+
+          textTransform:
+            'uppercase',
+        }}
+      >
+        {getStatusLabel(card)}
       </div>
     </div>
   );
