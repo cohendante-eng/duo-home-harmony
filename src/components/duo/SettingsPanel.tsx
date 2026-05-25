@@ -3,12 +3,20 @@ import {
 } from 'lucide-react';
 
 import {
+  useState,
+} from 'react';
+
+import {
   usePartner,
 } from '../../store/usePartner';
 
 import {
   useAuth,
 } from '../../hooks/useAuth';
+
+import {
+  createPartnerInvitation,
+} from '../../lib/partnerInvitations';
 
 type Props = {
   onClose: () => void;
@@ -19,8 +27,20 @@ export default function SettingsPanel({
 }: Props) {
   const {
     email,
+    user,
     signOut,
   } = useAuth();
+
+  const [inviteEmail, setInviteEmail] =
+    useState('');
+
+  const [inviteStatus, setInviteStatus] =
+    useState<
+      'idle' | 'sending' | 'error'
+    >('idle');
+
+  const [inviteError, setInviteError] =
+    useState('');
 
   const status =
     usePartner(
@@ -65,6 +85,57 @@ export default function SettingsPanel({
 
   const isConnected =
     status === 'connected';
+
+  async function handleInvitePartner() {
+    if (!user) {
+      setInviteStatus('error');
+
+      setInviteError(
+        'You need to be signed in.'
+      );
+
+      return;
+    }
+
+    if (!inviteEmail.trim()) {
+      setInviteStatus('error');
+
+      setInviteError(
+        'Enter your partner email.'
+      );
+
+      return;
+    }
+
+    setInviteStatus('sending');
+
+    setInviteError('');
+
+    try {
+      const invitation =
+        await createPartnerInvitation({
+          inviterId: user.id,
+
+          inviteeEmail: inviteEmail,
+        });
+
+      invitePartner(
+        invitation.email
+      );
+
+      setInviteEmail('');
+
+      setInviteStatus('idle');
+    } catch (error) {
+      setInviteStatus('error');
+
+      setInviteError(
+        error instanceof Error
+          ? error.message
+          : 'Could not send invite.'
+      );
+    }
+  }
 
   async function handleSignOut() {
     await signOut();
@@ -214,9 +285,50 @@ export default function SettingsPanel({
                 Invite one household partner to share responsibilities.
               </div>
 
+              <input
+                type="email"
+                value={inviteEmail}
+                onChange={(event) => {
+                  setInviteEmail(
+                    event.target.value
+                  );
+
+                  setInviteStatus('idle');
+
+                  setInviteError('');
+                }}
+                placeholder="Partner email"
+                style={{
+                  width: '100%',
+
+                  height: 48,
+
+                  boxSizing:
+                    'border-box',
+
+                  borderRadius: 14,
+
+                  border:
+                    '1px solid rgba(0,0,0,0.08)',
+
+                  padding:
+                    '0 14px',
+
+                  fontSize: 15,
+
+                  outline: 'none',
+
+                  marginBottom: 12,
+                }}
+              />
+
               <button
-                onClick={() =>
-                  invitePartner()
+                onClick={
+                  handleInvitePartner
+                }
+                disabled={
+                  inviteStatus ===
+                  'sending'
                 }
                 style={{
                   height: 44,
@@ -229,17 +341,44 @@ export default function SettingsPanel({
                   border: 'none',
 
                   background:
-                    '#111',
+                    inviteStatus ===
+                    'sending'
+                      ? 'rgba(0,0,0,0.18)'
+                      : '#111',
 
                   color: '#fff',
 
                   fontWeight: 600,
 
-                  cursor: 'pointer',
+                  cursor:
+                    inviteStatus ===
+                    'sending'
+                      ? 'default'
+                      : 'pointer',
                 }}
               >
-                Invite partner
+                {inviteStatus ===
+                'sending'
+                  ? 'Sending invite'
+                  : 'Invite partner'}
               </button>
+
+              {inviteStatus ===
+                'error' && (
+                <div
+                  style={{
+                    marginTop: 12,
+
+                    fontSize: 13,
+
+                    color: '#991b1b',
+
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {inviteError}
+                </div>
+              )}
             </>
           )}
 
