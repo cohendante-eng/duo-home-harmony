@@ -3,6 +3,7 @@ import {
 } from 'lucide-react';
 
 import {
+  useEffect,
   useState,
 } from 'react';
 
@@ -15,7 +16,9 @@ import {
 } from '../../hooks/useAuth';
 
 import {
+  cancelPartnerInvitation,
   createPartnerInvitation,
+  getLatestPendingPartnerInvitation,
 } from '../../lib/partnerInvitations';
 
 type Props = {
@@ -62,6 +65,11 @@ export default function SettingsPanel({
       (s) => s.invitePartner
     );
 
+  const setPendingInvite =
+    usePartner(
+      (s) => s.setPendingInvite
+    );
+
   const connectMockPartner =
     usePartner(
       (s) => s.connectMockPartner
@@ -85,6 +93,38 @@ export default function SettingsPanel({
 
   const isConnected =
     status === 'connected';
+
+  useEffect(() => {
+    if (!user || isConnected) {
+      return;
+    }
+
+    getLatestPendingPartnerInvitation({
+      userId: user.id,
+    })
+      .then((invite) => {
+        if (!invite) {
+          return;
+        }
+
+        setPendingInvite({
+          id: invite.id,
+
+          email: invite.email,
+
+          createdAt:
+            invite.createdAt,
+        });
+      })
+      .catch(() => {
+        // Keep Settings quiet for now.
+        // We will improve error handling later.
+      });
+  }, [
+    user,
+    isConnected,
+    setPendingInvite,
+  ]);
 
   async function handleInvitePartner() {
     if (!user) {
@@ -120,7 +160,9 @@ export default function SettingsPanel({
         });
 
       invitePartner(
-        invitation.email
+        invitation.email,
+        invitation.id,
+        invitation.createdAt
       );
 
       setInviteEmail('');
@@ -135,6 +177,23 @@ export default function SettingsPanel({
           : 'Could not send invite.'
       );
     }
+  }
+
+  async function handleCancelInvite() {
+    const invitationId =
+      pendingInvite?.id;
+
+    if (invitationId) {
+      try {
+        await cancelPartnerInvitation({
+          invitationId,
+        });
+      } catch {
+        // Keep local cancel usable even if backend update fails.
+      }
+    }
+
+    cancelInvite();
   }
 
   async function handleSignOut() {
@@ -450,7 +509,7 @@ export default function SettingsPanel({
 
                 <button
                   onClick={
-                    cancelInvite
+                    handleCancelInvite
                   }
                   style={{
                     height: 44,

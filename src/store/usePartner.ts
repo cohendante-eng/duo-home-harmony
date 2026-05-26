@@ -16,6 +16,8 @@ type Partner = {
 };
 
 type PartnerInvite = {
+  id?: string;
+
   email: string;
 
   createdAt: number;
@@ -29,7 +31,13 @@ type PartnerStore = {
   pendingInvite: PartnerInvite | null;
 
   invitePartner: (
-    email?: string
+    email?: string,
+    id?: string,
+    createdAt?: number
+  ) => void;
+
+  setPendingInvite: (
+    invite: PartnerInvite
   ) => void;
 
   connectMockPartner: () => void;
@@ -54,7 +62,10 @@ export const usePartner =
 
         invitePartner: (
           email =
-            'partner@example.com'
+            'partner@example.com',
+          id,
+          createdAt =
+            Date.now()
         ) =>
           set({
             status:
@@ -64,11 +75,26 @@ export const usePartner =
               null,
 
             pendingInvite: {
+              id,
+
               email,
 
-              createdAt:
-                Date.now(),
+              createdAt,
             },
+          }),
+
+        setPendingInvite: (
+          invite
+        ) =>
+          set({
+            status:
+              'pending',
+
+            partner:
+              null,
+
+            pendingInvite:
+              invite,
           }),
 
         connectMockPartner: () => {
