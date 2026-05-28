@@ -46,6 +46,10 @@ import {
   usePartnerSync,
 } from '../hooks/usePartnerSync';
 
+import {
+  useSupabaseCardsDebug,
+} from '../hooks/useSupabaseCardsDebug';
+
 type Tab =
   | 'main'
   | 'created'
@@ -55,6 +59,8 @@ export default function Index() {
   useDuoLifecycle();
 
   usePartnerSync();
+
+  useSupabaseCardsDebug();
 
   const {
     session,
