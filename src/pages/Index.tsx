@@ -42,6 +42,10 @@ import {
   useAuth,
 } from '../hooks/useAuth';
 
+import {
+  usePartnerSync,
+} from '../hooks/usePartnerSync';
+
 type Tab =
   | 'main'
   | 'created'
@@ -49,6 +53,8 @@ type Tab =
 
 export default function Index() {
   useDuoLifecycle();
+
+  usePartnerSync();
 
   const {
     session,
