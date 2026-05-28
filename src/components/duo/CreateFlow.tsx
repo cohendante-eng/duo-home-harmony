@@ -15,6 +15,18 @@ import {
 } from '../../store/useCards';
 
 import {
+  usePartner,
+} from '../../store/usePartner';
+
+import {
+  useAuth,
+} from '../../hooks/useAuth';
+
+import {
+  createSupabaseCard,
+} from '../../lib/supabaseCards';
+
+import {
   DuoCard,
 } from '../../types/card';
 
@@ -134,6 +146,15 @@ export default function CreateFlow({
       (s) => s.currentUser
     );
 
+  const {
+    user,
+  } = useAuth();
+
+  const partner =
+    usePartner(
+      (s) => s.partner
+    );
+
   const [step, setStep] =
     useState<Step>('types');
 
@@ -247,6 +268,9 @@ export default function CreateFlow({
       return;
     }
 
+    const dueAt =
+      buildDueAt();
+
     createCard({
       type: selectedType,
 
@@ -256,8 +280,41 @@ export default function CreateFlow({
 
       creatorId: currentUser,
 
-      dueAt: buildDueAt(),
+      dueAt,
     } as any);
+
+    if (
+      user &&
+      partner?.connectionId &&
+      partner?.id
+    ) {
+      const supabaseOwnerId =
+        ownerId === 'me'
+          ? user.id
+          : partner.id;
+
+      createSupabaseCard({
+        partnerConnectionId:
+          partner.connectionId,
+
+        type: selectedType,
+
+        ownerId:
+          supabaseOwnerId,
+
+        creatorId:
+          user.id,
+
+        payload,
+
+        dueAt,
+      }).catch((error) => {
+        console.error(
+          'Could not create Supabase card',
+          error
+        );
+      });
+    }
 
     resetFlow();
   }
