@@ -15,6 +15,10 @@ import {
     getLatestOutgoingPartnerInvitation,
   } from '../lib/partnerInvitations';
   
+  import {
+    getActivePartnerConnection,
+  } from '../lib/partnerConnections';
+  
   export function usePartnerSync() {
     const {
       user,
@@ -31,9 +35,19 @@ import {
         (s) => s.setPendingInvite
       );
   
+    const connectPartner =
+      usePartner(
+        (s) => s.connectPartner
+      );
+  
     const cancelInvite =
       usePartner(
         (s) => s.cancelInvite
+      );
+  
+    const disconnectPartner =
+      usePartner(
+        (s) => s.disconnectPartner
       );
   
     useEffect(() => {
@@ -41,11 +55,28 @@ import {
         return;
       }
   
-      if (status === 'connected') {
-        return;
-      }
+      async function syncPartnerState() {
+        const activeConnection =
+          await getActivePartnerConnection({
+            userId: user.id,
+          });
   
-      async function syncPartnerInvite() {
+        if (activeConnection) {
+          connectPartner({
+            id: activeConnection.partnerId,
+  
+            name: 'Partner',
+  
+            email: '',
+          });
+  
+          return;
+        }
+  
+        if (status === 'connected') {
+          disconnectPartner();
+        }
+  
         const incoming =
           await getLatestIncomingPartnerInvitation({
             email,
@@ -99,7 +130,7 @@ import {
         }
       }
   
-      syncPartnerInvite().catch(() => {
+      syncPartnerState().catch(() => {
         // Keep app quiet for now.
         // We will add visible error handling later if needed.
       });
@@ -108,6 +139,8 @@ import {
       email,
       status,
       setPendingInvite,
+      connectPartner,
       cancelInvite,
+      disconnectPartner,
     ]);
   }
