@@ -534,41 +534,26 @@ export default function SettingsPanel({
                 )}
 
                 {isOutgoingInvite && (
-                  <button
-                    onClick={() =>
-                      connectPartner({
-                        id: 'mock-partner',
-
-                        name: 'Partner',
-
-                        email:
-                          pendingInvite?.email ??
-                          '',
-                      })
-                    }
+                  <div
                     style={{
                       height: 44,
 
+                      display: 'inline-flex',
+
+                      alignItems: 'center',
+
                       padding:
-                        '0 16px',
+                        '0 2px',
 
-                      borderRadius: 14,
+                      color: '#999',
 
-                      border: 'none',
-
-                      background:
-                        '#111',
-
-                      color: '#fff',
+                      fontSize: 13,
 
                       fontWeight: 600,
-
-                      cursor:
-                        'pointer',
                     }}
                   >
-                    Simulate accept
-                  </button>
+                    Waiting
+                  </div>
                 )}
 
                 <button

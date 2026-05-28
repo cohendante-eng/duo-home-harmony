@@ -50,8 +50,6 @@ type PartnerStore = {
     partner: Partner
   ) => void;
 
-  connectMockPartner: () => void;
-
   cancelInvite: () => void;
 
   disconnectPartner: () => void;
@@ -60,7 +58,7 @@ type PartnerStore = {
 export const usePartner =
   create<PartnerStore>()(
     persist(
-      (set, get) => ({
+      (set) => ({
         status:
           'not_connected',
 
@@ -122,33 +120,6 @@ export const usePartner =
             pendingInvite:
               null,
           }),
-
-        connectMockPartner: () => {
-          const invite =
-            get().pendingInvite;
-
-          set({
-            status:
-              'connected',
-
-            partner: {
-              id:
-                invite?.inviterId ??
-                'mock-partner',
-
-              name: 'Partner',
-
-              email:
-                invite?.direction ===
-                'outgoing'
-                  ? invite.email
-                  : '',
-            },
-
-            pendingInvite:
-              null,
-          });
-        },
 
         cancelInvite: () =>
           set({
