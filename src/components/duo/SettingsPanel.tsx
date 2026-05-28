@@ -3,7 +3,6 @@ import {
 } from 'lucide-react';
 
 import {
-  useEffect,
   useState,
 } from 'react';
 
@@ -16,9 +15,9 @@ import {
 } from '../../hooks/useAuth';
 
 import {
+  acceptPartnerInvitation,
   cancelPartnerInvitation,
   createPartnerInvitation,
-  getLatestPendingPartnerInvitation,
 } from '../../lib/partnerInvitations';
 
 type Props = {
@@ -39,7 +38,10 @@ export default function SettingsPanel({
 
   const [inviteStatus, setInviteStatus] =
     useState<
-      'idle' | 'sending' | 'error'
+      | 'idle'
+      | 'sending'
+      | 'accepting'
+      | 'error'
     >('idle');
 
   const [inviteError, setInviteError] =
@@ -65,14 +67,9 @@ export default function SettingsPanel({
       (s) => s.invitePartner
     );
 
-  const setPendingInvite =
+  const connectPartner =
     usePartner(
-      (s) => s.setPendingInvite
-    );
-
-  const connectMockPartner =
-    usePartner(
-      (s) => s.connectMockPartner
+      (s) => s.connectPartner
     );
 
   const cancelInvite =
@@ -94,37 +91,13 @@ export default function SettingsPanel({
   const isConnected =
     status === 'connected';
 
-  useEffect(() => {
-    if (!user || isConnected) {
-      return;
-    }
+  const isIncomingInvite =
+    pendingInvite?.direction ===
+    'incoming';
 
-    getLatestPendingPartnerInvitation({
-      userId: user.id,
-    })
-      .then((invite) => {
-        if (!invite) {
-          return;
-        }
-
-        setPendingInvite({
-          id: invite.id,
-
-          email: invite.email,
-
-          createdAt:
-            invite.createdAt,
-        });
-      })
-      .catch(() => {
-        // Keep Settings quiet for now.
-        // We will improve error handling later.
-      });
-  }, [
-    user,
-    isConnected,
-    setPendingInvite,
-  ]);
+  const isOutgoingInvite =
+    pendingInvite?.direction ===
+    'outgoing';
 
   async function handleInvitePartner() {
     if (!user) {
@@ -175,6 +148,57 @@ export default function SettingsPanel({
         error instanceof Error
           ? error.message
           : 'Could not send invite.'
+      );
+    }
+  }
+
+  async function handleAcceptInvite() {
+    if (
+      !user ||
+      !pendingInvite?.id ||
+      !pendingInvite.inviterId
+    ) {
+      setInviteStatus('error');
+
+      setInviteError(
+        'Could not accept invite.'
+      );
+
+      return;
+    }
+
+    setInviteStatus('accepting');
+
+    setInviteError('');
+
+    try {
+      await acceptPartnerInvitation({
+        invitationId:
+          pendingInvite.id,
+
+        inviterId:
+          pendingInvite.inviterId,
+
+        currentUserId:
+          user.id,
+      });
+
+      connectPartner({
+        id: pendingInvite.inviterId,
+
+        name: 'Partner',
+
+        email: '',
+      });
+
+      setInviteStatus('idle');
+    } catch (error) {
+      setInviteStatus('error');
+
+      setInviteError(
+        error instanceof Error
+          ? error.message
+          : 'Could not accept invite.'
       );
     }
   }
@@ -421,23 +445,6 @@ export default function SettingsPanel({
                   ? 'Sending invite'
                   : 'Invite partner'}
               </button>
-
-              {inviteStatus ===
-                'error' && (
-                <div
-                  style={{
-                    marginTop: 12,
-
-                    fontSize: 13,
-
-                    color: '#991b1b',
-
-                    lineHeight: 1.45,
-                  }}
-                >
-                  {inviteError}
-                </div>
-              )}
             </>
           )}
 
@@ -452,7 +459,9 @@ export default function SettingsPanel({
                   marginBottom: 6,
                 }}
               >
-                Invite pending
+                {isIncomingInvite
+                  ? 'Invite received'
+                  : 'Invite pending'}
               </div>
 
               <div
@@ -466,10 +475,12 @@ export default function SettingsPanel({
                   marginBottom: 16,
                 }}
               >
-                Waiting for{' '}
-                {pendingInvite?.email ??
-                  'partner'}
-                {' '}to accept the connection.
+                {isIncomingInvite
+                  ? 'A household partner invited you to connect on Duo.'
+                  : `Waiting for ${
+                      pendingInvite?.email ??
+                      'partner'
+                    } to accept the connection.`}
               </div>
 
               <div
@@ -479,33 +490,86 @@ export default function SettingsPanel({
                   gap: 10,
                 }}
               >
-                <button
-                  onClick={
-                    connectMockPartner
-                  }
-                  style={{
-                    height: 44,
+                {isIncomingInvite && (
+                  <button
+                    onClick={
+                      handleAcceptInvite
+                    }
+                    disabled={
+                      inviteStatus ===
+                      'accepting'
+                    }
+                    style={{
+                      height: 44,
 
-                    padding:
-                      '0 16px',
+                      padding:
+                        '0 16px',
 
-                    borderRadius: 14,
+                      borderRadius: 14,
 
-                    border: 'none',
+                      border: 'none',
 
-                    background:
-                      '#111',
+                      background:
+                        inviteStatus ===
+                        'accepting'
+                          ? 'rgba(0,0,0,0.18)'
+                          : '#111',
 
-                    color: '#fff',
+                      color: '#fff',
 
-                    fontWeight: 600,
+                      fontWeight: 600,
 
-                    cursor:
-                      'pointer',
-                  }}
-                >
-                  Simulate accept
-                </button>
+                      cursor:
+                        inviteStatus ===
+                        'accepting'
+                          ? 'default'
+                          : 'pointer',
+                    }}
+                  >
+                    {inviteStatus ===
+                    'accepting'
+                      ? 'Accepting'
+                      : 'Accept'}
+                  </button>
+                )}
+
+                {isOutgoingInvite && (
+                  <button
+                    onClick={() =>
+                      connectPartner({
+                        id: 'mock-partner',
+
+                        name: 'Partner',
+
+                        email:
+                          pendingInvite?.email ??
+                          '',
+                      })
+                    }
+                    style={{
+                      height: 44,
+
+                      padding:
+                        '0 16px',
+
+                      borderRadius: 14,
+
+                      border: 'none',
+
+                      background:
+                        '#111',
+
+                      color: '#fff',
+
+                      fontWeight: 600,
+
+                      cursor:
+                        'pointer',
+                    }}
+                  >
+                    Simulate accept
+                  </button>
+                )}
 
                 <button
                   onClick={
@@ -533,7 +597,9 @@ export default function SettingsPanel({
                       'pointer',
                   }}
                 >
-                  Cancel invite
+                  {isIncomingInvite
+                    ? 'Decline'
+                    : 'Cancel invite'}
                 </button>
               </div>
             </>
@@ -613,6 +679,23 @@ export default function SettingsPanel({
                 Disconnect partner
               </button>
             </>
+          )}
+
+          {inviteStatus ===
+            'error' && (
+            <div
+              style={{
+                marginTop: 12,
+
+                fontSize: 13,
+
+                color: '#991b1b',
+
+                lineHeight: 1.45,
+              }}
+            >
+              {inviteError}
+            </div>
           )}
         </section>
 

@@ -18,6 +18,12 @@ type Partner = {
 type PartnerInvite = {
   id?: string;
 
+  direction:
+    | 'outgoing'
+    | 'incoming';
+
+  inviterId?: string;
+
   email: string;
 
   createdAt: number;
@@ -38,6 +44,10 @@ type PartnerStore = {
 
   setPendingInvite: (
     invite: PartnerInvite
+  ) => void;
+
+  connectPartner: (
+    partner: Partner
   ) => void;
 
   connectMockPartner: () => void;
@@ -77,6 +87,9 @@ export const usePartner =
             pendingInvite: {
               id,
 
+              direction:
+                'outgoing',
+
               email,
 
               createdAt,
@@ -97,6 +110,19 @@ export const usePartner =
               invite,
           }),
 
+        connectPartner: (
+          partner
+        ) =>
+          set({
+            status:
+              'connected',
+
+            partner,
+
+            pendingInvite:
+              null,
+          }),
+
         connectMockPartner: () => {
           const invite =
             get().pendingInvite;
@@ -106,13 +132,17 @@ export const usePartner =
               'connected',
 
             partner: {
-              id: 'mock-partner',
+              id:
+                invite?.inviterId ??
+                'mock-partner',
 
               name: 'Partner',
 
               email:
-                invite?.email ??
-                'partner@example.com',
+                invite?.direction ===
+                'outgoing'
+                  ? invite.email
+                  : '',
             },
 
             pendingInvite:

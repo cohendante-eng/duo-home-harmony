@@ -11,12 +11,14 @@ import {
   } from '../store/usePartner';
   
   import {
-    getLatestPendingPartnerInvitation,
+    getLatestIncomingPartnerInvitation,
+    getLatestOutgoingPartnerInvitation,
   } from '../lib/partnerInvitations';
   
   export function usePartnerSync() {
     const {
       user,
+      email,
     } = useAuth();
   
     const status =
@@ -29,8 +31,13 @@ import {
         (s) => s.setPendingInvite
       );
   
+    const cancelInvite =
+      usePartner(
+        (s) => s.cancelInvite
+      );
+  
     useEffect(() => {
-      if (!user) {
+      if (!user || !email) {
         return;
       }
   
@@ -38,30 +45,69 @@ import {
         return;
       }
   
-      getLatestPendingPartnerInvitation({
-        userId: user.id,
-      })
-        .then((invite) => {
-          if (!invite) {
-            return;
-          }
+      async function syncPartnerInvite() {
+        const incoming =
+          await getLatestIncomingPartnerInvitation({
+            email,
+          });
   
+        if (incoming) {
           setPendingInvite({
-            id: invite.id,
+            id: incoming.id,
   
-            email: invite.email,
+            direction:
+              incoming.direction,
+  
+            inviterId:
+              incoming.inviterId,
+  
+            email: incoming.email,
   
             createdAt:
-              invite.createdAt,
+              incoming.createdAt,
           });
-        })
-        .catch(() => {
-          // Keep app quiet for now.
-          // We will add visible error handling later if needed.
-        });
+  
+          return;
+        }
+  
+        const outgoing =
+          await getLatestOutgoingPartnerInvitation({
+            userId: user.id,
+          });
+  
+        if (outgoing) {
+          setPendingInvite({
+            id: outgoing.id,
+  
+            direction:
+              outgoing.direction,
+  
+            inviterId:
+              outgoing.inviterId,
+  
+            email: outgoing.email,
+  
+            createdAt:
+              outgoing.createdAt,
+          });
+  
+          return;
+        }
+  
+        if (status === 'pending') {
+          cancelInvite();
+        }
+      }
+  
+      syncPartnerInvite().catch(() => {
+        // Keep app quiet for now.
+        // We will add visible error handling later if needed.
+      });
     }, [
       user,
+      email,
       status,
       setPendingInvite,
+      cancelInvite,
     ]);
   }
