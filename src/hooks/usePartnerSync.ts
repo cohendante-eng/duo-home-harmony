@@ -65,6 +65,9 @@ import {
           connectPartner({
             id: activeConnection.partnerId,
   
+            connectionId:
+              activeConnection.id,
+  
             name: 'Partner',
   
             email: '',

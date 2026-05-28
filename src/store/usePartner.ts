@@ -10,6 +10,8 @@ type PartnerStatus =
 type Partner = {
   id: string;
 
+  connectionId?: string;
+
   name: string;
 
   email: string;
