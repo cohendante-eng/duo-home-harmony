@@ -58,6 +58,12 @@ export type SupabaseCardRow = {
   updated_at: string;
 };
 
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
 export async function createSupabaseCard({
   partnerConnectionId,
   type,
@@ -134,6 +140,37 @@ export async function getSupabaseCards({
   return (
     data ?? []
   ) as SupabaseCardRow[];
+}
+
+export async function acceptSupabaseCard({
+  cardId,
+}: {
+  cardId: string;
+}) {
+  if (!isUuid(cardId)) {
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from('cards')
+      .update({
+        state: 'accepted',
+
+        block_count: 0,
+
+        modifier: null,
+
+        modifier_for: null,
+
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq('id', cardId);
+
+  if (error) {
+    throw error;
+  }
 }
 
 function mapUserId({

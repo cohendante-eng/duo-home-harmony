@@ -13,6 +13,10 @@ import { useState } from 'react';
 
 import { useCards } from '../../store/useCards';
 
+import {
+  acceptSupabaseCard,
+} from '../../lib/supabaseCards';
+
 type Props = {
   cardId: string;
 
@@ -269,6 +273,15 @@ export default function ExpandedCard({
 
   function handleAccept() {
     acceptCard(card.id);
+
+    acceptSupabaseCard({
+      cardId: card.id,
+    }).catch((error) => {
+      console.error(
+        'Could not accept Supabase card',
+        error
+      );
+    });
 
     onClose();
   }
