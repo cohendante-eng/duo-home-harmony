@@ -47,8 +47,8 @@ import {
 } from '../hooks/usePartnerSync';
 
 import {
-  useSupabaseCardsDebug,
-} from '../hooks/useSupabaseCardsDebug';
+  useSupabaseCardsSync,
+} from '../hooks/useSupabaseCardsSync';
 
 type Tab =
   | 'main'
@@ -60,7 +60,7 @@ export default function Index() {
 
   usePartnerSync();
 
-  useSupabaseCardsDebug();
+  useSupabaseCardsSync();
 
   const {
     session,
