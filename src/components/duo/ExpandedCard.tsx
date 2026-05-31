@@ -15,6 +15,7 @@ import { useCards } from '../../store/useCards';
 
 import {
   acceptSupabaseCard,
+  completeSupabaseCard,
 } from '../../lib/supabaseCards';
 
 type Props = {
@@ -288,6 +289,15 @@ export default function ExpandedCard({
 
   function handleDone() {
     completeCard(card.id);
+
+    completeSupabaseCard({
+      cardId: card.id,
+    }).catch((error) => {
+      console.error(
+        'Could not complete Supabase card',
+        error
+      );
+    });
 
     onClose();
   }

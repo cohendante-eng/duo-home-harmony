@@ -173,6 +173,35 @@ export async function acceptSupabaseCard({
   }
 }
 
+export async function completeSupabaseCard({
+  cardId,
+}: {
+  cardId: string;
+}) {
+  if (!isUuid(cardId)) {
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from('cards')
+      .update({
+        state: 'done',
+
+        modifier: null,
+
+        modifier_for: null,
+
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq('id', cardId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 function mapUserId({
   realUserId,
   currentUserId,
