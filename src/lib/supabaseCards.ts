@@ -4,6 +4,7 @@ import {
 
 import {
   DuoCard,
+  UserId,
 } from '../types/card';
 
 type CreateSupabaseCardInput = {
@@ -133,4 +134,117 @@ export async function getSupabaseCards({
   return (
     data ?? []
   ) as SupabaseCardRow[];
+}
+
+function mapUserId({
+  realUserId,
+  currentUserId,
+  partnerUserId,
+}: {
+  realUserId: string;
+
+  currentUserId: string;
+
+  partnerUserId: string;
+}): UserId {
+  if (realUserId === currentUserId) {
+    return 'me';
+  }
+
+  if (realUserId === partnerUserId) {
+    return 'partner';
+  }
+
+  return 'partner';
+}
+
+export function convertSupabaseCardToDuoCard({
+  row,
+  currentUserId,
+  partnerUserId,
+}: {
+  row: SupabaseCardRow;
+
+  currentUserId: string;
+
+  partnerUserId: string;
+}): DuoCard {
+  return {
+    id: row.id,
+
+    type: row.type,
+
+    state: row.state,
+
+    ownerId: mapUserId({
+      realUserId: row.owner_id,
+
+      currentUserId,
+
+      partnerUserId,
+    }),
+
+    creatorId: mapUserId({
+      realUserId: row.creator_id,
+
+      currentUserId,
+
+      partnerUserId,
+    }),
+
+    payload: row.payload,
+
+    dueAt: row.due_at
+      ? new Date(
+          row.due_at
+        ).getTime()
+      : undefined,
+
+    reminderSentAt:
+      row.reminder_sent_at
+        ? new Date(
+            row.reminder_sent_at
+          ).getTime()
+        : undefined,
+
+    blockCount:
+      row.block_count ?? 0,
+
+    modifier:
+      row.modifier as DuoCard['modifier'],
+
+    modifierFor:
+      row.modifier_for
+        ? mapUserId({
+            realUserId:
+              row.modifier_for,
+
+            currentUserId,
+
+            partnerUserId,
+          })
+        : undefined,
+  } as DuoCard;
+}
+
+export function convertSupabaseCardsToDuoCards({
+  rows,
+  currentUserId,
+  partnerUserId,
+}: {
+  rows: SupabaseCardRow[];
+
+  currentUserId: string;
+
+  partnerUserId: string;
+}) {
+  return rows.map((row) =>
+    convertSupabaseCardToDuoCard({
+      row,
+
+      currentUserId,
+
+      partnerUserId,
+    })
+  );
 }
