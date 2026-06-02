@@ -27,6 +27,7 @@ import {
   completeSupabaseCard,
   delaySupabaseCard,
   declineSupabaseCard,
+  stopSupabaseCard,
   takeSupabaseCard,
 } from '../../lib/supabaseCards';
 
@@ -384,6 +385,15 @@ export default function ExpandedCard({
 
   function handleStop() {
     stopCard(card.id);
+
+    stopSupabaseCard({
+      cardId: card.id,
+    }).catch((error) => {
+      console.error(
+        'Could not stop Supabase card',
+        error
+      );
+    });
 
     onClose();
   }
