@@ -202,6 +202,35 @@ export async function completeSupabaseCard({
   }
 }
 
+export async function cancelSupabaseCard({
+  cardId,
+}: {
+  cardId: string;
+}) {
+  if (!isUuid(cardId)) {
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from('cards')
+      .update({
+        state: 'cancelled',
+
+        modifier: null,
+
+        modifier_for: null,
+
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq('id', cardId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function delaySupabaseCard({
   cardId,
   dueAt,

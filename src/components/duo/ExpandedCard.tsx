@@ -23,6 +23,7 @@ import {
 
 import {
   acceptSupabaseCard,
+  cancelSupabaseCard,
   completeSupabaseCard,
   delaySupabaseCard,
 } from '../../lib/supabaseCards';
@@ -332,6 +333,15 @@ export default function ExpandedCard({
 
   function handleCancel() {
     cancelCard(card.id);
+
+    cancelSupabaseCard({
+      cardId: card.id,
+    }).catch((error) => {
+      console.error(
+        'Could not cancel Supabase card',
+        error
+      );
+    });
 
     onClose();
   }
