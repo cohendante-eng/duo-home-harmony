@@ -26,6 +26,7 @@ import {
   cancelSupabaseCard,
   completeSupabaseCard,
   delaySupabaseCard,
+  declineSupabaseCard,
 } from '../../lib/supabaseCards';
 
 type Props = {
@@ -347,7 +348,35 @@ export default function ExpandedCard({
   }
 
   function handleDecline() {
+    const currentCount =
+      typeof card.blockCount ===
+      'number'
+        ? card.blockCount
+        : 0;
+
+    const nextBlockCount =
+      currentCount + 1;
+
+    const newOwner =
+      card.ownerId === 'me'
+        ? 'partner'
+        : 'me';
+
     blockCard(card.id);
+
+    declineSupabaseCard({
+      cardId: card.id,
+
+      newOwnerId:
+        getRealUserId(newOwner),
+
+      nextBlockCount,
+    }).catch((error) => {
+      console.error(
+        'Could not decline Supabase card',
+        error
+      );
+    });
 
     onClose();
   }

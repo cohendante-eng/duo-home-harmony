@@ -275,6 +275,59 @@ export async function delaySupabaseCard({
   }
 }
 
+export async function declineSupabaseCard({
+  cardId,
+  newOwnerId,
+  nextBlockCount,
+}: {
+  cardId: string;
+
+  newOwnerId?: string;
+
+  nextBlockCount: number;
+}) {
+  if (
+    !isUuid(cardId) ||
+    !newOwnerId
+  ) {
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from('cards')
+      .update({
+        owner_id:
+          newOwnerId,
+
+        state: 'requested',
+
+        due_at: null,
+
+        reminder_sent_at:
+          null,
+
+        block_count:
+          nextBlockCount,
+
+        modifier:
+          nextBlockCount >= 2
+            ? 'updated'
+            : 'returned',
+
+        modifier_for:
+          newOwnerId,
+
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq('id', cardId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 function mapUserId({
   realUserId,
   currentUserId,
