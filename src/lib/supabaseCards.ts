@@ -202,6 +202,50 @@ export async function completeSupabaseCard({
   }
 }
 
+export async function delaySupabaseCard({
+  cardId,
+  dueAt,
+  modifierForId,
+}: {
+  cardId: string;
+
+  dueAt: number;
+
+  modifierForId?: string;
+}) {
+  if (!isUuid(cardId)) {
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from('cards')
+      .update({
+        state: 'delayed',
+
+        due_at:
+          new Date(
+            dueAt
+          ).toISOString(),
+
+        reminder_sent_at:
+          null,
+
+        modifier: 'updated',
+
+        modifier_for:
+          modifierForId ?? null,
+
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq('id', cardId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 function mapUserId({
   realUserId,
   currentUserId,

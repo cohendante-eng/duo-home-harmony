@@ -14,8 +14,17 @@ import { useState } from 'react';
 import { useCards } from '../../store/useCards';
 
 import {
+  useAuth,
+} from '../../hooks/useAuth';
+
+import {
+  usePartner,
+} from '../../store/usePartner';
+
+import {
   acceptSupabaseCard,
   completeSupabaseCard,
+  delaySupabaseCard,
 } from '../../lib/supabaseCards';
 
 type Props = {
@@ -202,6 +211,15 @@ export default function ExpandedCard({
   const [showReschedule, setShowReschedule] =
     useState(false);
 
+  const {
+    user,
+  } = useAuth();
+
+  const partner =
+    usePartner(
+      (s) => s.partner
+    );
+
   const card =
     useCards((s) =>
       s.activeCards.find(
@@ -272,6 +290,16 @@ export default function ExpandedCard({
   const context =
     getContext(card);
 
+  function getRealUserId(
+    localId: 'me' | 'partner'
+  ) {
+    if (localId === 'me') {
+      return user?.id;
+    }
+
+    return partner?.id;
+  }
+
   function handleAccept() {
     acceptCard(card.id);
 
@@ -329,12 +357,41 @@ export default function ExpandedCard({
   function handleReschedule(
     minutes: number
   ) {
+    const ms =
+      1000 *
+      60 *
+      minutes;
+
+    const baseTime =
+      typeof card.dueAt ===
+      'number'
+        ? card.dueAt
+        : Date.now();
+
+    const nextDueAt =
+      baseTime + ms;
+
     delayCard(
       card.id,
-      1000 *
-        60 *
-        minutes
+      ms
     );
+
+    delaySupabaseCard({
+      cardId: card.id,
+
+      dueAt:
+        nextDueAt,
+
+      modifierForId:
+        getRealUserId(
+          card.creatorId
+        ),
+    }).catch((error) => {
+      console.error(
+        'Could not delay Supabase card',
+        error
+      );
+    });
 
     setShowMenu(false);
 
