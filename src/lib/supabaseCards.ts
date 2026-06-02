@@ -328,6 +328,49 @@ export async function declineSupabaseCard({
   }
 }
 
+export async function takeSupabaseCard({
+  cardId,
+  currentUserId,
+}: {
+  cardId: string;
+
+  currentUserId?: string;
+}) {
+  if (
+    !isUuid(cardId) ||
+    !currentUserId
+  ) {
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from('cards')
+      .update({
+        owner_id:
+          currentUserId,
+
+        state: 'accepted',
+
+        block_count: 0,
+
+        reminder_sent_at:
+          null,
+
+        modifier: null,
+
+        modifier_for: null,
+
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq('id', cardId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 function mapUserId({
   realUserId,
   currentUserId,

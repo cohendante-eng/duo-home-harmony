@@ -27,6 +27,7 @@ import {
   completeSupabaseCard,
   delaySupabaseCard,
   declineSupabaseCard,
+  takeSupabaseCard,
 } from '../../lib/supabaseCards';
 
 type Props = {
@@ -389,6 +390,18 @@ export default function ExpandedCard({
 
   function handleTake() {
     takeCard(card.id);
+
+    takeSupabaseCard({
+      cardId: card.id,
+
+      currentUserId:
+        user?.id,
+    }).catch((error) => {
+      console.error(
+        'Could not take Supabase card',
+        error
+      );
+    });
 
     onClose();
   }
