@@ -3,8 +3,6 @@ import { create } from 'zustand';
 import {
   DuoCard,
   UserId,
-  TransportPayload,
-  PayPayload,
 } from '../types/card';
 
 type ToastState = {
@@ -14,6 +12,13 @@ type ToastState = {
 
   undoAction?: () => void;
 };
+
+type CreateLocalCardInput =
+  Omit<DuoCard, 'id' | 'state'> & {
+    id?: string;
+
+    state?: DuoCard['state'];
+  };
 
 type CardStore = {
   currentUser: UserId;
@@ -31,7 +36,7 @@ type CardStore = {
   hideToast: () => void;
 
   createCard: (
-    card: Omit<DuoCard, 'id' | 'state'>
+    card: CreateLocalCardInput
   ) => void;
 
   acceptCard: (id: string) => void;
@@ -107,99 +112,35 @@ export const useCards =
       createCard: (card) =>
         set((state) => {
           const id =
+            card.id ??
             Date.now().toString();
 
-          if (
-            card.type ===
-            'transport'
-          ) {
-            return {
-              activeCards: [
-                {
-                  id,
+          const newCard =
+            {
+              ...card,
 
-                  type: 'transport',
+              id,
 
-                  state:
-                    'requested',
+              state:
+                card.state ??
+                'requested',
 
-                  ownerId:
-                    card.ownerId,
+              reminderSentAt:
+                card.reminderSentAt ??
+                undefined,
 
-                  creatorId:
-                    card.creatorId,
-
-                  dueAt:
-                    card.dueAt,
-
-                  reminderSentAt:
-                    undefined,
-
-                  blockCount: 0,
-
-                  payload:
-                    card.payload as TransportPayload,
-                },
-
-                ...state.activeCards,
-              ],
-            };
-          }
-
-          if (
-            card.type ===
-            'pay'
-          ) {
-            return {
-              activeCards: [
-                {
-                  id,
-
-                  type: 'pay',
-
-                  state:
-                    'requested',
-
-                  ownerId:
-                    card.ownerId,
-
-                  creatorId:
-                    card.creatorId,
-
-                  dueAt:
-                    card.dueAt,
-
-                  reminderSentAt:
-                    undefined,
-
-                  blockCount: 0,
-
-                  payload:
-                    card.payload as PayPayload,
-                },
-
-                ...state.activeCards,
-              ],
-            };
-          }
+              blockCount:
+                card.blockCount ?? 0,
+            } as DuoCard;
 
           return {
             activeCards: [
-              {
-                id,
+              newCard,
 
-                ...card,
-
-                state:
-                  'requested',
-
-                reminderSentAt:
-                  undefined,
-
-                blockCount: 0,
-              } as DuoCard,
-
-              ...state.activeCards,
+              ...state.activeCards.filter(
+                (existingCard) =>
+                  existingCard.id !== id
+              ),
             ],
           };
         }),

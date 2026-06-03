@@ -260,7 +260,7 @@ export default function CreateFlow({
     return undefined;
   }
 
-  function handleCreate() {
+  async function handleCreate() {
     if (
       !selectedType ||
       !canCreate
@@ -271,17 +271,11 @@ export default function CreateFlow({
     const dueAt =
       buildDueAt();
 
-    createCard({
-      type: selectedType,
+    const localOwnerId =
+      ownerId;
 
-      payload,
-
-      ownerId,
-
-      creatorId: currentUser,
-
-      dueAt,
-    } as any);
+    const localCreatorId =
+      currentUser;
 
     if (
       user &&
@@ -289,32 +283,69 @@ export default function CreateFlow({
       partner?.id
     ) {
       const supabaseOwnerId =
-        ownerId === 'me'
+        localOwnerId === 'me'
           ? user.id
           : partner.id;
 
-      createSupabaseCard({
-        partnerConnectionId:
-          partner.connectionId,
+      try {
+        const createdCard =
+          await createSupabaseCard({
+            partnerConnectionId:
+              partner.connectionId,
 
-        type: selectedType,
+            type: selectedType,
 
-        ownerId:
-          supabaseOwnerId,
+            ownerId:
+              supabaseOwnerId,
 
-        creatorId:
-          user.id,
+            creatorId:
+              user.id,
 
-        payload,
+            payload,
 
-        dueAt,
-      }).catch((error) => {
+            dueAt,
+          });
+
+        createCard({
+          id: createdCard.id,
+
+          type: selectedType,
+
+          payload,
+
+          ownerId:
+            localOwnerId,
+
+          creatorId:
+            localCreatorId,
+
+          dueAt,
+        } as any);
+
+        resetFlow();
+
+        return;
+      } catch (error) {
         console.error(
           'Could not create Supabase card',
           error
         );
-      });
+      }
     }
+
+    createCard({
+      type: selectedType,
+
+      payload,
+
+      ownerId:
+        localOwnerId,
+
+      creatorId:
+        localCreatorId,
+
+      dueAt,
+    } as any);
 
     resetFlow();
   }
