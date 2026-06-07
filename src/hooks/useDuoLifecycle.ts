@@ -1,87 +1,22 @@
 import {
-    useEffect,
-  } from 'react';
-  
-  import {
-    useCards,
-  } from '../store/useCards';
-  
-  import {
-    getAcceptedReminderEligibleCards,
-  } from '../lib/duoViews';
-  
-  export function useDuoLifecycle() {
-    const activeCards =
-      useCards((s) => s.activeCards);
-  
-    const currentUser =
-      useCards((s) => s.currentUser);
-  
-    const expireOverdueRequestedCards =
-      useCards(
-        (s) =>
-          s.expireOverdueRequestedCards
-      );
-  
-    const markReminderSent =
-      useCards(
-        (s) => s.markReminderSent
-      );
-  
-    const showToast =
-      useCards(
-        (s) => s.showToast
-      );
-  
-    useEffect(() => {
-      expireOverdueRequestedCards();
-    }, [
-      activeCards,
-      expireOverdueRequestedCards,
-    ]);
-  
-    useEffect(() => {
-      const interval =
-        window.setInterval(() => {
-          expireOverdueRequestedCards();
-        }, 1000 * 60);
-  
-      return () => {
-        window.clearInterval(
-          interval
-        );
-      };
-    }, [
-      expireOverdueRequestedCards,
-    ]);
-  
-    useEffect(() => {
-      const eligibleCards =
-        getAcceptedReminderEligibleCards(
-          activeCards,
-          currentUser
-        );
-  
-      if (
-        eligibleCards.length === 0
-      ) {
-        return;
-      }
-  
-      const firstCard =
-        eligibleCards[0];
-  
-      showToast(
-        'Upcoming responsibility'
-      );
-  
-      markReminderSent(
-        firstCard.id
-      );
-    }, [
-      activeCards,
-      currentUser,
-      showToast,
-      markReminderSent,
-    ]);
-  }
+  useEffect,
+} from 'react';
+
+export function useDuoLifecycle() {
+  useEffect(() => {
+    // Lifecycle automation is intentionally paused
+    // while cards are being migrated to Supabase.
+    //
+    // Previously this hook changed local Zustand state:
+    // - requested overdue cards expired locally
+    // - accepted due-soon reminders were marked locally
+    //
+    // Now that Supabase is the source of truth, those
+    // lifecycle changes must write to Supabase first.
+    //
+    // Next backend lifecycle step:
+    // - expire requested overdue cards in Supabase
+    // - mark reminder_sent_at in Supabase
+    // - then sync back into local runtime state
+  }, []);
+}

@@ -50,6 +50,10 @@ import {
   useSupabaseCardsSync,
 } from '../hooks/useSupabaseCardsSync';
 
+import {
+  useSupabaseCardsRealtime,
+} from '../hooks/useSupabaseCardsRealtime';
+
 type Tab =
   | 'main'
   | 'created'
@@ -61,6 +65,8 @@ export default function Index() {
   usePartnerSync();
 
   useSupabaseCardsSync();
+
+  useSupabaseCardsRealtime();
 
   const {
     session,
