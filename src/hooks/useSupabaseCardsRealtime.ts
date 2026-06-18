@@ -1,4 +1,5 @@
 import {
+    useCallback,
     useEffect,
   } from 'react';
   
@@ -60,16 +61,8 @@ import {
         (s) => s.partner
       );
   
-    useEffect(() => {
-      if (
-        !user ||
-        !partner?.connectionId ||
-        !partner?.id
-      ) {
-        return;
-      }
-  
-      async function reloadCards() {
+    const reloadCards =
+      useCallback(async () => {
         if (
           !user ||
           !partner?.connectionId ||
@@ -105,6 +98,19 @@ import {
   
           historyCards,
         });
+      }, [
+        user,
+        partner?.connectionId,
+        partner?.id,
+      ]);
+  
+    useEffect(() => {
+      if (
+        !user ||
+        !partner?.connectionId ||
+        !partner?.id
+      ) {
+        return;
       }
   
       const channel =
@@ -145,5 +151,39 @@ import {
       user,
       partner?.connectionId,
       partner?.id,
+      reloadCards,
+    ]);
+  
+    useEffect(() => {
+      if (
+        !user ||
+        !partner?.connectionId ||
+        !partner?.id
+      ) {
+        return;
+      }
+  
+      const interval =
+        window.setInterval(() => {
+          reloadCards().catch(
+            (error) => {
+              console.error(
+                'Could not reload cards during backup refresh',
+                error
+              );
+            }
+          );
+        }, 1000 * 10);
+  
+      return () => {
+        window.clearInterval(
+          interval
+        );
+      };
+    }, [
+      user,
+      partner?.connectionId,
+      partner?.id,
+      reloadCards,
     ]);
   }
