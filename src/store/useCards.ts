@@ -56,6 +56,10 @@ type CardStore = {
 
   takeCard: (id: string) => void;
 
+  removeHistoryCard: (
+    id: string
+  ) => void;
+
   markReminderSent: (
     id: string
   ) => void;
@@ -449,6 +453,15 @@ export const useCards =
                     undefined,
                 };
               }
+            ),
+        })),
+
+      removeHistoryCard: (id) =>
+        set((state) => ({
+          historyCards:
+            state.historyCards.filter(
+              (card) =>
+                card.id !== id
             ),
         })),
 

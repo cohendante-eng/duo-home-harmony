@@ -282,6 +282,11 @@ export default function Index() {
                   <HistoryCard
                     key={card.id}
                     card={card}
+                    onOpen={(c) =>
+                      setSelectedId(
+                        c.id
+                      )
+                    }
                   />
                 )
               )}

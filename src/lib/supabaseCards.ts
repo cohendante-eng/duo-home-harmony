@@ -260,6 +260,26 @@ export async function stopSupabaseCard({
   }
 }
 
+export async function removeSupabaseCard({
+  cardId,
+}: {
+  cardId: string;
+}) {
+  if (!isUuid(cardId)) {
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from('cards')
+      .delete()
+      .eq('id', cardId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function delaySupabaseCard({
   cardId,
   dueAt,

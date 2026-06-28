@@ -9,6 +9,10 @@ import {
 
 type Props = {
   card: DuoCard;
+
+  onOpen: (
+    card: DuoCard
+  ) => void;
 };
 
 function getStatusLabel(
@@ -49,9 +53,14 @@ function getStatusColor(
 
 export default function HistoryCard({
   card,
+
+  onOpen,
 }: Props) {
   return (
-    <div
+    <button
+      onClick={() =>
+        onOpen(card)
+      }
       style={{
         width: '100%',
 
@@ -76,6 +85,10 @@ export default function HistoryCard({
           'space-between',
 
         gap: 14,
+
+        cursor: 'pointer',
+
+        textAlign: 'left',
       }}
     >
       <div
@@ -167,6 +180,6 @@ export default function HistoryCard({
       >
         {getStatusLabel(card)}
       </div>
-    </div>
+    </button>
   );
 }

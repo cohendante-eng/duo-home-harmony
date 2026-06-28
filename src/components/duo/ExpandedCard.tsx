@@ -27,6 +27,7 @@ import {
   completeSupabaseCard,
   delaySupabaseCard,
   declineSupabaseCard,
+  removeSupabaseCard,
   stopSupabaseCard,
   takeSupabaseCard,
 } from '../../lib/supabaseCards';
@@ -178,6 +179,22 @@ function getStateLabel(state: string) {
     return 'Delayed';
   }
 
+  if (state === 'done') {
+    return 'Done';
+  }
+
+  if (state === 'cancelled') {
+    return 'Cancelled';
+  }
+
+  if (state === 'stopped') {
+    return 'Stopped';
+  }
+
+  if (state === 'expired') {
+    return 'Expired';
+  }
+
   return state;
 }
 
@@ -190,6 +207,15 @@ function getStateColor(state: string) {
     return '#2e7d32';
   }
 
+  if (
+    state === 'done' ||
+    state === 'cancelled' ||
+    state === 'stopped' ||
+    state === 'expired'
+  ) {
+    return '#777';
+  }
+
   return '#555';
 }
 
@@ -200,6 +226,15 @@ function getStateBackground(state: string) {
 
   if (state === 'accepted') {
     return 'rgba(52, 168, 83, 0.08)';
+  }
+
+  if (
+    state === 'done' ||
+    state === 'cancelled' ||
+    state === 'stopped' ||
+    state === 'expired'
+  ) {
+    return 'rgba(0,0,0,0.045)';
   }
 
   return 'rgba(0,0,0,0.06)';
@@ -224,12 +259,25 @@ export default function ExpandedCard({
       (s) => s.partner
     );
 
-  const card =
+  const activeCard =
     useCards((s) =>
       s.activeCards.find(
         (c) => c.id === cardId
       )
     );
+
+  const historyCard =
+    useCards((s) =>
+      s.historyCards.find(
+        (c) => c.id === cardId
+      )
+    );
+
+  const card =
+    activeCard ?? historyCard;
+
+  const isHistoryCard =
+    Boolean(historyCard);
 
   const currentUser =
     useCards((s) => s.currentUser);
@@ -254,6 +302,11 @@ export default function ExpandedCard({
 
   const takeCard =
     useCards((s) => s.takeCard);
+
+  const removeHistoryCard =
+    useCards(
+      (s) => s.removeHistoryCard
+    );
 
   if (!card) return null;
 
@@ -409,6 +462,21 @@ export default function ExpandedCard({
     }).catch((error) => {
       console.error(
         'Could not take Supabase card',
+        error
+      );
+    });
+
+    onClose();
+  }
+
+  function handleRemoveFromHistory() {
+    removeHistoryCard(card.id);
+
+    removeSupabaseCard({
+      cardId: card.id,
+    }).catch((error) => {
+      console.error(
+        'Could not remove Supabase card from history',
         error
       );
     });
@@ -600,42 +668,43 @@ export default function ExpandedCard({
             position: 'relative',
           }}
         >
-          {(isOwner ||
-            canStop) && (
-            <button
-              onClick={() =>
-                setShowMenu(
-                  !showMenu
-                )
-              }
-              style={{
-                width: 40,
+          {!isHistoryCard &&
+            (isOwner ||
+              canStop) && (
+              <button
+                onClick={() =>
+                  setShowMenu(
+                    !showMenu
+                  )
+                }
+                style={{
+                  width: 40,
 
-                height: 40,
+                  height: 40,
 
-                borderRadius: 999,
+                  borderRadius: 999,
 
-                border:
-                  '1px solid rgba(0,0,0,0.06)',
+                  border:
+                    '1px solid rgba(0,0,0,0.06)',
 
-                background: '#fff',
+                  background: '#fff',
 
-                display: 'flex',
+                  display: 'flex',
 
-                alignItems:
-                  'center',
+                  alignItems:
+                    'center',
 
-                justifyContent:
-                  'center',
+                  justifyContent:
+                    'center',
 
-                cursor: 'pointer',
-              }}
-            >
-              <MoreHorizontal
-                size={19}
-              />
-            </button>
-          )}
+                  cursor: 'pointer',
+                }}
+              >
+                <MoreHorizontal
+                  size={19}
+                />
+              </button>
+            )}
 
           <button
             onClick={onClose}
@@ -998,9 +1067,11 @@ export default function ExpandedCard({
           marginTop: 'auto',
         }}
       >
-        {isSurfaced && (
+        {isHistoryCard && (
           <button
-            onClick={handleTake}
+            onClick={
+              handleRemoveFromHistory
+            }
             style={{
               width: '100%',
 
@@ -1008,11 +1079,12 @@ export default function ExpandedCard({
 
               borderRadius: 18,
 
-              border: 'none',
+              border:
+                '1px solid rgba(0,0,0,0.08)',
 
-              background: '#111',
+              background: '#fff',
 
-              color: '#fff',
+              color: '#777',
 
               fontSize: 16,
 
@@ -1021,11 +1093,40 @@ export default function ExpandedCard({
               cursor: 'pointer',
             }}
           >
-            Take
+            Remove from history
           </button>
         )}
 
-        {isOwner &&
+        {!isHistoryCard &&
+          isSurfaced && (
+            <button
+              onClick={handleTake}
+              style={{
+                width: '100%',
+
+                height: 58,
+
+                borderRadius: 18,
+
+                border: 'none',
+
+                background: '#111',
+
+                color: '#fff',
+
+                fontSize: 16,
+
+                fontWeight: 750,
+
+                cursor: 'pointer',
+              }}
+            >
+              Take
+            </button>
+          )}
+
+        {!isHistoryCard &&
+          isOwner &&
           isRequested && (
             <button
               onClick={
@@ -1055,7 +1156,8 @@ export default function ExpandedCard({
             </button>
           )}
 
-        {isOwner &&
+        {!isHistoryCard &&
+          isOwner &&
           isAccepted && (
             <button
               onClick={handleDone}
