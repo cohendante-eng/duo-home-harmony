@@ -180,6 +180,12 @@ export default function CreateFlow({
   const [dueTime, setDueTime] =
     useState('');
 
+  const [isCreating, setIsCreating] =
+    useState(false);
+
+  const [createError, setCreateError] =
+    useState('');
+
   const selectedTemplate =
     selectedType
       ? CARD_TEMPLATES.find(
@@ -209,6 +215,10 @@ export default function CreateFlow({
     setDueTime('');
 
     setOwnerId('partner');
+
+    setIsCreating(false);
+
+    setCreateError('');
 
     onClose();
   }
@@ -263,10 +273,27 @@ export default function CreateFlow({
   async function handleCreate() {
     if (
       !selectedType ||
-      !canCreate
+      !canCreate ||
+      isCreating
     ) {
       return;
     }
+
+    setCreateError('');
+
+    if (
+      !user ||
+      !partner?.connectionId ||
+      !partner?.id
+    ) {
+      setCreateError(
+        'Duo needs an active partner connection before creating a responsibility.'
+      );
+
+      return;
+    }
+
+    setIsCreating(true);
 
     const dueAt =
       buildDueAt();
@@ -277,77 +304,59 @@ export default function CreateFlow({
     const localCreatorId =
       currentUser;
 
-    if (
-      user &&
-      partner?.connectionId &&
-      partner?.id
-    ) {
-      const supabaseOwnerId =
-        localOwnerId === 'me'
-          ? user.id
-          : partner.id;
+    const supabaseOwnerId =
+      localOwnerId === 'me'
+        ? user.id
+        : partner.id;
 
-      try {
-        const createdCard =
-          await createSupabaseCard({
-            partnerConnectionId:
-              partner.connectionId,
-
-            type: selectedType,
-
-            ownerId:
-              supabaseOwnerId,
-
-            creatorId:
-              user.id,
-
-            payload,
-
-            dueAt,
-          });
-
-        createCard({
-          id: createdCard.id,
+    try {
+      const createdCard =
+        await createSupabaseCard({
+          partnerConnectionId:
+            partner.connectionId,
 
           type: selectedType,
 
-          payload,
-
           ownerId:
-            localOwnerId,
+            supabaseOwnerId,
 
           creatorId:
-            localCreatorId,
+            user.id,
+
+          payload,
 
           dueAt,
-        } as any);
+        });
 
-        resetFlow();
+      createCard({
+        id: createdCard.id,
 
-        return;
-      } catch (error) {
-        console.error(
-          'Could not create Supabase card',
-          error
-        );
-      }
+        type: selectedType,
+
+        payload,
+
+        ownerId:
+          localOwnerId,
+
+        creatorId:
+          localCreatorId,
+
+        dueAt,
+      } as any);
+
+      resetFlow();
+    } catch (error) {
+      console.error(
+        'Could not create Supabase card',
+        error
+      );
+
+      setCreateError(
+        'Could not create this responsibility. Please try again.'
+      );
+
+      setIsCreating(false);
     }
-
-    createCard({
-      type: selectedType,
-
-      payload,
-
-      ownerId:
-        localOwnerId,
-
-      creatorId:
-        localCreatorId,
-
-      dueAt,
-    } as any);
-
-    resetFlow();
   }
 
   function renderFields() {
@@ -527,6 +536,8 @@ export default function CreateFlow({
 
               setDueTime('');
 
+              setCreateError('');
+
               return;
             }
 
@@ -588,6 +599,8 @@ export default function CreateFlow({
                   setStep(
                     'fields'
                   );
+
+                  setCreateError('');
                 }}
                 style={{
                   minHeight: 76,
@@ -1011,11 +1024,39 @@ export default function CreateFlow({
             </div>
           </section>
 
+          {createError && (
+            <div
+              style={{
+                marginTop: 18,
+
+                padding: '12px 14px',
+
+                borderRadius: 16,
+
+                background:
+                  'rgba(220, 38, 38, 0.08)',
+
+                color: '#b42318',
+
+                fontSize: 13,
+
+                lineHeight: 1.4,
+
+                fontWeight: 650,
+              }}
+            >
+              {createError}
+            </div>
+          )}
+
           <button
             onClick={
               handleCreate
             }
-            disabled={!canCreate}
+            disabled={
+              !canCreate ||
+              isCreating
+            }
             style={{
               position: 'fixed',
 
@@ -1032,7 +1073,8 @@ export default function CreateFlow({
               border: 'none',
 
               background:
-                canCreate
+                canCreate &&
+                !isCreating
                   ? '#111'
                   : 'rgba(0,0,0,0.12)',
 
@@ -1043,19 +1085,23 @@ export default function CreateFlow({
               fontWeight: 750,
 
               boxShadow:
-                canCreate
+                canCreate &&
+                !isCreating
                   ? '0 10px 30px rgba(0,0,0,0.12)'
                   : 'none',
 
               cursor:
-                canCreate
+                canCreate &&
+                !isCreating
                   ? 'pointer'
                   : 'default',
 
               zIndex: 120,
             }}
           >
-            Create
+            {isCreating
+              ? 'Creating...'
+              : 'Create'}
           </button>
         </>
       )}
