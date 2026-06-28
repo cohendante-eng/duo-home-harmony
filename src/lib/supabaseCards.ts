@@ -260,6 +260,64 @@ export async function stopSupabaseCard({
   }
 }
 
+export async function expireSupabaseCard({
+  cardId,
+}: {
+  cardId: string;
+}) {
+  if (!isUuid(cardId)) {
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from('cards')
+      .update({
+        state: 'expired',
+
+        modifier: null,
+
+        modifier_for: null,
+
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq('id', cardId);
+
+  if (error) {
+    throw error;
+  }
+}
+
+export async function markSupabaseReminderSent({
+  cardId,
+}: {
+  cardId: string;
+}) {
+  if (!isUuid(cardId)) {
+    return;
+  }
+
+  const now =
+    new Date().toISOString();
+
+  const { error } =
+    await supabase
+      .from('cards')
+      .update({
+        reminder_sent_at:
+          now,
+
+        updated_at:
+          now,
+      })
+      .eq('id', cardId);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function removeSupabaseCard({
   cardId,
 }: {

@@ -1,22 +1,233 @@
 import {
   useEffect,
+  useRef,
 } from 'react';
 
+import {
+  useCards,
+} from '../store/useCards';
+
+import {
+  getAcceptedReminderEligibleCards,
+} from '../lib/duoViews';
+
+import {
+  expireSupabaseCard,
+  markSupabaseReminderSent,
+} from '../lib/supabaseCards';
+
+const ONE_DAY =
+  1000 * 60 * 60 * 24;
+
 export function useDuoLifecycle() {
+  const processingRef =
+    useRef<Set<string>>(
+      new Set()
+    );
+
+  const activeCards =
+    useCards((s) => s.activeCards);
+
+  const currentUser =
+    useCards((s) => s.currentUser);
+
+  const expireOverdueRequestedCards =
+    useCards(
+      (s) =>
+        s.expireOverdueRequestedCards
+    );
+
+  const markReminderSent =
+    useCards(
+      (s) => s.markReminderSent
+    );
+
+  const showToast =
+    useCards(
+      (s) => s.showToast
+    );
+
   useEffect(() => {
-    // Lifecycle automation is intentionally paused
-    // while cards are being migrated to Supabase.
-    //
-    // Previously this hook changed local Zustand state:
-    // - requested overdue cards expired locally
-    // - accepted due-soon reminders were marked locally
-    //
-    // Now that Supabase is the source of truth, those
-    // lifecycle changes must write to Supabase first.
-    //
-    // Next backend lifecycle step:
-    // - expire requested overdue cards in Supabase
-    // - mark reminder_sent_at in Supabase
-    // - then sync back into local runtime state
+    const now =
+      Date.now();
+
+    const expiredCards =
+      activeCards.filter(
+        (card) =>
+          card.state ===
+            'requested' &&
+          typeof card.dueAt ===
+            'number' &&
+          card.dueAt + ONE_DAY <
+            now
+      );
+
+    if (
+      expiredCards.length === 0
+    ) {
+      return;
+    }
+
+    expiredCards.forEach(
+      (card) => {
+        const key =
+          `expire:${card.id}`;
+
+        if (
+          processingRef.current.has(
+            key
+          )
+        ) {
+          return;
+        }
+
+        processingRef.current.add(
+          key
+        );
+
+        expireSupabaseCard({
+          cardId: card.id,
+        })
+          .then(() => {
+            expireOverdueRequestedCards();
+          })
+          .catch((error) => {
+            console.error(
+              'Could not expire Supabase card',
+              error
+            );
+
+            processingRef.current.delete(
+              key
+            );
+          });
+      }
+    );
+  }, [
+    activeCards,
+    expireOverdueRequestedCards,
+  ]);
+
+  useEffect(() => {
+    const interval =
+      window.setInterval(() => {
+        const now =
+          Date.now();
+
+        const expiredCards =
+          useCards
+            .getState()
+            .activeCards.filter(
+              (card) =>
+                card.state ===
+                  'requested' &&
+                typeof card.dueAt ===
+                  'number' &&
+                card.dueAt + ONE_DAY <
+                  now
+            );
+
+        expiredCards.forEach(
+          (card) => {
+            const key =
+              `expire:${card.id}`;
+
+            if (
+              processingRef.current.has(
+                key
+              )
+            ) {
+              return;
+            }
+
+            processingRef.current.add(
+              key
+            );
+
+            expireSupabaseCard({
+              cardId: card.id,
+            })
+              .then(() => {
+                useCards
+                  .getState()
+                  .expireOverdueRequestedCards();
+              })
+              .catch((error) => {
+                console.error(
+                  'Could not expire Supabase card during lifecycle interval',
+                  error
+                );
+
+                processingRef.current.delete(
+                  key
+                );
+              });
+          }
+        );
+      }, 1000 * 60);
+
+    return () => {
+      window.clearInterval(
+        interval
+      );
+    };
   }, []);
+
+  useEffect(() => {
+    const eligibleCards =
+      getAcceptedReminderEligibleCards(
+        activeCards,
+        currentUser
+      );
+
+    if (
+      eligibleCards.length === 0
+    ) {
+      return;
+    }
+
+    const firstCard =
+      eligibleCards[0];
+
+    const key =
+      `reminder:${firstCard.id}`;
+
+    if (
+      processingRef.current.has(
+        key
+      )
+    ) {
+      return;
+    }
+
+    processingRef.current.add(
+      key
+    );
+
+    showToast(
+      'Upcoming responsibility'
+    );
+
+    markReminderSent(
+      firstCard.id
+    );
+
+    markSupabaseReminderSent({
+      cardId: firstCard.id,
+    }).catch((error) => {
+      console.error(
+        'Could not mark Supabase reminder as sent',
+        error
+      );
+
+      processingRef.current.delete(
+        key
+      );
+    });
+  }, [
+    activeCards,
+    currentUser,
+    showToast,
+    markReminderSent,
+  ]);
 }
