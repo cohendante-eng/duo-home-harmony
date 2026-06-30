@@ -11,6 +11,10 @@ import {
 } from '../../store/usePartner';
 
 import {
+  useCards,
+} from '../../store/useCards';
+
+import {
   useAuth,
 } from '../../hooks/useAuth';
 
@@ -19,6 +23,10 @@ import {
   cancelPartnerInvitation,
   createPartnerInvitation,
 } from '../../lib/partnerInvitations';
+
+import {
+  disconnectPartnerConnection,
+} from '../../lib/partnerConnections';
 
 type Props = {
   onClose: () => void;
@@ -45,6 +53,16 @@ export default function SettingsPanel({
     >('idle');
 
   const [inviteError, setInviteError] =
+    useState('');
+
+  const [disconnectStatus, setDisconnectStatus] =
+    useState<
+      | 'idle'
+      | 'disconnecting'
+      | 'error'
+    >('idle');
+
+  const [disconnectError, setDisconnectError] =
     useState('');
 
   const status =
@@ -218,6 +236,60 @@ export default function SettingsPanel({
     }
 
     cancelInvite();
+  }
+
+  async function handleDisconnectPartner() {
+    if (!partner?.connectionId) {
+      disconnectPartner();
+
+      useCards.setState({
+        activeCards: [],
+
+        historyCards: [],
+      });
+
+      return;
+    }
+
+    const confirmed =
+      window.confirm(
+        'Disconnect this partner? Duo will stop sharing responsibilities with this partner. Existing card rows will stay in Supabase, but they will no longer load as an active connection.'
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDisconnectStatus(
+      'disconnecting'
+    );
+
+    setDisconnectError('');
+
+    try {
+      await disconnectPartnerConnection({
+        connectionId:
+          partner.connectionId,
+      });
+
+      disconnectPartner();
+
+      useCards.setState({
+        activeCards: [],
+
+        historyCards: [],
+      });
+
+      setDisconnectStatus('idle');
+    } catch (error) {
+      setDisconnectStatus('error');
+
+      setDisconnectError(
+        error instanceof Error
+          ? error.message
+          : 'Could not disconnect partner.'
+      );
+    }
   }
 
   async function handleSignOut() {
@@ -638,7 +710,11 @@ export default function SettingsPanel({
 
               <button
                 onClick={
-                  disconnectPartner
+                  handleDisconnectPartner
+                }
+                disabled={
+                  disconnectStatus ===
+                  'disconnecting'
                 }
                 style={{
                   height: 44,
@@ -658,11 +734,35 @@ export default function SettingsPanel({
 
                   fontWeight: 600,
 
-                  cursor: 'pointer',
+                  cursor:
+                    disconnectStatus ===
+                    'disconnecting'
+                      ? 'default'
+                      : 'pointer',
                 }}
               >
-                Disconnect partner
+                {disconnectStatus ===
+                'disconnecting'
+                  ? 'Disconnecting'
+                  : 'Disconnect partner'}
               </button>
+
+              {disconnectStatus ===
+                'error' && (
+                <div
+                  style={{
+                    marginTop: 12,
+
+                    fontSize: 13,
+
+                    color: '#991b1b',
+
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {disconnectError}
+                </div>
+              )}
             </>
           )}
 
