@@ -12,12 +12,27 @@ import {
 } from '../lib/duoViews';
 
 import {
+  getCardTitle,
+} from '../lib/cards';
+
+import {
   expireSupabaseCard,
   markSupabaseReminderSent,
 } from '../lib/supabaseCards';
 
 const ONE_DAY =
   1000 * 60 * 60 * 24;
+
+function getReminderMessage(card: any) {
+  const title =
+    getCardTitle(card);
+
+  if (!title) {
+    return 'Upcoming responsibility';
+  }
+
+  return `Upcoming: ${title}`;
+}
 
 export function useDuoLifecycle() {
   const processingRef =
@@ -205,7 +220,9 @@ export function useDuoLifecycle() {
     );
 
     showToast(
-      'Upcoming responsibility'
+      getReminderMessage(
+        firstCard
+      )
     );
 
     markReminderSent(
