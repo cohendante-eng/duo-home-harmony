@@ -40,6 +40,12 @@ Reconnect works through the normal invite flow:
 * A new active connection is created.
 * Cards work again on the new connection.
 
+Known note:
+
+* Partner connection status sync can sometimes be slower than card sync.
+* Refresh may be needed occasionally after reconnect or disconnect.
+* This should be improved later.
+
 ### Cards
 
 Supabase is now the source of truth for cards.
@@ -69,7 +75,7 @@ Current sync behavior:
 
 * Supabase realtime is used for shared updates.
 * A 10-second backup refresh also runs while connected.
-* This makes shared updates appear reliably even when realtime is slow.
+* This makes shared card updates appear reliably even when realtime is slow.
 * Two-user card flow was tested:
 
   * User A creates a card for User B.
@@ -113,8 +119,8 @@ Working lifecycle behavior:
 * Zustand card state is refilled from Supabase.
 * Local card storage is no longer persisted.
 * Partner state still uses local state, but restores from Supabase.
-* Supabase realtime is used for shared updates.
-* A 10-second backup refresh improves reliability when realtime is slow.
+* Supabase realtime is used for shared card updates.
+* A 10-second backup refresh improves card sync reliability when realtime is slow.
 * Vercel hosts the deployed React/Vite app.
 * Supabase Auth URL Configuration includes the deployed Vercel URL.
 
@@ -135,16 +141,39 @@ Working deployment behavior:
   * `VITE_SUPABASE_ANON_KEY`
 * Supabase Auth URL Configuration includes the Vercel URL.
 * Magic-link login works on the deployed URL.
-* Deployed two-user test passed:
+* Project-level Vercel Authentication was turned off so testers reach the Duo login screen directly.
+* Fresh tester access was confirmed:
 
-  * Users can connect through Duo invite / accept.
-  * Cards can be created.
-  * Cards can be accepted.
-  * Done moves cards to History.
-  * Decline / return flow works.
-  * Cancel works.
-* Vercel Deployment Protection was checked because a tester initially saw an access request.
-* Project-level Vercel Authentication was turned off so testers should reach the Duo login screen directly.
+  * Tester opened the deployed URL.
+  * Tester saw the Duo login screen.
+  * No Vercel access request appeared.
+
+### Deployed QA pass
+
+A full deployed QA pass was completed with two real users on separate computers.
+
+Passed deployed QA behavior:
+
+* Friend login works through Supabase magic link.
+* Both users can connect as partners.
+* User A can create a card for User B.
+* User B sees the card.
+* User B can accept the card.
+* User A sees the accepted state quickly.
+* User B can mark the card Done.
+* User A sees the card move to History.
+* History card can be opened.
+* `Remove from history` works on the deployed app.
+* Removed history card disappears.
+* Disconnect partner works on the deployed app.
+* After refresh, disconnected state remains.
+* Reconnect works through normal invite / accept.
+* After reconnect, creating a new test card works and the friend sees it.
+
+Known deployment note:
+
+* Card sync is fast on the deployed app.
+* Partner connection status sync can sometimes be slower and may need a refresh.
 
 ## Current tested milestone
 
@@ -158,6 +187,7 @@ Duo now supports the core V1 shared responsibility loop:
 6. Lifecycle reminders and expiration are Supabase-backed.
 7. Partner disconnect and reconnect work.
 8. The app is deployed and works outside localhost.
+9. A deployed QA pass with two real users on separate computers passed.
 
 ## Not fully finished
 
@@ -232,17 +262,9 @@ This should be done later without changing the product logic.
 
 ## Next recommended steps
 
-1. Confirm fresh tester access after disabling Vercel Authentication.
-2. Run one short deployed QA pass:
-
-   * Login
-   * Invite / accept
-   * Create
-   * Accept
-   * Done
-   * History remove
-   * Disconnect / reconnect
-3. Test Take / Stop again if needed with a returned-card flow.
-4. Improve the in-app notification/toast interaction.
-5. Begin a focused visual identity pass later, without changing product logic.
+1. Improve partner connection sync so reconnect/disconnect appears without needing refresh.
+2. Test Take / Stop again if needed with a returned-card flow.
+3. Improve the in-app notification/toast interaction.
+4. Begin a focused visual identity pass later, without changing product logic.
+5. Decide later whether History removal should stay hard delete or become soft delete.
 6. Add browser/mobile notifications only after deployment basics are stable.
