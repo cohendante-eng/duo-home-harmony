@@ -1,149 +1,234 @@
 import {
-    useEffect,
-  } from 'react';
-  
-  import {
-    useAuth,
-  } from './useAuth';
-  
-  import {
-    usePartner,
-  } from '../store/usePartner';
-  
-  import {
-    getLatestIncomingPartnerInvitation,
-    getLatestOutgoingPartnerInvitation,
-  } from '../lib/partnerInvitations';
-  
-  import {
-    getActivePartnerConnection,
-  } from '../lib/partnerConnections';
-  
-  export function usePartnerSync() {
-    const {
-      user,
-      email,
-    } = useAuth();
-  
-    const status =
-      usePartner(
-        (s) => s.status
-      );
-  
-    const setPendingInvite =
-      usePartner(
-        (s) => s.setPendingInvite
-      );
-  
-    const connectPartner =
-      usePartner(
-        (s) => s.connectPartner
-      );
-  
-    const cancelInvite =
-      usePartner(
-        (s) => s.cancelInvite
-      );
-  
-    const disconnectPartner =
-      usePartner(
-        (s) => s.disconnectPartner
-      );
-  
-    useEffect(() => {
+  useCallback,
+  useEffect,
+} from 'react';
+
+import {
+  useAuth,
+} from './useAuth';
+
+import {
+  usePartner,
+} from '../store/usePartner';
+
+import {
+  useCards,
+} from '../store/useCards';
+
+import {
+  getLatestIncomingPartnerInvitation,
+  getLatestOutgoingPartnerInvitation,
+} from '../lib/partnerInvitations';
+
+import {
+  getActivePartnerConnection,
+} from '../lib/partnerConnections';
+
+export function usePartnerSync() {
+  const {
+    user,
+    email,
+  } = useAuth();
+
+  const status =
+    usePartner(
+      (s) => s.status
+    );
+
+  const setPendingInvite =
+    usePartner(
+      (s) => s.setPendingInvite
+    );
+
+  const connectPartner =
+    usePartner(
+      (s) => s.connectPartner
+    );
+
+  const cancelInvite =
+    usePartner(
+      (s) => s.cancelInvite
+    );
+
+  const disconnectPartner =
+    usePartner(
+      (s) => s.disconnectPartner
+    );
+
+  const syncPartnerState =
+    useCallback(async () => {
       if (!user || !email) {
         return;
       }
-  
-      async function syncPartnerState() {
-        const activeConnection =
-          await getActivePartnerConnection({
-            userId: user.id,
-          });
-  
-        if (activeConnection) {
+
+      const activeConnection =
+        await getActivePartnerConnection({
+          userId: user.id,
+        });
+
+      if (activeConnection) {
+        const currentPartner =
+          usePartner
+            .getState()
+            .partner;
+
+        if (
+          currentPartner?.connectionId !==
+          activeConnection.id
+        ) {
           connectPartner({
             id: activeConnection.partnerId,
-  
+
             connectionId:
               activeConnection.id,
-  
+
             name: 'Partner',
-  
+
             email: '',
           });
-  
-          return;
         }
-  
-        if (status === 'connected') {
-          disconnectPartner();
-        }
-  
-        const incoming =
-          await getLatestIncomingPartnerInvitation({
-            email,
-          });
-  
-        if (incoming) {
+
+        return;
+      }
+
+      const currentStatus =
+        usePartner
+          .getState()
+          .status;
+
+      if (
+        currentStatus ===
+        'connected'
+      ) {
+        disconnectPartner();
+
+        useCards.setState({
+          activeCards: [],
+
+          historyCards: [],
+        });
+      }
+
+      const incoming =
+        await getLatestIncomingPartnerInvitation({
+          email,
+        });
+
+      if (incoming) {
+        const currentInvite =
+          usePartner
+            .getState()
+            .pendingInvite;
+
+        if (
+          currentInvite?.id !==
+          incoming.id
+        ) {
           setPendingInvite({
             id: incoming.id,
-  
+
             direction:
               incoming.direction,
-  
+
             inviterId:
               incoming.inviterId,
-  
-            email: incoming.email,
-  
+
+            email:
+              incoming.email,
+
             createdAt:
               incoming.createdAt,
           });
-  
-          return;
         }
-  
-        const outgoing =
-          await getLatestOutgoingPartnerInvitation({
-            userId: user.id,
-          });
-  
-        if (outgoing) {
+
+        return;
+      }
+
+      const outgoing =
+        await getLatestOutgoingPartnerInvitation({
+          userId: user.id,
+        });
+
+      if (outgoing) {
+        const currentInvite =
+          usePartner
+            .getState()
+            .pendingInvite;
+
+        if (
+          currentInvite?.id !==
+          outgoing.id
+        ) {
           setPendingInvite({
             id: outgoing.id,
-  
+
             direction:
               outgoing.direction,
-  
+
             inviterId:
               outgoing.inviterId,
-  
-            email: outgoing.email,
-  
+
+            email:
+              outgoing.email,
+
             createdAt:
               outgoing.createdAt,
           });
-  
-          return;
         }
-  
-        if (status === 'pending') {
-          cancelInvite();
-        }
+
+        return;
       }
-  
-      syncPartnerState().catch(() => {
-        // Keep app quiet for now.
-        // We will add visible error handling later if needed.
-      });
+
+      if (
+        usePartner
+          .getState()
+          .status === 'pending'
+      ) {
+        cancelInvite();
+      }
     }, [
       user,
       email,
-      status,
       setPendingInvite,
       connectPartner,
       cancelInvite,
       disconnectPartner,
     ]);
-  }
+
+  useEffect(() => {
+    syncPartnerState().catch(
+      () => {
+        // Keep app quiet for now.
+        // Visible partner sync errors can be added later.
+      }
+    );
+  }, [
+    syncPartnerState,
+    status,
+  ]);
+
+  useEffect(() => {
+    if (!user || !email) {
+      return;
+    }
+
+    const interval =
+      window.setInterval(() => {
+        syncPartnerState().catch(
+          () => {
+            // Keep app quiet for now.
+          }
+        );
+      }, 1000 * 10);
+
+    return () => {
+      window.clearInterval(
+        interval
+      );
+    };
+  }, [
+    user,
+    email,
+    syncPartnerState,
+  ]);
+}
