@@ -97,10 +97,13 @@ export function usePartnerSync() {
             .getState()
             .partner;
 
-        if (
+        const shouldUpdatePartner =
           currentPartner?.connectionId !==
-          activeConnection.id
-        ) {
+            activeConnection.id ||
+          currentPartner?.email !==
+            activeConnection.partnerEmail;
+
+        if (shouldUpdatePartner) {
           connectPartner({
             id: activeConnection.partnerId,
 
@@ -109,7 +112,8 @@ export function usePartnerSync() {
 
             name: 'Partner',
 
-            email: '',
+            email:
+              activeConnection.partnerEmail,
           });
         }
 
@@ -141,6 +145,9 @@ export function usePartnerSync() {
 
             inviterId:
               incoming.inviterId,
+
+            inviterEmail:
+              incoming.inviterEmail,
 
             email:
               incoming.email,
@@ -176,6 +183,9 @@ export function usePartnerSync() {
 
             inviterId:
               outgoing.inviterId,
+
+            inviterEmail:
+              outgoing.inviterEmail,
 
             email:
               outgoing.email,

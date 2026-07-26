@@ -7,9 +7,15 @@ export type PartnerInvitation = {
 
   inviter_id: string;
 
+  inviter_email: string | null;
+
   invitee_email: string;
 
-  status: 'pending' | 'accepted' | 'cancelled' | 'expired';
+  status:
+    | 'pending'
+    | 'accepted'
+    | 'cancelled'
+    | 'expired';
 
   created_at: string;
 
@@ -18,20 +24,34 @@ export type PartnerInvitation = {
 
 export async function createPartnerInvitation({
   inviterId,
+  inviterEmail,
   inviteeEmail,
 }: {
   inviterId: string;
 
+  inviterEmail: string;
+
   inviteeEmail: string;
 }) {
-  const cleanEmail =
+  const cleanInviterEmail =
+    inviterEmail
+      .trim()
+      .toLowerCase();
+
+  const cleanInviteeEmail =
     inviteeEmail
       .trim()
       .toLowerCase();
 
-  if (!cleanEmail) {
+  if (!cleanInviteeEmail) {
     throw new Error(
       'Partner email is required.'
+    );
+  }
+
+  if (!cleanInviterEmail) {
+    throw new Error(
+      'Your account email is missing.'
     );
   }
 
@@ -44,7 +64,11 @@ export async function createPartnerInvitation({
       .insert({
         inviter_id: inviterId,
 
-        invitee_email: cleanEmail,
+        inviter_email:
+          cleanInviterEmail,
+
+        invitee_email:
+          cleanInviteeEmail,
 
         status: 'pending',
       })
@@ -60,6 +84,9 @@ export async function createPartnerInvitation({
 
     inviterId:
       data.inviter_id as string,
+
+    inviterEmail:
+      data.inviter_email as string,
 
     email:
       data.invitee_email as string,
@@ -110,6 +137,9 @@ export async function getLatestOutgoingPartnerInvitation({
 
     inviterId:
       invitation.inviter_id,
+
+    inviterEmail:
+      invitation.inviter_email ?? '',
 
     email:
       invitation.invitee_email,
@@ -164,6 +194,9 @@ export async function getLatestIncomingPartnerInvitation({
     inviterId:
       invitation.inviter_id,
 
+    inviterEmail:
+      invitation.inviter_email ?? '',
+
     email:
       invitation.invitee_email,
 
@@ -195,14 +228,30 @@ export async function cancelPartnerInvitation({
 export async function acceptPartnerInvitation({
   invitationId,
   inviterId,
+  inviterEmail,
   currentUserId,
+  currentUserEmail,
 }: {
   invitationId: string;
 
   inviterId: string;
 
+  inviterEmail: string;
+
   currentUserId: string;
+
+  currentUserEmail: string;
 }) {
+  const cleanInviterEmail =
+    inviterEmail
+      .trim()
+      .toLowerCase();
+
+  const cleanCurrentUserEmail =
+    currentUserEmail
+      .trim()
+      .toLowerCase();
+
   const {
     error: connectionError,
   } =
@@ -212,6 +261,12 @@ export async function acceptPartnerInvitation({
         user_a_id: inviterId,
 
         user_b_id: currentUserId,
+
+        user_a_email:
+          cleanInviterEmail,
+
+        user_b_email:
+          cleanCurrentUserEmail,
 
         status: 'active',
       });

@@ -26,6 +26,8 @@ type PartnerInvite = {
 
   inviterId?: string;
 
+  inviterEmail?: string;
+
   email: string;
 
   createdAt: number;

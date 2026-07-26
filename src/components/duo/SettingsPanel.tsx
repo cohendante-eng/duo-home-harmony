@@ -135,10 +135,13 @@ export default function SettingsPanel({
             .getState()
             .partner;
 
-        if (
+        const shouldUpdatePartner =
           currentPartner?.connectionId !==
-          activeConnection.id
-        ) {
+            activeConnection.id ||
+          currentPartner?.email !==
+            activeConnection.partnerEmail;
+
+        if (shouldUpdatePartner) {
           connectPartner({
             id: activeConnection.partnerId,
 
@@ -147,7 +150,8 @@ export default function SettingsPanel({
 
             name: 'Partner',
 
-            email: '',
+            email:
+              activeConnection.partnerEmail,
           });
         }
 
@@ -191,6 +195,9 @@ export default function SettingsPanel({
             inviterId:
               incoming.inviterId,
 
+            inviterEmail:
+              incoming.inviterEmail,
+
             email:
               incoming.email,
 
@@ -225,6 +232,9 @@ export default function SettingsPanel({
 
             inviterId:
               outgoing.inviterId,
+
+            inviterEmail:
+              outgoing.inviterEmail,
 
             email:
               outgoing.email,
@@ -306,7 +316,7 @@ export default function SettingsPanel({
     'outgoing';
 
   async function handleInvitePartner() {
-    if (!user) {
+    if (!user || !email) {
       setInviteStatus('error');
 
       setInviteError(
@@ -335,7 +345,11 @@ export default function SettingsPanel({
         await createPartnerInvitation({
           inviterId: user.id,
 
-          inviteeEmail: inviteEmail,
+          inviterEmail:
+            email,
+
+          inviteeEmail:
+            inviteEmail,
         });
 
       invitePartner(
@@ -361,6 +375,7 @@ export default function SettingsPanel({
   async function handleAcceptInvite() {
     if (
       !user ||
+      !email ||
       !pendingInvite?.id ||
       !pendingInvite.inviterId
     ) {
@@ -385,8 +400,15 @@ export default function SettingsPanel({
         inviterId:
           pendingInvite.inviterId,
 
+        inviterEmail:
+          pendingInvite.inviterEmail ??
+          '',
+
         currentUserId:
           user.id,
+
+        currentUserEmail:
+          email,
       });
 
       await refreshPartnerState();
@@ -847,10 +869,41 @@ export default function SettingsPanel({
                   marginBottom: 6,
                 }}
               >
-                Connected to{' '}
-                {partner?.name ??
-                  'Partner'}
+                Connected to Partner
               </div>
+
+              {partner?.email ? (
+                <div
+                  style={{
+                    fontSize: 13,
+
+                    color: '#555',
+
+                    lineHeight: 1.45,
+
+                    marginBottom: 8,
+                  }}
+                >
+                  Partner account:{' '}
+                  <strong>
+                    {partner.email}
+                  </strong>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    fontSize: 13,
+
+                    color: '#999',
+
+                    lineHeight: 1.45,
+
+                    marginBottom: 8,
+                  }}
+                >
+                  Partner account will appear after the next sync.
+                </div>
+              )}
 
               <div
                 style={{
@@ -865,22 +918,6 @@ export default function SettingsPanel({
               >
                 Duo is paired with one household partner.
               </div>
-
-              {partner?.email && (
-                <div
-                  style={{
-                    fontSize: 13,
-
-                    color: '#999',
-
-                    lineHeight: 1.45,
-
-                    marginBottom: 16,
-                  }}
-                >
-                  {partner.email}
-                </div>
-              )}
 
               <button
                 onClick={

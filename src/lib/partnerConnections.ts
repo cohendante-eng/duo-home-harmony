@@ -9,6 +9,10 @@ type PartnerConnectionRow = {
 
   user_b_id: string;
 
+  user_a_email: string | null;
+
+  user_b_email: string | null;
+
   status:
     | 'active'
     | 'disconnected';
@@ -49,15 +53,26 @@ export async function getActivePartnerConnection({
   const connection =
     data as PartnerConnectionRow;
 
+  const isUserA =
+    connection.user_a_id === userId;
+
   const partnerId =
-    connection.user_a_id === userId
+    isUserA
       ? connection.user_b_id
       : connection.user_a_id;
+
+  const partnerEmail =
+    isUserA
+      ? connection.user_b_email
+      : connection.user_a_email;
 
   return {
     id: connection.id,
 
     partnerId,
+
+    partnerEmail:
+      partnerEmail ?? '',
 
     createdAt:
       new Date(
