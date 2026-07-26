@@ -109,6 +109,63 @@ export default function Index() {
     }
   }, [session]);
 
+  useEffect(() => {
+    function handleOpenCard(
+      event: Event
+    ) {
+      const customEvent =
+        event as CustomEvent<{
+          cardId?: string;
+        }>;
+
+      const cardId =
+        customEvent.detail?.cardId;
+
+      if (!cardId) {
+        return;
+      }
+
+      const cardsState =
+        useCards.getState();
+
+      const cardExists =
+        cardsState.activeCards.some(
+          (card) =>
+            card.id === cardId
+        ) ||
+        cardsState.historyCards.some(
+          (card) =>
+            card.id === cardId
+        );
+
+      if (!cardExists) {
+        return;
+      }
+
+      setTab('main');
+
+      setSettingsOpen(false);
+
+      setCreateOpen(false);
+
+      setSelectedId(cardId);
+
+      cardsState.hideToast();
+    }
+
+    window.addEventListener(
+      'duo:open-card',
+      handleOpenCard
+    );
+
+    return () => {
+      window.removeEventListener(
+        'duo:open-card',
+        handleOpenCard
+      );
+    };
+  }, []);
+
   const visibleCards =
     useMemo(() => {
       return getVisibleCardsForUser(

@@ -20,6 +20,10 @@ import {
   markSupabaseReminderSent,
 } from '../lib/supabaseCards';
 
+import {
+  showBrowserNotification,
+} from '../lib/browserNotifications';
+
 const ONE_DAY =
   1000 * 60 * 60 * 24;
 
@@ -219,13 +223,24 @@ export function useDuoLifecycle() {
       key
     );
 
-    showToast(
+    const reminderMessage =
       getReminderMessage(
         firstCard
-      ),
+      );
+
+    showToast(
+      reminderMessage,
       undefined,
       firstCard.id
     );
+
+    showBrowserNotification({
+      title: 'Duo',
+
+      body: reminderMessage,
+
+      cardId: firstCard.id,
+    });
 
     markReminderSent(
       firstCard.id

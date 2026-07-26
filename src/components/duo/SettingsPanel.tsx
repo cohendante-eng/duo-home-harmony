@@ -33,6 +33,14 @@ import {
   getActivePartnerConnection,
 } from '../../lib/partnerConnections';
 
+import {
+  areBrowserNotificationsEnabled,
+  disableBrowserNotifications,
+  getBrowserNotificationPermission,
+  isBrowserNotificationSupported,
+  requestBrowserNotifications,
+} from '../../lib/browserNotifications';
+
 type Props = {
   onClose: () => void;
 };
@@ -78,6 +86,16 @@ export default function SettingsPanel({
   const [disconnectError, setDisconnectError] =
     useState('');
 
+  const [notificationStatus, setNotificationStatus] =
+    useState<
+      | 'idle'
+      | 'requesting'
+      | 'enabled'
+      | 'disabled'
+      | 'blocked'
+      | 'unsupported'
+    >('idle');
+
   const status =
     usePartner(
       (s) => s.status
@@ -117,6 +135,44 @@ export default function SettingsPanel({
     usePartner(
       (s) => s.disconnectPartner
     );
+
+  const refreshNotificationStatus =
+    useCallback(() => {
+      if (
+        !isBrowserNotificationSupported()
+      ) {
+        setNotificationStatus(
+          'unsupported'
+        );
+
+        return;
+      }
+
+      const permission =
+        getBrowserNotificationPermission();
+
+      if (permission === 'denied') {
+        setNotificationStatus(
+          'blocked'
+        );
+
+        return;
+      }
+
+      if (
+        areBrowserNotificationsEnabled()
+      ) {
+        setNotificationStatus(
+          'enabled'
+        );
+
+        return;
+      }
+
+      setNotificationStatus(
+        'disabled'
+      );
+    }, []);
 
   const refreshPartnerState =
     useCallback(async () => {
@@ -264,6 +320,12 @@ export default function SettingsPanel({
     ]);
 
   useEffect(() => {
+    refreshNotificationStatus();
+  }, [
+    refreshNotificationStatus,
+  ]);
+
+  useEffect(() => {
     refreshPartnerState().catch(
       () => {
         // Keep Settings quiet for now.
@@ -314,6 +376,51 @@ export default function SettingsPanel({
   const isOutgoingInvite =
     pendingInvite?.direction ===
     'outgoing';
+
+  async function handleEnableNotifications() {
+    setNotificationStatus(
+      'requesting'
+    );
+
+    const permission =
+      await requestBrowserNotifications();
+
+    if (permission === 'granted') {
+      setNotificationStatus(
+        'enabled'
+      );
+
+      return;
+    }
+
+    if (permission === 'denied') {
+      setNotificationStatus(
+        'blocked'
+      );
+
+      return;
+    }
+
+    if (
+      permission === 'unsupported'
+    ) {
+      setNotificationStatus(
+        'unsupported'
+      );
+
+      return;
+    }
+
+    setNotificationStatus(
+      'disabled'
+    );
+  }
+
+  function handleDisableNotifications() {
+    disableBrowserNotifications();
+
+    refreshNotificationStatus();
+  }
 
   async function handleInvitePartner() {
     if (!user || !email) {
@@ -1032,10 +1139,140 @@ export default function SettingsPanel({
               color: '#777',
 
               lineHeight: 1.45,
+
+              marginBottom: 16,
             }}
           >
             Duo only signals responsibility changes that may need attention.
           </div>
+
+          {notificationStatus ===
+            'unsupported' && (
+            <div
+              style={{
+                fontSize: 13,
+
+                color: '#999',
+
+                lineHeight: 1.45,
+              }}
+            >
+              Browser notifications are not supported in this browser.
+            </div>
+          )}
+
+          {notificationStatus ===
+            'blocked' && (
+            <div
+              style={{
+                fontSize: 13,
+
+                color: '#991b1b',
+
+                lineHeight: 1.45,
+              }}
+            >
+              Notifications are blocked for Duo. Enable them in your browser settings if you want Duo reminders outside the app window.
+            </div>
+          )}
+
+          {notificationStatus ===
+            'enabled' && (
+            <>
+              <div
+                style={{
+                  fontSize: 13,
+
+                  color: '#2e7d32',
+
+                  lineHeight: 1.45,
+
+                  marginBottom: 12,
+
+                  fontWeight: 600,
+                }}
+              >
+                Browser notifications are enabled.
+              </div>
+
+              <button
+                onClick={
+                  handleDisableNotifications
+                }
+                style={{
+                  height: 44,
+
+                  padding:
+                    '0 16px',
+
+                  borderRadius: 14,
+
+                  border:
+                    '1px solid rgba(0,0,0,0.08)',
+
+                  background:
+                    '#fff',
+
+                  color: '#777',
+
+                  fontWeight: 600,
+
+                  cursor:
+                    'pointer',
+                }}
+              >
+                Disable notifications
+              </button>
+            </>
+          )}
+
+          {(notificationStatus ===
+            'idle' ||
+            notificationStatus ===
+              'disabled' ||
+            notificationStatus ===
+              'requesting') && (
+            <button
+              onClick={
+                handleEnableNotifications
+              }
+              disabled={
+                notificationStatus ===
+                'requesting'
+              }
+              style={{
+                height: 44,
+
+                padding:
+                  '0 16px',
+
+                borderRadius: 14,
+
+                border: 'none',
+
+                background:
+                  notificationStatus ===
+                  'requesting'
+                    ? 'rgba(0,0,0,0.18)'
+                    : '#111',
+
+                color: '#fff',
+
+                fontWeight: 600,
+
+                cursor:
+                  notificationStatus ===
+                  'requesting'
+                    ? 'default'
+                    : 'pointer',
+              }}
+            >
+              {notificationStatus ===
+              'requesting'
+                ? 'Requesting permission'
+                : 'Enable notifications'}
+            </button>
+          )}
         </section>
 
         <section
