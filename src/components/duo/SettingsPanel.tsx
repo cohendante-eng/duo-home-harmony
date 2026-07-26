@@ -881,7 +881,7 @@ export default function SettingsPanel({
 
                     lineHeight: 1.45,
 
-                    marginBottom: 8,
+                    marginBottom: 16,
                   }}
                 >
                   Partner account:{' '}
@@ -898,26 +898,12 @@ export default function SettingsPanel({
 
                     lineHeight: 1.45,
 
-                    marginBottom: 8,
+                    marginBottom: 16,
                   }}
                 >
                   Partner account will appear after the next sync.
                 </div>
               )}
-
-              <div
-                style={{
-                  fontSize: 13,
-
-                  color: '#777',
-
-                  lineHeight: 1.45,
-
-                  marginBottom: 16,
-                }}
-              >
-                Duo is paired with one household partner.
-              </div>
 
               <button
                 onClick={
