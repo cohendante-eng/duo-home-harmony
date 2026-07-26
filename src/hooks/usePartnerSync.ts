@@ -16,6 +16,10 @@ import {
 } from '../store/useCards';
 
 import {
+  supabase,
+} from '../lib/supabase';
+
+import {
   getLatestIncomingPartnerInvitation,
   getLatestOutgoingPartnerInvitation,
 } from '../lib/partnerInvitations';
@@ -219,11 +223,110 @@ export function usePartnerSync() {
             // Keep app quiet for now.
           }
         );
-      }, 1000 * 10);
+      }, 1000 * 5);
 
     return () => {
       window.clearInterval(
         interval
+      );
+    };
+  }, [
+    user,
+    email,
+    syncPartnerState,
+  ]);
+
+  useEffect(() => {
+    if (!user || !email) {
+      return;
+    }
+
+    function handleFocus() {
+      syncPartnerState().catch(
+        () => {
+          // Keep app quiet for now.
+        }
+      );
+    }
+
+    window.addEventListener(
+      'focus',
+      handleFocus
+    );
+
+    document.addEventListener(
+      'visibilitychange',
+      handleFocus
+    );
+
+    return () => {
+      window.removeEventListener(
+        'focus',
+        handleFocus
+      );
+
+      document.removeEventListener(
+        'visibilitychange',
+        handleFocus
+      );
+    };
+  }, [
+    user,
+    email,
+    syncPartnerState,
+  ]);
+
+  useEffect(() => {
+    if (!user || !email) {
+      return;
+    }
+
+    const channel =
+      supabase
+        .channel(
+          `partner-sync:${user.id}`
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+
+            schema: 'public',
+
+            table:
+              'partner_connections',
+          },
+          () => {
+            syncPartnerState().catch(
+              () => {
+                // Keep app quiet for now.
+              }
+            );
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+
+            schema: 'public',
+
+            table:
+              'partner_invitations',
+          },
+          () => {
+            syncPartnerState().catch(
+              () => {
+                // Keep app quiet for now.
+              }
+            );
+          }
+        )
+        .subscribe();
+
+    return () => {
+      supabase.removeChannel(
+        channel
       );
     };
   }, [
