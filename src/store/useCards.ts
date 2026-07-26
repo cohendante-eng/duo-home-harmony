@@ -73,6 +73,9 @@ type CardStore = {
 const ONE_DAY =
   1000 * 60 * 60 * 24;
 
+const TOAST_VISIBLE_TIME =
+  8000;
+
 export const useCards =
   create<CardStore>()(
     (set, get) => ({
@@ -117,7 +120,7 @@ export const useCards =
           ) {
             get().hideToast();
           }
-        }, 4000);
+        }, TOAST_VISIBLE_TIME);
       },
 
       hideToast: () =>
