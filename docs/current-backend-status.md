@@ -42,9 +42,11 @@ Reconnect works through the normal invite flow:
 
 Known note:
 
-* Partner connection status sync can sometimes be slower than card sync.
-* Refresh may be needed occasionally after reconnect or disconnect.
-* This should be improved later.
+* Partner disconnect / reconnect works in the backend.
+* After refresh, both users see the correct partner connection state.
+* The other user’s Partner connection UI may still not update live while Settings is already open.
+* For now, partner connection changes may require a manual refresh on the other device.
+* This is acceptable for V1 because partner connect / disconnect is a rare Settings action, while daily card sync is working quickly.
 
 ### Cards
 
@@ -73,7 +75,7 @@ Realtime card sync works.
 
 Current sync behavior:
 
-* Supabase realtime is used for shared updates.
+* Supabase realtime is used for shared card updates.
 * A 10-second backup refresh also runs while connected.
 * This makes shared card updates appear reliably even when realtime is slow.
 * Two-user card flow was tested:
@@ -173,7 +175,11 @@ Passed deployed QA behavior:
 Known deployment note:
 
 * Card sync is fast on the deployed app.
-* Partner connection status sync can sometimes be slower and may need a refresh.
+* Partner disconnect / reconnect works in the backend.
+* After refresh, both users see the correct partner connection state.
+* The other user’s Partner connection UI may still not update live while Settings is already open.
+* For now, partner connection changes may require a manual refresh on the other device.
+* This is acceptable for V1 because partner connect / disconnect is a rare Settings action, while daily card sync is working quickly.
 
 ## Current tested milestone
 
@@ -214,6 +220,24 @@ Recommended test later:
 * User A sees the returned card.
 * User A chooses Take.
 * Repeat the decline flow enough to confirm Stop appears and works correctly.
+
+### Partner connection live sync
+
+Partner connection changes are backend-backed and correct after refresh, but the UI does not always update live on the other device while Settings is already open.
+
+Current behavior:
+
+* Disconnect works in Supabase.
+* Reconnect works in Supabase.
+* Refresh shows the correct connection state.
+* Card sync is fast and reliable.
+* Partner connection UI may still need manual refresh after disconnect or reconnect.
+
+Recommended later improvement:
+
+* Revisit partner connection live-sync with a cleaner connection-state model.
+* Consider a dedicated realtime channel or a simpler Settings-specific refresh strategy.
+* This is not a blocker for V1 because connect / disconnect is a rare Settings action.
 
 ### History removal policy
 
@@ -259,12 +283,14 @@ This should be done later without changing the product logic.
 * For Incognito login, copy the magic-link URL and paste it into the Incognito address bar so the session stays in Incognito.
 * On Vercel, magic-link login may open a duplicate window. This is normal; keep one logged-in Duo window and close the duplicate.
 * Duo invite emails are not real emails yet. Only Supabase login magic links are emailed.
+* Partner connection changes may require refresh on the other device.
+* Card changes should sync quickly.
 
 ## Next recommended steps
 
-1. Improve partner connection sync so reconnect/disconnect appears without needing refresh.
-2. Test Take / Stop again if needed with a returned-card flow.
-3. Improve the in-app notification/toast interaction.
-4. Begin a focused visual identity pass later, without changing product logic.
-5. Decide later whether History removal should stay hard delete or become soft delete.
-6. Add browser/mobile notifications only after deployment basics are stable.
+1. Test Take / Stop again if needed with a returned-card flow.
+2. Improve the in-app notification/toast interaction.
+3. Begin a focused visual identity pass later, without changing product logic.
+4. Decide later whether History removal should stay hard delete or become soft delete.
+5. Add browser/mobile notifications only after deployment basics are stable.
+6. Revisit partner connection live-sync later if connect / disconnect needs to feel fully realtime.
