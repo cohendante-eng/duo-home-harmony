@@ -28,6 +28,32 @@ import {
   getActivePartnerConnection,
 } from '../lib/partnerConnections';
 
+function clearRuntimeCards() {
+  useCards.setState({
+    activeCards: [],
+
+    historyCards: [],
+  });
+}
+
+function clearStalePartnerConnection() {
+  const partnerState =
+    usePartner.getState();
+
+  const hasStaleConnection =
+    partnerState.status ===
+      'connected' ||
+    Boolean(partnerState.partner);
+
+  if (!hasStaleConnection) {
+    return;
+  }
+
+  partnerState.disconnectPartner();
+
+  clearRuntimeCards();
+}
+
 export function usePartnerSync() {
   const {
     user,
@@ -52,11 +78,6 @@ export function usePartnerSync() {
   const cancelInvite =
     usePartner(
       (s) => s.cancelInvite
-    );
-
-  const disconnectPartner =
-    usePartner(
-      (s) => s.disconnectPartner
     );
 
   const syncPartnerState =
@@ -95,23 +116,7 @@ export function usePartnerSync() {
         return;
       }
 
-      const currentStatus =
-        usePartner
-          .getState()
-          .status;
-
-      if (
-        currentStatus ===
-        'connected'
-      ) {
-        disconnectPartner();
-
-        useCards.setState({
-          activeCards: [],
-
-          historyCards: [],
-        });
-      }
+      clearStalePartnerConnection();
 
       const incoming =
         await getLatestIncomingPartnerInvitation({
@@ -196,7 +201,6 @@ export function usePartnerSync() {
       setPendingInvite,
       connectPartner,
       cancelInvite,
-      disconnectPartner,
     ]);
 
   useEffect(() => {
