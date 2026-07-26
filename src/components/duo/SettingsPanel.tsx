@@ -3,6 +3,8 @@ import {
 } from 'lucide-react';
 
 import {
+  useCallback,
+  useEffect,
   useState,
 } from 'react';
 
@@ -22,15 +24,26 @@ import {
   acceptPartnerInvitation,
   cancelPartnerInvitation,
   createPartnerInvitation,
+  getLatestIncomingPartnerInvitation,
+  getLatestOutgoingPartnerInvitation,
 } from '../../lib/partnerInvitations';
 
 import {
   disconnectPartnerConnection,
+  getActivePartnerConnection,
 } from '../../lib/partnerConnections';
 
 type Props = {
   onClose: () => void;
 };
+
+function clearRuntimeCards() {
+  useCards.setState({
+    activeCards: [],
+
+    historyCards: [],
+  });
+}
 
 export default function SettingsPanel({
   onClose,
@@ -85,6 +98,11 @@ export default function SettingsPanel({
       (s) => s.invitePartner
     );
 
+  const setPendingInvite =
+    usePartner(
+      (s) => s.setPendingInvite
+    );
+
   const connectPartner =
     usePartner(
       (s) => s.connectPartner
@@ -99,6 +117,176 @@ export default function SettingsPanel({
     usePartner(
       (s) => s.disconnectPartner
     );
+
+  const refreshPartnerState =
+    useCallback(async () => {
+      if (!user || !email) {
+        return;
+      }
+
+      const activeConnection =
+        await getActivePartnerConnection({
+          userId: user.id,
+        });
+
+      if (activeConnection) {
+        const currentPartner =
+          usePartner
+            .getState()
+            .partner;
+
+        if (
+          currentPartner?.connectionId !==
+          activeConnection.id
+        ) {
+          connectPartner({
+            id: activeConnection.partnerId,
+
+            connectionId:
+              activeConnection.id,
+
+            name: 'Partner',
+
+            email: '',
+          });
+        }
+
+        return;
+      }
+
+      const partnerState =
+        usePartner.getState();
+
+      if (
+        partnerState.status ===
+          'connected' ||
+        partnerState.partner
+      ) {
+        disconnectPartner();
+
+        clearRuntimeCards();
+      }
+
+      const incoming =
+        await getLatestIncomingPartnerInvitation({
+          email,
+        });
+
+      if (incoming) {
+        const currentInvite =
+          usePartner
+            .getState()
+            .pendingInvite;
+
+        if (
+          currentInvite?.id !==
+          incoming.id
+        ) {
+          setPendingInvite({
+            id: incoming.id,
+
+            direction:
+              incoming.direction,
+
+            inviterId:
+              incoming.inviterId,
+
+            email:
+              incoming.email,
+
+            createdAt:
+              incoming.createdAt,
+          });
+        }
+
+        return;
+      }
+
+      const outgoing =
+        await getLatestOutgoingPartnerInvitation({
+          userId: user.id,
+        });
+
+      if (outgoing) {
+        const currentInvite =
+          usePartner
+            .getState()
+            .pendingInvite;
+
+        if (
+          currentInvite?.id !==
+          outgoing.id
+        ) {
+          setPendingInvite({
+            id: outgoing.id,
+
+            direction:
+              outgoing.direction,
+
+            inviterId:
+              outgoing.inviterId,
+
+            email:
+              outgoing.email,
+
+            createdAt:
+              outgoing.createdAt,
+          });
+        }
+
+        return;
+      }
+
+      if (
+        usePartner
+          .getState()
+          .status === 'pending'
+      ) {
+        cancelInvite();
+      }
+    }, [
+      user,
+      email,
+      connectPartner,
+      disconnectPartner,
+      setPendingInvite,
+      cancelInvite,
+    ]);
+
+  useEffect(() => {
+    refreshPartnerState().catch(
+      () => {
+        // Keep Settings quiet for now.
+      }
+    );
+  }, [
+    refreshPartnerState,
+  ]);
+
+  useEffect(() => {
+    if (!user || !email) {
+      return;
+    }
+
+    const interval =
+      window.setInterval(() => {
+        refreshPartnerState().catch(
+          () => {
+            // Keep Settings quiet for now.
+          }
+        );
+      }, 1000 * 3);
+
+    return () => {
+      window.clearInterval(
+        interval
+      );
+    };
+  }, [
+    user,
+    email,
+    refreshPartnerState,
+  ]);
 
   const isNotConnected =
     status === 'not_connected';
@@ -201,13 +389,7 @@ export default function SettingsPanel({
           user.id,
       });
 
-      connectPartner({
-        id: pendingInvite.inviterId,
-
-        name: 'Partner',
-
-        email: '',
-      });
+      await refreshPartnerState();
 
       setInviteStatus('idle');
     } catch (error) {
@@ -242,11 +424,7 @@ export default function SettingsPanel({
     if (!partner?.connectionId) {
       disconnectPartner();
 
-      useCards.setState({
-        activeCards: [],
-
-        historyCards: [],
-      });
+      clearRuntimeCards();
 
       return;
     }
@@ -274,11 +452,7 @@ export default function SettingsPanel({
 
       disconnectPartner();
 
-      useCards.setState({
-        activeCards: [],
-
-        historyCards: [],
-      });
+      clearRuntimeCards();
 
       setDisconnectStatus('idle');
     } catch (error) {
