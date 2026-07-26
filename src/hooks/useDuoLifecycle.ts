@@ -222,7 +222,9 @@ export function useDuoLifecycle() {
     showToast(
       getReminderMessage(
         firstCard
-      )
+      ),
+      undefined,
+      firstCard.id
     );
 
     markReminderSent(

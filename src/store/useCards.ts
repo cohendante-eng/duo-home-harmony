@@ -10,6 +10,8 @@ type ToastState = {
 
   message: string;
 
+  cardId?: string;
+
   undoAction?: () => void;
 };
 
@@ -30,7 +32,8 @@ type CardStore = {
 
   showToast: (
     message: string,
-    undoAction?: () => void
+    undoAction?: () => void,
+    cardId?: string
   ) => void;
 
   hideToast: () => void;
@@ -87,7 +90,8 @@ export const useCards =
 
       showToast: (
         message,
-        undoAction
+        undoAction,
+        cardId
       ) => {
         set({
           toast: {
@@ -96,11 +100,23 @@ export const useCards =
             message,
 
             undoAction,
+
+            cardId,
           },
         });
 
-        setTimeout(() => {
-          get().hideToast();
+        window.setTimeout(() => {
+          const currentToast =
+            get().toast;
+
+          if (
+            currentToast.message ===
+              message &&
+            currentToast.cardId ===
+              cardId
+          ) {
+            get().hideToast();
+          }
         }, 4000);
       },
 
@@ -338,7 +354,9 @@ export const useCards =
             }));
 
             get().hideToast();
-          }
+          },
+
+          id
         );
       },
 
