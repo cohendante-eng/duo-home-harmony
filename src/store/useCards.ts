@@ -10,6 +10,8 @@ type ToastState = {
 
   message: string;
 
+  toastId?: string;
+
   cardId?: string;
 
   undoAction?: () => void;
@@ -76,6 +78,10 @@ const ONE_DAY =
 const TOAST_VISIBLE_TIME =
   8000;
 
+function createToastId() {
+  return `${Date.now()}-${Math.random()}`;
+}
+
 export const useCards =
   create<CardStore>()(
     (set, get) => ({
@@ -96,11 +102,16 @@ export const useCards =
         undoAction,
         cardId
       ) => {
+        const toastId =
+          createToastId();
+
         set({
           toast: {
             visible: true,
 
             message,
+
+            toastId,
 
             undoAction,
 
@@ -113,10 +124,8 @@ export const useCards =
             get().toast;
 
           if (
-            currentToast.message ===
-              message &&
-            currentToast.cardId ===
-              cardId
+            currentToast.toastId ===
+            toastId
           ) {
             get().hideToast();
           }
