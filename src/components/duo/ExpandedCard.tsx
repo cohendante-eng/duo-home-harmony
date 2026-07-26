@@ -1121,7 +1121,7 @@ export default function ExpandedCard({
                 cursor: 'pointer',
               }}
             >
-              Take
+              I’ll handle it
             </button>
           )}
 
