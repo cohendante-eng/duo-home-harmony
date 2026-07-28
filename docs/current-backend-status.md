@@ -76,7 +76,7 @@ Working card behavior:
   - Delay / Reschedule
   - Cancel
   - Decline
-  - Take
+  - I’ll handle it
   - Stop
 
 ### Realtime sync
@@ -95,6 +95,23 @@ Current sync behavior:
   - User A sees accepted.
   - User B marks Done.
   - User A sees it move to History.
+
+### Returned and delayed-card flow
+
+Returned-card behavior:
+
+- User A creates a responsibility for User B.
+- User B can decline / return it.
+- The responsibility returns to User A.
+- User A can accept it or stop it.
+- If returned again, the card can continue back and forth until one user accepts it or stops it.
+
+Delayed-card behavior:
+
+- Delayed cards can show an `I’ll handle it` action.
+- `I’ll handle it` lets the user take over the delayed responsibility.
+- After `I’ll handle it`, the responsibility becomes accepted by that user.
+- The card disappears from the other user’s Home because it no longer needs their attention.
 
 ### History
 
@@ -144,6 +161,28 @@ Working behavior:
 - `Undo` restores the previous due time and accepted state.
 - Each toast has its own internal ID, so an older timer cannot close a newer toast early.
 
+### Local browser notifications
+
+Local browser notifications now work for V1.
+
+Working behavior:
+
+- Settings includes notification permission controls.
+- User can enable browser notifications.
+- If browser notifications are blocked, Settings explains that the user must enable them in browser settings.
+- Due-soon reminders trigger both:
+  - an in-app toast
+  - a browser notification
+- Clicking the browser notification opens / focuses Duo.
+- Clicking the notification opens the related responsibility card.
+- This works while Duo is open in the browser.
+
+Current limitation:
+
+- This is not true background push yet.
+- If Duo is fully closed, notifications are not guaranteed.
+- True background push can be added later with a service worker and push subscription system.
+
 ## Current architecture
 
 - Supabase stores real shared data.
@@ -155,6 +194,7 @@ Working behavior:
 - A 10-second backup refresh improves card sync reliability when realtime is slow.
 - Vercel hosts the deployed React/Vite app.
 - Supabase Auth URL Configuration now uses the stable deployed Vercel URL.
+- Browser notifications currently use local browser notification permission and app-side reminder events.
 
 ## Deployment status
 
@@ -202,6 +242,9 @@ Passed deployed QA behavior:
 - Settings now shows the connected partner email.
 - Reminder toast opens the related card.
 - Reschedule undo toast stays visible longer and works reliably.
+- Local browser notifications work while Duo is open.
+- Clicking a browser notification opens the related responsibility card.
+- Delayed-card takeover works and is now labeled `I’ll handle it`.
 
 Known deployment note:
 
@@ -222,38 +265,60 @@ Duo now supports the core V1 shared responsibility loop:
 4. Cards are created in Supabase.
 5. Cards sync between both users.
 6. Cards can be accepted, completed, delayed, cancelled, declined, stopped, removed from history, and expired.
-7. Lifecycle reminders and expiration are Supabase-backed.
-8. Reminder toasts can open the related responsibility.
-9. Reschedule undo toasts are stable and stay visible longer.
-10. Partner disconnect and reconnect work.
-11. The app is deployed and works outside localhost.
-12. A deployed QA pass with two real users on separate computers passed.
+7. Delayed cards can be taken over with `I’ll handle it`.
+8. Lifecycle reminders and expiration are Supabase-backed.
+9. Reminder toasts can open the related responsibility.
+10. Reschedule undo toasts are stable and stay visible longer.
+11. Local browser notifications can be enabled from Settings.
+12. Due-soon reminders can show browser notifications while Duo is open.
+13. Clicking a browser notification opens the related responsibility.
+14. Partner disconnect and reconnect work.
+15. The app is deployed and works outside localhost.
+16. A deployed QA pass with two real users on separate computers passed.
 
 ## Not fully finished
 
-### Browser / push notifications
+### True background push notifications
 
-Duo currently uses in-app quiet reminder toasts only.
+Duo currently has local browser notifications only.
+
+Current behavior:
+
+- Browser notifications work while Duo is open in the browser.
+- Reminder notification click opens the related responsibility card.
+- This is enough for V1 notification behavior testing.
 
 Not yet added:
 
-- Browser push notifications
-- Mobile push notifications
-- Email notifications
+- True background push notifications when Duo is fully closed.
+- Service worker push handling.
+- Push subscription storage.
+- Server-side push delivery.
+- Mobile push testing.
 
-This is intentional for now. The lifecycle rules needed to exist first.
+Recommended later approach:
 
-### Take / Stop deeper testing
+- Add service worker support.
+- Store browser/device push subscriptions in Supabase.
+- Use a Supabase Edge Function or similar server-side function to send true push notifications.
+- Keep the same quiet notification rules:
+  - new responsibility for me
+  - due-soon responsibility
+  - returned responsibility
+- Avoid chat-like notification noise.
 
-Take and Stop are coded and have been checked, but they may still need deeper testing with a realistic two-user returned-card flow.
+### Returned / Stop deeper testing
+
+Returned cards work as a back-and-forth responsibility decision, but Stop behavior can still be tested more deeply.
 
 Recommended test later:
 
 - User A creates a card for User B.
-- User B declines.
+- User B declines / returns it.
 - User A sees the returned card.
-- User A chooses Take.
-- Repeat the decline flow enough to confirm Stop appears and works correctly.
+- User A either accepts or lets it continue back and forth.
+- Confirm Stop appears and works correctly when the return count reaches the intended threshold.
+- Confirm Stop moves the card to History as stopped for both users.
 
 ### Partner connection live sync
 
@@ -323,12 +388,16 @@ This should be done later without changing the product logic.
 - Partner connection changes may require refresh on the other device.
 - Card changes should sync quickly.
 - Reminder toast and reschedule undo toast should stay visible for about 8 seconds.
+- Local browser notifications require browser permission.
+- Chrome may block notifications at first; the user may need to allow them from the browser permission popup or site settings.
+- Incognito can behave differently with notification permissions, so normal Chrome is better for notification testing.
+- Local browser notifications only work while Duo is open in the browser.
 
 ## Next recommended steps
 
-1. Test Take / Stop again if needed with a returned-card flow.
-2. Do a small polish pass on the toast layout and wording if needed.
-3. Begin a focused visual identity pass later, without changing product logic.
-4. Decide later whether History removal should stay hard delete or become soft delete.
-5. Add browser/mobile notifications only after deployment basics are stable.
-6. Revisit partner connection live-sync later if connect / disconnect needs to feel fully realtime.
+1. Do one short final QA pass on the main V1 flows.
+2. Begin the Duo visual identity and UI polish phase.
+3. Later, add true background push notifications if needed.
+4. Later, revisit partner connection live-sync if connect / disconnect needs to feel fully realtime.
+5. Later, decide whether History removal should stay hard delete or become soft delete.
+6. Later, add a real invitation email or shareable invite link.
