@@ -41,6 +41,12 @@ type Props = {
   onClose: () => void;
 };
 
+type DetailRow = {
+  label: string;
+
+  value: string;
+};
+
 function isActiveOverdue(
   card: any,
   now: number
@@ -163,6 +169,128 @@ function getContext(card: any) {
   return '';
 }
 
+function cleanValue(value: unknown) {
+  if (
+    value === undefined ||
+    value === null
+  ) {
+    return '';
+  }
+
+  return String(value).trim();
+}
+
+function getDetailRows(
+  card: any
+): DetailRow[] {
+  const payload =
+    card.payload || {};
+
+  const rows: DetailRow[] = [];
+
+  function addRow(
+    label: string,
+    value: unknown
+  ) {
+    const clean =
+      cleanValue(value);
+
+    if (!clean) return;
+
+    rows.push({
+      label,
+      value: clean,
+    });
+  }
+
+  if (card.type === 'transport') {
+    addRow(
+      'Task',
+      payload.title
+    );
+
+    addRow(
+      'From',
+      payload.from
+    );
+
+    addRow(
+      'To',
+      payload.to
+    );
+
+    return rows;
+  }
+
+  if (card.type === 'pay') {
+    addRow(
+      'Payment',
+      payload.title
+    );
+
+    addRow(
+      'Amount',
+      payload.amount
+    );
+
+    addRow(
+      'Recipient',
+      payload.recipient
+    );
+
+    return rows;
+  }
+
+  if (card.type === 'acquire') {
+    addRow(
+      'Item',
+      payload.item
+    );
+
+    addRow(
+      'From',
+      payload.source
+    );
+
+    addRow(
+      'Quantity',
+      payload.quantity
+    );
+
+    return rows;
+  }
+
+  if (card.type === 'appointment') {
+    addRow(
+      'Appointment',
+      payload.title
+    );
+
+    addRow(
+      'Location',
+      payload.location
+    );
+
+    return rows;
+  }
+
+  if (card.type === 'maintenance') {
+    addRow(
+      'Task',
+      payload.title
+    );
+
+    addRow(
+      'Location',
+      payload.location
+    );
+
+    return rows;
+  }
+
+  return rows;
+}
+
 function getIcon(card: any) {
   if (card.type === 'transport') {
     return <CarFront size={26} />;
@@ -231,7 +359,7 @@ function getStateColor(
   now: number
 ) {
   if (isActiveOverdue(card, now)) {
-    return '#b91c1c';
+    return '#dc2626';
   }
 
   if (card.state === 'delayed') {
@@ -259,7 +387,7 @@ function getStateBackground(
   now: number
 ) {
   if (isActiveOverdue(card, now)) {
-    return 'rgba(220, 38, 38, 0.12)';
+    return 'rgba(220, 38, 38, 0.08)';
   }
 
   if (card.state === 'delayed') {
@@ -384,12 +512,6 @@ export default function ExpandedCard({
   const isDelayed =
     card.state === 'delayed';
 
-  const isOverdue =
-    isActiveOverdue(
-      card,
-      now
-    );
-
   const isSurfaced =
     !isOwner &&
     card.modifierFor ===
@@ -410,6 +532,9 @@ export default function ExpandedCard({
 
   const context =
     getContext(card);
+
+  const detailRows =
+    getDetailRows(card);
 
   function getRealUserId(
     localId: 'me' | 'partner'
@@ -645,9 +770,7 @@ export default function ExpandedCard({
               borderRadius: 17,
 
               background:
-                isOverdue
-                  ? 'rgba(220, 38, 38, 0.08)'
-                  : 'rgba(0,0,0,0.04)',
+                'rgba(0,0,0,0.04)',
 
               display: 'flex',
 
@@ -657,10 +780,7 @@ export default function ExpandedCard({
               justifyContent:
                 'center',
 
-              color:
-                isOverdue
-                  ? '#b91c1c'
-                  : '#444',
+              color: '#444',
             }}
           >
             {getIcon(card)}
@@ -1092,7 +1212,7 @@ export default function ExpandedCard({
 
               fontWeight: 500,
 
-              marginBottom: 26,
+              marginBottom: 24,
             }}
           >
             {context}
@@ -1114,27 +1234,121 @@ export default function ExpandedCard({
               borderRadius: 999,
 
               background:
-                isOverdue
-                  ? 'rgba(220, 38, 38, 0.1)'
-                  : isDelayed
+                isDelayed
                   ? 'rgba(217, 119, 6, 0.1)'
                   : 'rgba(0,0,0,0.045)',
 
               color:
-                isOverdue
-                  ? '#b91c1c'
-                  : isDelayed
+                isDelayed
                   ? '#a16207'
                   : '#555',
 
               fontSize: 14,
 
               fontWeight: 700,
+
+              marginBottom: 28,
             }}
           >
             <Clock3 size={16} />
 
             {formatDueAt(card.dueAt)}
+          </div>
+        )}
+
+        {detailRows.length > 0 && (
+          <div
+            style={{
+              marginTop: 4,
+
+              borderTop:
+                '1px solid rgba(0,0,0,0.06)',
+
+              paddingTop: 20,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 12,
+
+                color: '#999',
+
+                fontWeight: 800,
+
+                letterSpacing: 0.5,
+
+                textTransform:
+                  'uppercase',
+
+                marginBottom: 12,
+              }}
+            >
+              Details
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+
+                flexDirection:
+                  'column',
+
+                gap: 12,
+              }}
+            >
+              {detailRows.map(
+                (row) => (
+                  <div
+                    key={row.label}
+                    style={{
+                      display:
+                        'flex',
+
+                      justifyContent:
+                        'space-between',
+
+                      gap: 18,
+
+                      paddingBottom: 12,
+
+                      borderBottom:
+                        '1px solid rgba(0,0,0,0.045)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 14,
+
+                        color: '#999',
+
+                        fontWeight: 650,
+                      }}
+                    >
+                      {row.label}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 15,
+
+                        color: '#222',
+
+                        fontWeight: 700,
+
+                        textAlign:
+                          'right',
+
+                        lineHeight: 1.25,
+
+                        maxWidth: '65%',
+                      }}
+                    >
+                      {row.value}
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
           </div>
         )}
       </div>
