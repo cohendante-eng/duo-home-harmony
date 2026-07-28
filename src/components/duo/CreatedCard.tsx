@@ -219,14 +219,9 @@ export default function CreatedCard({
         borderRadius: 18,
 
         border:
-          isOverdue
-            ? '1px solid rgba(220, 38, 38, 0.2)'
-            : '1px solid rgba(0,0,0,0.06)',
+          '1px solid rgba(0,0,0,0.06)',
 
-        background:
-          isOverdue
-            ? 'rgba(254, 242, 242, 0.45)'
-            : '#fff',
+        background: '#fff',
 
         textAlign: 'left',
 
@@ -248,9 +243,7 @@ export default function CreatedCard({
           borderRadius: 15,
 
           background:
-            isOverdue
-              ? 'rgba(220, 38, 38, 0.08)'
-              : 'rgba(0,0,0,0.04)',
+            'rgba(0,0,0,0.04)',
 
           display: 'flex',
 
@@ -258,10 +251,7 @@ export default function CreatedCard({
 
           justifyContent: 'center',
 
-          color:
-            isOverdue
-              ? '#b91c1c'
-              : '#666',
+          color: '#666',
 
           flexShrink: 0,
         }}
@@ -340,7 +330,7 @@ export default function CreatedCard({
 
               background:
                 isOverdue
-                  ? 'rgba(220, 38, 38, 0.12)'
+                  ? 'rgba(220, 38, 38, 0.08)'
                   : isDelayed
                   ? 'rgba(217, 119, 6, 0.12)'
                   : isRequested
@@ -349,12 +339,17 @@ export default function CreatedCard({
 
               color:
                 isOverdue
-                  ? '#b91c1c'
+                  ? '#dc2626'
                   : isDelayed
                   ? '#a16207'
                   : isRequested
                   ? '#555'
                   : '#15803d',
+
+              border:
+                isOverdue
+                  ? '1px solid rgba(220, 38, 38, 0.16)'
+                  : 'none',
 
               flexShrink: 0,
             }}
@@ -402,14 +397,11 @@ export default function CreatedCard({
               fontSize: 12,
 
               color:
-                isOverdue
-                  ? '#b91c1c'
-                  : isDelayed
+                isDelayed
                   ? '#a16207'
                   : '#666',
 
               fontWeight:
-                isOverdue ||
                 isDelayed
                   ? 700
                   : 600,

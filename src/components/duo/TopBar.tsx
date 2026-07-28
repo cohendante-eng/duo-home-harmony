@@ -1,5 +1,5 @@
 import {
-  UserCircle,
+  Settings,
 } from 'lucide-react';
 
 type Props = {
@@ -23,16 +23,67 @@ export default function TopBar({
         alignItems: 'center',
 
         marginBottom: 28,
+
+        gap: 16,
       }}
     >
+      <div
+        style={{
+          minWidth: 0,
+
+          flex: 1,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 11,
+
+            color: '#bbb',
+
+            fontWeight: 800,
+
+            letterSpacing: 0.45,
+
+            textTransform:
+              'uppercase',
+
+            marginBottom: 4,
+          }}
+        >
+          Account
+        </div>
+
+        <div
+          style={{
+            maxWidth: '100%',
+
+            overflow: 'hidden',
+
+            whiteSpace: 'nowrap',
+
+            textOverflow: 'ellipsis',
+
+            fontSize: 13,
+
+            color: '#999',
+
+            fontWeight: 650,
+          }}
+        >
+          {email || 'Signed in'}
+        </div>
+      </div>
+
       <button
         onClick={
           onOpenSettings
         }
+        aria-label="Open settings"
+        title="Settings"
         style={{
-          width: 36,
+          width: 38,
 
-          height: 36,
+          height: 38,
 
           borderRadius: 999,
 
@@ -51,32 +102,14 @@ export default function TopBar({
           color: '#777',
 
           cursor: 'pointer',
+
+          flexShrink: 0,
         }}
       >
-        <UserCircle
-          size={20}
+        <Settings
+          size={19}
         />
       </button>
-
-      <div
-        style={{
-          maxWidth: 220,
-
-          overflow: 'hidden',
-
-          whiteSpace: 'nowrap',
-
-          textOverflow: 'ellipsis',
-
-          fontSize: 13,
-
-          color: '#999',
-
-          fontWeight: 600,
-        }}
-      >
-        {email || 'Signed in'}
-      </div>
     </div>
   );
 }

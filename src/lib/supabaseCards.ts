@@ -338,6 +338,30 @@ export async function removeSupabaseCard({
   }
 }
 
+
+export async function removeAllSupabaseHistoryCards({
+  cardIds,
+}: {
+  cardIds: string[];
+}) {
+  const validCardIds =
+    cardIds.filter(isUuid);
+
+  if (validCardIds.length === 0) {
+    return;
+  }
+
+  const { error } =
+    await supabase
+      .from('cards')
+      .delete()
+      .in('id', validCardIds);
+
+  if (error) {
+    throw error;
+  }
+}
+
 export async function delaySupabaseCard({
   cardId,
   dueAt,

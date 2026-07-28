@@ -45,22 +45,6 @@ export default function AppointmentFields({
         }
         style={inputStyle}
       />
-
-      <input
-        placeholder="Time"
-        value={
-          payload.time || ''
-        }
-        onChange={(e) =>
-          setPayload({
-            ...payload,
-
-            time:
-              e.target.value,
-          })
-        }
-        style={inputStyle}
-      />
     </>
   );
 }

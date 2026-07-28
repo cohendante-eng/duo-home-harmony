@@ -35,7 +35,6 @@ export type AcquirePayload = {
 export type AppointmentPayload = {
   title: string;
   location: string;
-  time: string;
 };
 
 export type MaintenancePayload = {

@@ -34,7 +34,7 @@ export function getCardContext(
   if (
     card.type === 'appointment'
   ) {
-    return `${card.payload.location} · ${card.payload.time}`;
+    return `${card.payload.location}`;
   }
 
   if (

@@ -54,6 +54,10 @@ import {
   useSupabaseCardsRealtime,
 } from '../hooks/useSupabaseCardsRealtime';
 
+import {
+  removeAllSupabaseHistoryCards,
+} from '../lib/supabaseCards';
+
 type Tab =
   | 'main'
   | 'created'
@@ -83,6 +87,12 @@ export default function Index() {
   const [settingsOpen, setSettingsOpen] =
     useState(false);
 
+  const [confirmRemoveHistoryOpen, setConfirmRemoveHistoryOpen] =
+    useState(false);
+
+  const [isRemovingHistory, setIsRemovingHistory] =
+    useState(false);
+
   const [tab, setTab] =
     useState<Tab>('main');
 
@@ -100,6 +110,11 @@ export default function Index() {
 
   const hideToast =
     useCards((s) => s.hideToast);
+
+  const removeAllHistoryCards =
+    useCards(
+      (s) => s.removeAllHistoryCards
+    );
 
   useEffect(() => {
     if (session) {
@@ -203,6 +218,39 @@ export default function Index() {
     !selectedId &&
     !createOpen &&
     !settingsOpen;
+
+  async function handleRemoveAllHistory() {
+    if (
+      isRemovingHistory ||
+      historyCards.length === 0
+    ) {
+      return;
+    }
+
+    const idsToRemove =
+      historyCards.map(
+        (card) => card.id
+      );
+
+    setIsRemovingHistory(true);
+
+    try {
+      await removeAllSupabaseHistoryCards({
+        cardIds: idsToRemove,
+      });
+
+      removeAllHistoryCards();
+
+      setConfirmRemoveHistoryOpen(false);
+    } catch (error) {
+      console.error(
+        'Could not remove all Supabase history cards',
+        error
+      );
+    } finally {
+      setIsRemovingHistory(false);
+    }
+  }
 
   function handleToastClick() {
     if (toast.undoAction) {
@@ -370,9 +418,62 @@ export default function Index() {
                   flexDirection:
                     'column',
 
-                  gap: 10,
+                  gap: 12,
                 }}
               >
+                <div
+                  style={{
+                    display: 'flex',
+
+                    alignItems: 'center',
+
+                    justifyContent:
+                      'space-between',
+
+                    gap: 12,
+
+                    marginBottom: 2,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 13,
+
+                      color: '#999',
+
+                      fontWeight: 700,
+                    }}
+                  >
+                    {historyCards.length} history item{historyCards.length === 1 ? '' : 's'}
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      setConfirmRemoveHistoryOpen(
+                        true
+                      )
+                    }
+                    style={{
+                      border: 'none',
+
+                      background:
+                        'transparent',
+
+                      color: '#777',
+
+                      fontSize: 13,
+
+                      fontWeight: 750,
+
+                      cursor: 'pointer',
+
+                      padding: 0,
+                    }}
+                  >
+                    Remove all
+                  </button>
+                </div>
+
                 {historyCards.map(
                   (card) => (
                     <HistoryCard
@@ -428,6 +529,155 @@ export default function Index() {
           />
         )}
       </div>
+
+      {confirmRemoveHistoryOpen && (
+        <div
+          style={{
+            position: 'fixed',
+
+            inset: 0,
+
+            zIndex: 260,
+
+            background:
+              'rgba(0,0,0,0.22)',
+
+            display: 'flex',
+
+            alignItems: 'center',
+
+            justifyContent: 'center',
+
+            padding: 24,
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+
+              maxWidth: 420,
+
+              borderRadius: 24,
+
+              background: '#fff',
+
+              boxShadow:
+                '0 22px 70px rgba(0,0,0,0.22)',
+
+              padding: 22,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 20,
+
+                fontWeight: 780,
+
+                letterSpacing: -0.25,
+
+                color: '#111',
+
+                marginBottom: 8,
+              }}
+            >
+              Remove all history?
+            </div>
+
+            <div
+              style={{
+                fontSize: 14,
+
+                lineHeight: 1.45,
+
+                color: '#777',
+
+                fontWeight: 500,
+
+                marginBottom: 22,
+              }}
+            >
+              This will permanently remove all done, cancelled, stopped, and expired responsibilities from your history.
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+
+                gap: 10,
+              }}
+            >
+              <button
+                onClick={() =>
+                  setConfirmRemoveHistoryOpen(
+                    false
+                  )
+                }
+                disabled={isRemovingHistory}
+                style={{
+                  flex: 1,
+
+                  height: 48,
+
+                  borderRadius: 16,
+
+                  border:
+                    '1px solid rgba(0,0,0,0.08)',
+
+                  background: '#fff',
+
+                  color: '#555',
+
+                  fontSize: 15,
+
+                  fontWeight: 750,
+
+                  cursor: isRemovingHistory
+                    ? 'default'
+                    : 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={
+                  handleRemoveAllHistory
+                }
+                disabled={isRemovingHistory}
+                style={{
+                  flex: 1,
+
+                  height: 48,
+
+                  borderRadius: 16,
+
+                  border: 'none',
+
+                  background: '#111',
+
+                  color: '#fff',
+
+                  fontSize: 15,
+
+                  fontWeight: 750,
+
+                  cursor: isRemovingHistory
+                    ? 'default'
+                    : 'pointer',
+
+                  opacity: isRemovingHistory
+                    ? 0.55
+                    : 1,
+                }}
+              >
+                {isRemovingHistory
+                  ? 'Removing...'
+                  : 'Remove all'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast.visible && (
         <div

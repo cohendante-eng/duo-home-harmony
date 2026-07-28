@@ -258,9 +258,7 @@ export default function ResponsibilityCard({
         boxSizing: 'border-box',
 
         border:
-          isOverdue && isMine
-            ? '1px solid rgba(220, 38, 38, 0.2)'
-            : '1px solid rgba(0,0,0,0.065)',
+          '1px solid rgba(0,0,0,0.065)',
 
         borderRadius: 18,
 
@@ -276,9 +274,7 @@ export default function ResponsibilityCard({
         gap: 14,
 
         background:
-          isOverdue && isMine
-            ? 'rgba(254, 242, 242, 0.45)'
-            : isMine
+          isMine
             ? '#fbfbfa'
             : '#fff',
 
@@ -316,9 +312,7 @@ export default function ResponsibilityCard({
             borderRadius: 15,
 
             background:
-              isOverdue
-                ? 'rgba(220, 38, 38, 0.08)'
-                : 'rgba(0,0,0,0.055)',
+              'rgba(0,0,0,0.055)',
 
             display: 'flex',
 
@@ -327,9 +321,7 @@ export default function ResponsibilityCard({
             justifyContent:
               'center',
 
-            color: isOverdue
-              ? '#b91c1c'
-              : '#444',
+            color: '#444',
 
             flexShrink: 0,
           }}
@@ -408,14 +400,11 @@ export default function ResponsibilityCard({
 
                 fontSize: 12,
 
-                color: isOverdue
-                  ? '#b91c1c'
-                  : isDelayed
+                color: isDelayed
                   ? '#a16207'
                   : '#666',
 
                 fontWeight:
-                  isOverdue ||
                   isDelayed
                     ? 700
                     : 600,
@@ -470,7 +459,7 @@ export default function ResponsibilityCard({
 
             background:
               isOverdue
-                ? 'rgba(220, 38, 38, 0.12)'
+                ? 'rgba(220, 38, 38, 0.08)'
                 : isDelayed
                 ? 'rgba(217, 119, 6, 0.12)'
                 : isRequested
@@ -479,7 +468,7 @@ export default function ResponsibilityCard({
 
             color:
               isOverdue
-                ? '#b91c1c'
+                ? '#dc2626'
                 : isDelayed
                 ? '#a16207'
                 : isRequested
@@ -488,7 +477,7 @@ export default function ResponsibilityCard({
 
             border:
               isOverdue
-                ? '1px solid rgba(220, 38, 38, 0.2)'
+                ? '1px solid rgba(220, 38, 38, 0.16)'
                 : isAccepted
                 ? '1px solid rgba(34, 197, 94, 0.28)'
                 : isDelayed

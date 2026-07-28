@@ -65,6 +65,8 @@ type CardStore = {
     id: string
   ) => void;
 
+  removeAllHistoryCards: () => void;
+
   markReminderSent: (
     id: string
   ) => void;
@@ -494,6 +496,11 @@ export const useCards =
                 card.id !== id
             ),
         })),
+
+      removeAllHistoryCards: () =>
+        set({
+          historyCards: [],
+        }),
 
       markReminderSent: (id) =>
         set((state) => ({
