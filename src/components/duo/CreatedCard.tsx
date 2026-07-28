@@ -1,166 +1,434 @@
 import {
-    CarFront,
-    CreditCard,
-    ShoppingBag,
-    Calendar,
-    Wrench,
-  } from 'lucide-react';
-  
-  import {
-    DuoCard,
-  } from '../../types/card';
-  
-  import {
-    getCardTitle,
-    getCardContext,
-  } from '../../lib/cards';
-  
-  type Props = {
-    card: DuoCard;
-  
-    onOpen: (card: DuoCard) => void;
-  };
-  
-  function getIcon(card: DuoCard) {
-    if (card.type === 'transport') {
-      return <CarFront size={22} />;
-    }
-  
-    if (card.type === 'pay') {
-      return <CreditCard size={22} />;
-    }
-  
-    if (card.type === 'acquire') {
-      return <ShoppingBag size={22} />;
-    }
-  
-    if (card.type === 'appointment') {
-      return <Calendar size={22} />;
-    }
-  
-    if (card.type === 'maintenance') {
-      return <Wrench size={22} />;
-    }
-  
-    return null;
+  CarFront,
+  CreditCard,
+  ShoppingBag,
+  Calendar,
+  Wrench,
+  Clock3,
+} from 'lucide-react';
+
+import {
+  useEffect,
+  useState,
+} from 'react';
+
+import {
+  DuoCard,
+} from '../../types/card';
+
+import {
+  getCardTitle,
+  getCardContext,
+} from '../../lib/cards';
+
+type Props = {
+  card: DuoCard;
+
+  onOpen: (card: DuoCard) => void;
+};
+
+function getIcon(card: DuoCard) {
+  if (card.type === 'transport') {
+    return <CarFront size={22} />;
   }
-  
-  export default function CreatedCard({
-    card,
-    onOpen,
-  }: Props) {
-    return (
-      <button
-        onClick={() =>
-          onOpen(card)
-        }
+
+  if (card.type === 'pay') {
+    return <CreditCard size={22} />;
+  }
+
+  if (card.type === 'acquire') {
+    return <ShoppingBag size={22} />;
+  }
+
+  if (card.type === 'appointment') {
+    return <Calendar size={22} />;
+  }
+
+  if (card.type === 'maintenance') {
+    return <Wrench size={22} />;
+  }
+
+  return null;
+}
+
+function isActiveOverdue(
+  card: DuoCard,
+  now: number
+) {
+  return (
+    (
+      card.state === 'accepted' ||
+      card.state === 'delayed'
+    ) &&
+    typeof card.dueAt === 'number' &&
+    card.dueAt < now
+  );
+}
+
+function getStateLabel(
+  card: DuoCard,
+  now: number
+) {
+  if (isActiveOverdue(card, now)) {
+    return 'Overdue';
+  }
+
+  if (card.state === 'requested') {
+    return 'Requested';
+  }
+
+  if (card.state === 'accepted') {
+    return 'Accepted';
+  }
+
+  if (card.state === 'delayed') {
+    return 'Delayed';
+  }
+
+  if (card.state === 'done') {
+    return 'Done';
+  }
+
+  if (card.state === 'cancelled') {
+    return 'Cancelled';
+  }
+
+  if (card.state === 'stopped') {
+    return 'Stopped';
+  }
+
+  if (card.state === 'expired') {
+    return 'Expired';
+  }
+
+  return card.state;
+}
+
+function formatDueAt(
+  dueAt?: number
+) {
+  if (!dueAt) return '';
+
+  const now =
+    new Date();
+
+  const date =
+    new Date(dueAt);
+
+  const today =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+  const targetDay =
+    new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+
+  const diffDays =
+    Math.round(
+      (
+        targetDay.getTime() -
+        today.getTime()
+      ) /
+        (1000 *
+          60 *
+          60 *
+          24)
+    );
+
+  const time =
+    date.toLocaleTimeString(
+      [],
+      {
+        hour: '2-digit',
+        minute: '2-digit',
+      }
+    );
+
+  if (diffDays === 0) {
+    return `Today · ${time}`;
+  }
+
+  if (diffDays === 1) {
+    return `Tomorrow · ${time}`;
+  }
+
+  if (diffDays === -1) {
+    return `Yesterday · ${time}`;
+  }
+
+  return `${date.toLocaleDateString(
+    [],
+    {
+      weekday: 'short',
+    }
+  )} · ${time}`;
+}
+
+export default function CreatedCard({
+  card,
+  onOpen,
+}: Props) {
+  const [now, setNow] =
+    useState(() => Date.now());
+
+  useEffect(() => {
+    const interval =
+      window.setInterval(() => {
+        setNow(Date.now());
+      }, 1000 * 30);
+
+    return () => {
+      window.clearInterval(
+        interval
+      );
+    };
+  }, []);
+
+  const isOverdue =
+    isActiveOverdue(
+      card,
+      now
+    );
+
+  const isDelayed =
+    card.state === 'delayed';
+
+  const isRequested =
+    card.state === 'requested';
+
+  return (
+    <button
+      onClick={() =>
+        onOpen(card)
+      }
+      style={{
+        width: '100%',
+
+        minHeight: 88,
+
+        boxSizing: 'border-box',
+
+        padding: 16,
+
+        borderRadius: 18,
+
+        border:
+          isOverdue
+            ? '1px solid rgba(220, 38, 38, 0.2)'
+            : '1px solid rgba(0,0,0,0.06)',
+
+        background:
+          isOverdue
+            ? 'rgba(254, 242, 242, 0.45)'
+            : '#fff',
+
+        textAlign: 'left',
+
+        cursor: 'pointer',
+
+        display: 'flex',
+
+        alignItems: 'flex-start',
+
+        gap: 13,
+      }}
+    >
+      <div
         style={{
-          width: '100%',
-  
-          height: 88,
-  
-          boxSizing: 'border-box',
-  
-          padding: 16,
-  
-          borderRadius: 18,
-  
-          border:
-            '1px solid rgba(0,0,0,0.06)',
-  
-          background: '#fff',
-  
-          textAlign: 'left',
-  
-          cursor: 'pointer',
-  
+          width: 46,
+
+          height: 46,
+
+          borderRadius: 15,
+
+          background:
+            isOverdue
+              ? 'rgba(220, 38, 38, 0.08)'
+              : 'rgba(0,0,0,0.04)',
+
           display: 'flex',
-  
-          alignItems: 'flex-start',
-  
-          gap: 13,
+
+          alignItems: 'center',
+
+          justifyContent: 'center',
+
+          color:
+            isOverdue
+              ? '#b91c1c'
+              : '#666',
+
+          flexShrink: 0,
+        }}
+      >
+        {getIcon(card)}
+      </div>
+
+      <div
+        style={{
+          minWidth: 0,
+
+          flex: 1,
+
+          display: 'flex',
+
+          flexDirection: 'column',
+
+          gap: 5,
+
+          paddingTop: 1,
         }}
       >
         <div
           style={{
-            width: 46,
-  
-            height: 46,
-  
-            borderRadius: 15,
-  
-            background:
-              'rgba(0,0,0,0.04)',
-  
             display: 'flex',
-  
+
             alignItems: 'center',
-  
-            justifyContent: 'center',
-  
-            color: '#666',
-  
-            flexShrink: 0,
-          }}
-        >
-          {getIcon(card)}
-        </div>
-  
-        <div
-          style={{
-            minWidth: 0,
-  
-            flex: 1,
-  
-            display: 'flex',
-  
-            flexDirection: 'column',
-  
-            gap: 5,
-  
-            paddingTop: 1,
+
+            justifyContent:
+              'space-between',
+
+            gap: 10,
           }}
         >
           <div
             style={{
               fontSize: 16,
-  
+
               fontWeight: 700,
-  
+
               color: '#111',
-  
+
               lineHeight: 1.16,
-  
+
               overflow: 'hidden',
-  
+
               textOverflow: 'ellipsis',
-  
+
               whiteSpace: 'nowrap',
             }}
           >
             {getCardTitle(card)}
           </div>
-  
+
           <div
             style={{
-              fontSize: 13,
-  
-              color: '#888',
-  
-              lineHeight: 1.25,
-  
-              fontWeight: 500,
-  
+              display: 'inline-flex',
+
+              alignItems: 'center',
+
+              height: 24,
+
+              padding:
+                '0 9px',
+
+              borderRadius: 999,
+
+              fontSize: 9,
+
+              fontWeight: 800,
+
+              letterSpacing: 0.35,
+
+              textTransform:
+                'uppercase',
+
+              background:
+                isOverdue
+                  ? 'rgba(220, 38, 38, 0.12)'
+                  : isDelayed
+                  ? 'rgba(217, 119, 6, 0.12)'
+                  : isRequested
+                  ? 'rgba(0,0,0,0.06)'
+                  : 'rgba(34, 197, 94, 0.12)',
+
+              color:
+                isOverdue
+                  ? '#b91c1c'
+                  : isDelayed
+                  ? '#a16207'
+                  : isRequested
+                  ? '#555'
+                  : '#15803d',
+
+              flexShrink: 0,
+            }}
+          >
+            {getStateLabel(
+              card,
+              now
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            fontSize: 13,
+
+            color: '#888',
+
+            lineHeight: 1.25,
+
+            fontWeight: 500,
+
+            overflow: 'hidden',
+
+            textOverflow: 'ellipsis',
+
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {getCardContext(card)}
+        </div>
+
+        {card.dueAt && (
+          <div
+            style={{
+              display:
+                'inline-flex',
+
+              alignItems:
+                'center',
+
+              gap: 6,
+
+              marginTop: 4,
+
+              fontSize: 12,
+
+              color:
+                isOverdue
+                  ? '#b91c1c'
+                  : isDelayed
+                  ? '#a16207'
+                  : '#666',
+
+              fontWeight:
+                isOverdue ||
+                isDelayed
+                  ? 700
+                  : 600,
+
               overflow: 'hidden',
-  
+
               textOverflow: 'ellipsis',
-  
+
               whiteSpace: 'nowrap',
             }}
           >
-            {getCardContext(card)}
+            <Clock3 size={13} />
+
+            {formatDueAt(
+              card.dueAt
+            )}
           </div>
-        </div>
-      </button>
-    );
-  }
+        )}
+      </div>
+    </button>
+  );
+}

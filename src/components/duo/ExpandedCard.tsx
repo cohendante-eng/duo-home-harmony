@@ -9,7 +9,10 @@ import {
   Wrench,
 } from 'lucide-react';
 
-import { useState } from 'react';
+import {
+  useEffect,
+  useState,
+} from 'react';
 
 import { useCards } from '../../store/useCards';
 
@@ -37,6 +40,20 @@ type Props = {
 
   onClose: () => void;
 };
+
+function isActiveOverdue(
+  card: any,
+  now: number
+) {
+  return (
+    (
+      card.state === 'accepted' ||
+      card.state === 'delayed'
+    ) &&
+    typeof card.dueAt === 'number' &&
+    card.dueAt < now
+  );
+}
 
 function formatDueAt(
   dueAt?: number
@@ -90,6 +107,10 @@ function formatDueAt(
 
   if (diffDays === 1) {
     return `Tomorrow · ${time}`;
+  }
+
+  if (diffDays === -1) {
+    return `Yesterday · ${time}`;
   }
 
   return `${date.toLocaleDateString(
@@ -166,52 +187,66 @@ function getIcon(card: any) {
   return null;
 }
 
-function getStateLabel(state: string) {
-  if (state === 'requested') {
+function getStateLabel(
+  card: any,
+  now: number
+) {
+  if (isActiveOverdue(card, now)) {
+    return 'Overdue';
+  }
+
+  if (card.state === 'requested') {
     return 'Requested';
   }
 
-  if (state === 'accepted') {
+  if (card.state === 'accepted') {
     return 'Accepted';
   }
 
-  if (state === 'delayed') {
+  if (card.state === 'delayed') {
     return 'Delayed';
   }
 
-  if (state === 'done') {
+  if (card.state === 'done') {
     return 'Done';
   }
 
-  if (state === 'cancelled') {
+  if (card.state === 'cancelled') {
     return 'Cancelled';
   }
 
-  if (state === 'stopped') {
+  if (card.state === 'stopped') {
     return 'Stopped';
   }
 
-  if (state === 'expired') {
+  if (card.state === 'expired') {
     return 'Expired';
   }
 
-  return state;
+  return card.state;
 }
 
-function getStateColor(state: string) {
-  if (state === 'delayed') {
+function getStateColor(
+  card: any,
+  now: number
+) {
+  if (isActiveOverdue(card, now)) {
+    return '#b91c1c';
+  }
+
+  if (card.state === 'delayed') {
     return '#a16207';
   }
 
-  if (state === 'accepted') {
+  if (card.state === 'accepted') {
     return '#2e7d32';
   }
 
   if (
-    state === 'done' ||
-    state === 'cancelled' ||
-    state === 'stopped' ||
-    state === 'expired'
+    card.state === 'done' ||
+    card.state === 'cancelled' ||
+    card.state === 'stopped' ||
+    card.state === 'expired'
   ) {
     return '#777';
   }
@@ -219,20 +254,27 @@ function getStateColor(state: string) {
   return '#555';
 }
 
-function getStateBackground(state: string) {
-  if (state === 'delayed') {
+function getStateBackground(
+  card: any,
+  now: number
+) {
+  if (isActiveOverdue(card, now)) {
+    return 'rgba(220, 38, 38, 0.12)';
+  }
+
+  if (card.state === 'delayed') {
     return 'rgba(217, 119, 6, 0.12)';
   }
 
-  if (state === 'accepted') {
+  if (card.state === 'accepted') {
     return 'rgba(52, 168, 83, 0.08)';
   }
 
   if (
-    state === 'done' ||
-    state === 'cancelled' ||
-    state === 'stopped' ||
-    state === 'expired'
+    card.state === 'done' ||
+    card.state === 'cancelled' ||
+    card.state === 'stopped' ||
+    card.state === 'expired'
   ) {
     return 'rgba(0,0,0,0.045)';
   }
@@ -249,6 +291,22 @@ export default function ExpandedCard({
 
   const [showReschedule, setShowReschedule] =
     useState(false);
+
+  const [now, setNow] =
+    useState(() => Date.now());
+
+  useEffect(() => {
+    const interval =
+      window.setInterval(() => {
+        setNow(Date.now());
+      }, 1000 * 30);
+
+    return () => {
+      window.clearInterval(
+        interval
+      );
+    };
+  }, []);
 
   const {
     user,
@@ -325,6 +383,12 @@ export default function ExpandedCard({
 
   const isDelayed =
     card.state === 'delayed';
+
+  const isOverdue =
+    isActiveOverdue(
+      card,
+      now
+    );
 
   const isSurfaced =
     !isOwner &&
@@ -581,7 +645,9 @@ export default function ExpandedCard({
               borderRadius: 17,
 
               background:
-                'rgba(0,0,0,0.04)',
+                isOverdue
+                  ? 'rgba(220, 38, 38, 0.08)'
+                  : 'rgba(0,0,0,0.04)',
 
               display: 'flex',
 
@@ -591,7 +657,10 @@ export default function ExpandedCard({
               justifyContent:
                 'center',
 
-              color: '#444',
+              color:
+                isOverdue
+                  ? '#b91c1c'
+                  : '#444',
             }}
           >
             {getIcon(card)}
@@ -632,12 +701,14 @@ export default function ExpandedCard({
 
                 background:
                   getStateBackground(
-                    card.state
+                    card,
+                    now
                   ),
 
                 color:
                   getStateColor(
-                    card.state
+                    card,
+                    now
                   ),
 
                 fontSize: 10,
@@ -651,7 +722,8 @@ export default function ExpandedCard({
               }}
             >
               {getStateLabel(
-                card.state
+                card,
+                now
               )}
             </div>
           </div>
@@ -1042,13 +1114,18 @@ export default function ExpandedCard({
               borderRadius: 999,
 
               background:
-                isDelayed
+                isOverdue
+                  ? 'rgba(220, 38, 38, 0.1)'
+                  : isDelayed
                   ? 'rgba(217, 119, 6, 0.1)'
                   : 'rgba(0,0,0,0.045)',
 
-              color: isDelayed
-                ? '#a16207'
-                : '#555',
+              color:
+                isOverdue
+                  ? '#b91c1c'
+                  : isDelayed
+                  ? '#a16207'
+                  : '#555',
 
               fontSize: 14,
 

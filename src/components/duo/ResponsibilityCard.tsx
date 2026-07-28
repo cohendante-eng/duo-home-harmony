@@ -7,6 +7,11 @@ import {
   Clock3,
 } from 'lucide-react';
 
+import {
+  useEffect,
+  useState,
+} from 'react';
+
 import { DuoCard } from '../../types/card';
 
 import { useCards } from '../../store/useCards';
@@ -89,7 +94,28 @@ function getIcon(card: DuoCard) {
   }
 }
 
-function getStateLabel(card: DuoCard) {
+function isActiveOverdue(
+  card: DuoCard,
+  now: number
+) {
+  return (
+    (
+      card.state === 'accepted' ||
+      card.state === 'delayed'
+    ) &&
+    typeof card.dueAt === 'number' &&
+    card.dueAt < now
+  );
+}
+
+function getStateLabel(
+  card: DuoCard,
+  now: number
+) {
+  if (isActiveOverdue(card, now)) {
+    return 'Overdue';
+  }
+
   if (card.state === 'requested') {
     return 'Requested';
   }
@@ -159,6 +185,10 @@ function formatDueAt(
     return `Tomorrow · ${time}`;
   }
 
+  if (diffDays === -1) {
+    return `Yesterday · ${time}`;
+  }
+
   return `${date.toLocaleDateString(
     [],
     {
@@ -171,6 +201,22 @@ export default function ResponsibilityCard({
   card,
   onOpen,
 }: Props) {
+  const [now, setNow] =
+    useState(() => Date.now());
+
+  useEffect(() => {
+    const interval =
+      window.setInterval(() => {
+        setNow(Date.now());
+      }, 1000 * 30);
+
+    return () => {
+      window.clearInterval(
+        interval
+      );
+    };
+  }, []);
+
   const currentUser =
     useCards((s) => s.currentUser);
 
@@ -185,6 +231,12 @@ export default function ResponsibilityCard({
 
   const isDelayed =
     card.state === 'delayed';
+
+  const isOverdue =
+    isActiveOverdue(
+      card,
+      now
+    );
 
   const title =
     getTitle(card);
@@ -206,7 +258,9 @@ export default function ResponsibilityCard({
         boxSizing: 'border-box',
 
         border:
-          '1px solid rgba(0,0,0,0.065)',
+          isOverdue && isMine
+            ? '1px solid rgba(220, 38, 38, 0.2)'
+            : '1px solid rgba(0,0,0,0.065)',
 
         borderRadius: 18,
 
@@ -222,7 +276,9 @@ export default function ResponsibilityCard({
         gap: 14,
 
         background:
-          isMine
+          isOverdue && isMine
+            ? 'rgba(254, 242, 242, 0.45)'
+            : isMine
             ? '#fbfbfa'
             : '#fff',
 
@@ -260,7 +316,9 @@ export default function ResponsibilityCard({
             borderRadius: 15,
 
             background:
-              'rgba(0,0,0,0.055)',
+              isOverdue
+                ? 'rgba(220, 38, 38, 0.08)'
+                : 'rgba(0,0,0,0.055)',
 
             display: 'flex',
 
@@ -269,7 +327,9 @@ export default function ResponsibilityCard({
             justifyContent:
               'center',
 
-            color: '#444',
+            color: isOverdue
+              ? '#b91c1c'
+              : '#444',
 
             flexShrink: 0,
           }}
@@ -348,11 +408,14 @@ export default function ResponsibilityCard({
 
                 fontSize: 12,
 
-                color: isDelayed
+                color: isOverdue
+                  ? '#b91c1c'
+                  : isDelayed
                   ? '#a16207'
                   : '#666',
 
                 fontWeight:
+                  isOverdue ||
                   isDelayed
                     ? 700
                     : 600,
@@ -406,28 +469,37 @@ export default function ResponsibilityCard({
               'uppercase',
 
             background:
-              isDelayed
+              isOverdue
+                ? 'rgba(220, 38, 38, 0.12)'
+                : isDelayed
                 ? 'rgba(217, 119, 6, 0.12)'
                 : isRequested
                 ? 'rgba(0,0,0,0.06)'
                 : 'rgba(34, 197, 94, 0.14)',
 
             color:
-              isDelayed
+              isOverdue
+                ? '#b91c1c'
+                : isDelayed
                 ? '#a16207'
                 : isRequested
                 ? '#555'
                 : '#15803d',
 
             border:
-              isAccepted
+              isOverdue
+                ? '1px solid rgba(220, 38, 38, 0.2)'
+                : isAccepted
                 ? '1px solid rgba(34, 197, 94, 0.28)'
                 : isDelayed
                 ? '1px solid rgba(217, 119, 6, 0.14)'
                 : 'none',
           }}
         >
-          {getStateLabel(card)}
+          {getStateLabel(
+            card,
+            now
+          )}
         </div>
       </div>
     </button>
