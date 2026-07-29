@@ -38,6 +38,90 @@ function getReminderMessage(card: any) {
   return `Upcoming: ${title}`;
 }
 
+function sendReminderForCard({
+  card,
+  processingRef,
+}: {
+  card: any;
+
+  processingRef: React.MutableRefObject<
+    Set<string>
+  >;
+}) {
+  const key =
+    `reminder:${card.id}`;
+
+  if (
+    processingRef.current.has(key)
+  ) {
+    return;
+  }
+
+  processingRef.current.add(key);
+
+  const reminderMessage =
+    getReminderMessage(card);
+
+  const state =
+    useCards.getState();
+
+  state.showToast(
+    reminderMessage,
+    undefined,
+    card.id
+  );
+
+  showBrowserNotification({
+    title: 'Duo',
+
+    body: reminderMessage,
+
+    cardId: card.id,
+  });
+
+  state.markReminderSent(card.id);
+
+  markSupabaseReminderSent({
+    cardId: card.id,
+  }).catch((error) => {
+    console.error(
+      'Could not mark Supabase reminder as sent',
+      error
+    );
+
+    processingRef.current.delete(
+      key
+    );
+  });
+}
+
+function checkReminderCards(
+  processingRef: React.MutableRefObject<
+    Set<string>
+  >
+) {
+  const state =
+    useCards.getState();
+
+  const eligibleCards =
+    getAcceptedReminderEligibleCards(
+      state.activeCards,
+      state.currentUser
+    );
+
+  if (
+    eligibleCards.length === 0
+  ) {
+    return;
+  }
+
+  sendReminderForCard({
+    card: eligibleCards[0],
+
+    processingRef,
+  });
+}
+
 export function useDuoLifecycle() {
   const processingRef =
     useRef<Set<string>>(
@@ -54,16 +138,6 @@ export function useDuoLifecycle() {
     useCards(
       (s) =>
         s.expireOverdueRequestedCards
-    );
-
-  const markReminderSent =
-    useCards(
-      (s) => s.markReminderSent
-    );
-
-  const showToast =
-    useCards(
-      (s) => s.showToast
     );
 
   useEffect(() => {
@@ -183,6 +257,10 @@ export function useDuoLifecycle() {
               });
           }
         );
+
+        checkReminderCards(
+          processingRef
+        );
       }, 1000 * 60);
 
     return () => {
@@ -205,63 +283,13 @@ export function useDuoLifecycle() {
       return;
     }
 
-    const firstCard =
-      eligibleCards[0];
+    sendReminderForCard({
+      card: eligibleCards[0],
 
-    const key =
-      `reminder:${firstCard.id}`;
-
-    if (
-      processingRef.current.has(
-        key
-      )
-    ) {
-      return;
-    }
-
-    processingRef.current.add(
-      key
-    );
-
-    const reminderMessage =
-      getReminderMessage(
-        firstCard
-      );
-
-    showToast(
-      reminderMessage,
-      undefined,
-      firstCard.id
-    );
-
-    showBrowserNotification({
-      title: 'Duo',
-
-      body: reminderMessage,
-
-      cardId: firstCard.id,
-    });
-
-    markReminderSent(
-      firstCard.id
-    );
-
-    markSupabaseReminderSent({
-      cardId: firstCard.id,
-    }).catch((error) => {
-      console.error(
-        'Could not mark Supabase reminder as sent',
-        error
-      );
-
-      processingRef.current.delete(
-        key
-      );
+      processingRef,
     });
   }, [
     activeCards,
     currentUser,
-    showToast,
-    markReminderSent,
   ]);
 }

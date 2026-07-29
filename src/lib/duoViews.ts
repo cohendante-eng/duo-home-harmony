@@ -3,8 +3,9 @@ import {
   UserId,
 } from '../types/card';
 
-const ONE_HOUR =
-  1000 * 60 * 60;
+import {
+  getReminderLeadTimeMs,
+} from './reminderPreferences';
 
 export function getVisibleCardsForUser(
   cards: DuoCard[],
@@ -162,9 +163,13 @@ export function isAcceptedReminderEligible(
   const timeUntilDue =
     card.dueAt - now;
 
+  const reminderLeadTimeMs =
+    getReminderLeadTimeMs();
+
   return (
     timeUntilDue > 0 &&
-    timeUntilDue <= ONE_HOUR
+    timeUntilDue <=
+      reminderLeadTimeMs
   );
 }
 

@@ -41,6 +41,14 @@ import {
   requestBrowserNotifications,
 } from '../../lib/browserNotifications';
 
+import {
+  formatReminderLeadTime,
+  getReminderLeadTimeMinutes,
+  REMINDER_LEAD_TIME_OPTIONS,
+  ReminderLeadTimeMinutes,
+  setReminderLeadTimeMinutes,
+} from '../../lib/reminderPreferences';
+
 type Props = {
   onClose: () => void;
 };
@@ -95,6 +103,15 @@ export default function SettingsPanel({
       | 'blocked'
       | 'unsupported'
     >('idle');
+
+  const [
+    reminderLeadTime,
+    setReminderLeadTime,
+  ] =
+    useState<ReminderLeadTimeMinutes>(
+      () =>
+        getReminderLeadTimeMinutes()
+    );
 
   const status =
     usePartner(
@@ -422,6 +439,18 @@ export default function SettingsPanel({
     refreshNotificationStatus();
   }
 
+  function handleReminderLeadTimeChange(
+    minutes: ReminderLeadTimeMinutes
+  ) {
+    setReminderLeadTimeMinutes(
+      minutes
+    );
+
+    setReminderLeadTime(
+      minutes
+    );
+  }
+
   async function handleInvitePartner() {
     if (!user || !email) {
       setInviteStatus('error');
@@ -614,6 +643,8 @@ export default function SettingsPanel({
 
         padding: 24,
 
+        overflowY: 'auto',
+
         display: 'flex',
 
         flexDirection:
@@ -681,6 +712,8 @@ export default function SettingsPanel({
             'column',
 
           gap: 18,
+
+          paddingBottom: 30,
         }}
       >
         <section
@@ -740,7 +773,7 @@ export default function SettingsPanel({
                   marginBottom: 16,
                 }}
               >
-                Invite one household partner to share responsibilities.
+                Invite one partner to share responsibilities.
               </div>
 
               <input
@@ -851,7 +884,7 @@ export default function SettingsPanel({
                 }}
               >
                 {isIncomingInvite
-                  ? 'A household partner invited you to connect on Duo.'
+                  ? 'A partner invited you to connect on Duo.'
                   : `Waiting for ${
                       pendingInvite?.email ??
                       'partner'
@@ -1143,7 +1176,7 @@ export default function SettingsPanel({
               marginBottom: 16,
             }}
           >
-            Duo only signals responsibility changes that may need attention.
+            Duo reminds you before accepted responsibilities are due.
           </div>
 
           {notificationStatus ===
@@ -1172,7 +1205,7 @@ export default function SettingsPanel({
                 lineHeight: 1.45,
               }}
             >
-              Notifications are blocked for Duo. Enable them in your browser settings if you want Duo reminders outside the app window.
+              Notifications are blocked for Duo. Enable them in your browser settings.
             </div>
           )}
 
@@ -1273,6 +1306,118 @@ export default function SettingsPanel({
                 : 'Enable notifications'}
             </button>
           )}
+
+          <div
+            style={{
+              marginTop: 18,
+
+              paddingTop: 16,
+
+              borderTop:
+                '1px solid rgba(0,0,0,0.06)',
+            }}
+          >
+            <div
+              style={{
+                fontSize: 14,
+
+                fontWeight: 700,
+
+                marginBottom: 6,
+
+                color: '#111',
+              }}
+            >
+              Reminder time
+            </div>
+
+            <div
+              style={{
+                fontSize: 13,
+
+                color: '#777',
+
+                lineHeight: 1.45,
+
+                marginBottom: 12,
+              }}
+            >
+              Choose when Duo reminds you.
+            </div>
+
+            <div
+              style={{
+                display: 'flex',
+
+                gap: 8,
+
+                flexWrap: 'wrap',
+              }}
+            >
+              {REMINDER_LEAD_TIME_OPTIONS.map(
+                (minutes) => {
+                  const selected =
+                    reminderLeadTime ===
+                    minutes;
+
+                  return (
+                    <button
+                      key={minutes}
+                      onClick={() =>
+                        handleReminderLeadTimeChange(
+                          minutes
+                        )
+                      }
+                      style={{
+                        height: 38,
+
+                        padding:
+                          '0 12px',
+
+                        borderRadius: 999,
+
+                        border: selected
+                          ? '1px solid rgba(0,0,0,0.85)'
+                          : '1px solid rgba(0,0,0,0.08)',
+
+                        background: selected
+                          ? '#111'
+                          : '#fff',
+
+                        color: selected
+                          ? '#fff'
+                          : '#555',
+
+                        fontSize: 13,
+
+                        fontWeight: 700,
+
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {formatReminderLeadTime(
+                        minutes
+                      )}
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            <div
+              style={{
+                marginTop: 10,
+
+                fontSize: 12,
+
+                color: '#999',
+
+                lineHeight: 1.4,
+              }}
+            >
+              Mobile shows in-app reminders. Full background push comes later.
+            </div>
+          </div>
         </section>
 
         <section
