@@ -14,6 +14,11 @@ import {
   getCardContext,
 } from '../../lib/cards';
 
+import {
+  duoColors,
+  getStatusStyle,
+} from '../../styles/ui';
+
 type Props = {
   card: DuoCard;
 
@@ -38,42 +43,6 @@ function getStatusLabel(
   }
 
   return 'Done';
-}
-
-function getStatusColor(
-  card: DuoCard
-) {
-  if (card.state === 'expired') {
-    return '#64748b';
-  }
-
-  if (card.state === 'cancelled') {
-    return '#ef4444';
-  }
-
-  if (card.state === 'stopped') {
-    return '#64748b';
-  }
-
-  return '#059669';
-}
-
-function getStatusBackground(
-  card: DuoCard
-) {
-  if (card.state === 'expired') {
-    return 'rgba(100,116,139,0.11)';
-  }
-
-  if (card.state === 'cancelled') {
-    return 'rgba(239,68,68,0.1)';
-  }
-
-  if (card.state === 'stopped') {
-    return 'rgba(100,116,139,0.11)';
-  }
-
-  return 'rgba(16,185,129,0.12)';
 }
 
 function getStatusIcon(
@@ -102,6 +71,9 @@ export default function HistoryCard({
   const StatusIcon =
     getStatusIcon(card);
 
+  const statusStyle =
+    getStatusStyle(card);
+
   return (
     <button
       onClick={() => {
@@ -111,63 +83,41 @@ export default function HistoryCard({
       }}
       style={{
         width: '100%',
-
-        minHeight: 88,
-
-        boxSizing: 'border-box',
-
-        padding: 12,
-
-        borderRadius: 22,
-
+        minHeight: 90,
+        padding: 14,
+        borderRadius: 24,
         border:
-          '1px solid rgba(24,32,44,0.07)',
-
+          '1px solid rgba(24,32,44,0.075)',
         background:
-          'rgba(255,255,255,0.88)',
-
+          'rgba(255,255,255,0.9)',
         boxShadow:
-          '0 14px 34px rgba(31,41,55,0.065)',
-
+          '0 14px 36px rgba(31,41,55,0.065)',
         display: 'flex',
-
         alignItems: 'center',
-
         justifyContent:
           'space-between',
-
         gap: 14,
-
         cursor: onOpen
           ? 'pointer'
           : 'default',
-
         textAlign: 'left',
       }}
     >
       <div
         style={{
           minWidth: 0,
-
           flex: 1,
         }}
       >
         <div
           style={{
             fontSize: 16,
-
-            fontWeight: 820,
-
-            color: '#18202c',
-
-            lineHeight: 1.15,
-
-            letterSpacing: -0.2,
-
+            fontWeight: 650,
+            color: duoColors.text,
+            lineHeight: 1.18,
+            letterSpacing: -0.18,
             overflow: 'hidden',
-
             textOverflow: 'ellipsis',
-
             whiteSpace: 'nowrap',
           }}
         >
@@ -176,20 +126,13 @@ export default function HistoryCard({
 
         <div
           style={{
-            marginTop: 6,
-
+            marginTop: 7,
             fontSize: 13,
-
-            color: '#6f7a89',
-
+            color: duoColors.muted,
             lineHeight: 1.25,
-
-            fontWeight: 620,
-
+            fontWeight: 500,
             overflow: 'hidden',
-
             textOverflow: 'ellipsis',
-
             whiteSpace: 'nowrap',
           }}
         >
@@ -200,38 +143,24 @@ export default function HistoryCard({
       <div
         style={{
           flexShrink: 0,
-
           display: 'inline-flex',
-
           alignItems: 'center',
-
           gap: 6,
-
           height: 28,
-
-          padding:
-            '0 10px',
-
+          padding: '0 10px',
           borderRadius: 999,
-
           background:
-            getStatusBackground(card),
-
+            statusStyle.background,
           fontSize: 10,
-
-          fontWeight: 850,
-
-          letterSpacing: 0.15,
-
-          color:
-            getStatusColor(card),
-
+          fontWeight: 650,
+          letterSpacing: 0.1,
+          color: statusStyle.color,
           whiteSpace: 'nowrap',
         }}
       >
         <StatusIcon
           size={13}
-          strokeWidth={2.4}
+          strokeWidth={2.2}
         />
 
         {getStatusLabel(card)}

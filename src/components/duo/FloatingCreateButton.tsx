@@ -15,42 +15,29 @@ export default function FloatingCreateButton({
       aria-label="Create responsibility"
       style={{
         position: 'fixed',
-
-        right: 'max(22px, calc((100vw - 520px) / 2 + 22px))',
-
+        right:
+          'max(22px, calc((100vw - 520px) / 2 + 22px))',
         bottom: 112,
-
         width: 62,
-
         height: 62,
-
         borderRadius: 999,
-
         border:
-          '1px solid rgba(255,255,255,0.34)',
-
+          '1px solid rgba(255,255,255,0.28)',
         background:
           'linear-gradient(180deg, #283242 0%, #111722 100%)',
-
         color: '#fff',
-
         boxShadow:
-          '0 18px 42px rgba(17, 24, 39, 0.26), 0 5px 12px rgba(17, 24, 39, 0.16)',
-
+          '0 18px 42px rgba(17,24,39,0.28), 0 5px 12px rgba(17,24,39,0.16)',
         display: 'flex',
-
         alignItems: 'center',
-
         justifyContent: 'center',
-
         cursor: 'pointer',
-
         zIndex: 35,
       }}
     >
       <Plus
         size={30}
-        strokeWidth={2.4}
+        strokeWidth={2.25}
       />
     </button>
   );

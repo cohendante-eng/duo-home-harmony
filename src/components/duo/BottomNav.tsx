@@ -4,6 +4,10 @@ import {
   History,
 } from 'lucide-react';
 
+import {
+  duoColors,
+} from '../../styles/ui';
+
 type Tab =
   | 'main'
   | 'created'
@@ -20,33 +24,20 @@ function getNavItemStyle(
 ): React.CSSProperties {
   return {
     border: 'none',
-
     background: 'transparent',
-
     color: active
-      ? '#18202c'
-      : '#98a1ad',
-
+      ? duoColors.text
+      : '#9aa4b2',
     display: 'flex',
-
     flexDirection: 'column',
-
     alignItems: 'center',
-
     justifyContent: 'center',
-
     gap: 5,
-
-    minWidth: 70,
-
-    height: 56,
-
+    minWidth: 72,
+    height: 58,
     fontSize: 11,
-
-    fontWeight: active ? 800 : 650,
-
+    fontWeight: active ? 650 : 500,
     cursor: 'pointer',
-
     position: 'relative',
   };
 }
@@ -62,16 +53,11 @@ function ActiveDot({
     <span
       style={{
         position: 'absolute',
-
-        top: 5,
-
+        top: 4,
         width: 22,
-
         height: 3,
-
         borderRadius: 999,
-
-        background: '#18202c',
+        background: duoColors.text,
       }}
     />
   );
@@ -85,43 +71,28 @@ export default function BottomNav({
     <nav
       style={{
         position: 'fixed',
-
         left: '50%',
-
-        bottom: 18,
-
+        bottom: 16,
         transform:
           'translateX(-50%)',
-
         width:
-          'min(calc(100% - 32px), 488px)',
-
+          'min(calc(100% - 28px), 492px)',
         height: 78,
-
-        borderRadius: 25,
-
+        borderRadius: 26,
         border:
-          '1px solid rgba(24,32,44,0.07)',
-
+          '1px solid rgba(24,32,44,0.075)',
         background:
-          'rgba(255,255,255,0.86)',
-
+          'rgba(255,255,255,0.88)',
         boxShadow:
-          '0 18px 45px rgba(31,41,55,0.12)',
-
+          '0 18px 48px rgba(31,41,55,0.13)',
         backdropFilter:
           'blur(18px)',
-
         WebkitBackdropFilter:
           'blur(18px)',
-
         display: 'flex',
-
         alignItems: 'center',
-
         justifyContent:
           'space-around',
-
         zIndex: 40,
       }}
     >
@@ -141,8 +112,8 @@ export default function BottomNav({
           size={20}
           strokeWidth={
             tab === 'main'
-              ? 2.5
-              : 2
+              ? 2.35
+              : 1.9
           }
         />
 
@@ -165,8 +136,8 @@ export default function BottomNav({
           size={20}
           strokeWidth={
             tab === 'created'
-              ? 2.5
-              : 2
+              ? 2.35
+              : 1.9
           }
         />
 
@@ -189,8 +160,8 @@ export default function BottomNav({
           size={20}
           strokeWidth={
             tab === 'history'
-              ? 2.5
-              : 2
+              ? 2.35
+              : 1.9
           }
         />
 
