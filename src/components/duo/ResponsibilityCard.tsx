@@ -94,6 +94,28 @@ function getIcon(card: DuoCard) {
   }
 }
 
+function getIconAccent(card: DuoCard) {
+  switch (card.type) {
+    case 'transport':
+      return '#2f7df6';
+
+    case 'pay':
+      return '#243142';
+
+    case 'acquire':
+      return '#d97706';
+
+    case 'appointment':
+      return '#2563eb';
+
+    case 'maintenance':
+      return '#475569';
+
+    default:
+      return '#2f7df6';
+  }
+}
+
 function isActiveOverdue(
   card: DuoCard,
   now: number
@@ -129,6 +151,54 @@ function getStateLabel(
   }
 
   return card.state;
+}
+
+function getStateStyle(
+  card: DuoCard,
+  now: number
+) {
+  if (isActiveOverdue(card, now)) {
+    return {
+      background:
+        'rgba(239, 68, 68, 0.1)',
+
+      color: '#dc2626',
+    };
+  }
+
+  if (card.state === 'requested') {
+    return {
+      background:
+        'rgba(47, 125, 246, 0.11)',
+
+      color: '#2563eb',
+    };
+  }
+
+  if (card.state === 'accepted') {
+    return {
+      background:
+        'rgba(16, 185, 129, 0.12)',
+
+      color: '#059669',
+    };
+  }
+
+  if (card.state === 'delayed') {
+    return {
+      background:
+        'rgba(245, 158, 11, 0.13)',
+
+      color: '#d97706',
+    };
+  }
+
+  return {
+    background:
+      'rgba(24,32,44,0.06)',
+
+    color: '#64748b',
+  };
 }
 
 function formatDueAt(
@@ -223,12 +293,6 @@ export default function ResponsibilityCard({
   const isMine =
     card.ownerId === currentUser;
 
-  const isRequested =
-    card.state === 'requested';
-
-  const isAccepted =
-    card.state === 'accepted';
-
   const isDelayed =
     card.state === 'delayed';
 
@@ -247,36 +311,46 @@ export default function ResponsibilityCard({
   const Icon =
     getIcon(card);
 
+  const iconAccent =
+    getIconAccent(card);
+
+  const stateStyle =
+    getStateStyle(
+      card,
+      now
+    );
+
   return (
     <button
       onClick={() => onOpen(card)}
       style={{
         width: '100%',
 
-        height: 88,
+        minHeight: 98,
 
         boxSizing: 'border-box',
 
         border:
-          '1px solid rgba(0,0,0,0.065)',
+          '1px solid rgba(24,32,44,0.07)',
 
-        borderRadius: 18,
+        borderRadius: 22,
 
-        padding: 16,
+        padding: 12,
 
         display: 'flex',
 
-        alignItems: 'flex-start',
+        alignItems: 'center',
 
         justifyContent:
           'space-between',
 
-        gap: 14,
+        gap: 13,
 
         background:
-          isMine
-            ? '#fbfbfa'
-            : '#fff',
+          'rgba(255,255,255,0.88)',
+
+        boxShadow:
+          '0 14px 34px rgba(31,41,55,0.075)',
 
         textAlign: 'left',
 
@@ -284,17 +358,17 @@ export default function ResponsibilityCard({
 
         opacity: isMine
           ? 1
-          : 0.42,
+          : 0.58,
 
         transition:
-          'opacity 0.2s ease, background 0.2s ease',
+          'transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease',
       }}
     >
       <div
         style={{
           display: 'flex',
 
-          alignItems: 'flex-start',
+          alignItems: 'center',
 
           gap: 13,
 
@@ -305,14 +379,20 @@ export default function ResponsibilityCard({
       >
         <div
           style={{
-            width: 46,
+            width: 64,
 
-            height: 46,
+            height: 64,
 
-            borderRadius: 15,
+            borderRadius: 20,
 
             background:
-              'rgba(0,0,0,0.055)',
+              'linear-gradient(180deg, #ffffff 0%, #f1f4f8 100%)',
+
+            border:
+              '1px solid rgba(24,32,44,0.06)',
+
+            boxShadow:
+              'inset 0 1px 0 rgba(255,255,255,0.9), 0 10px 20px rgba(31,41,55,0.07)',
 
             display: 'flex',
 
@@ -321,12 +401,36 @@ export default function ResponsibilityCard({
             justifyContent:
               'center',
 
-            color: '#444',
+            color: iconAccent,
 
             flexShrink: 0,
+
+            position: 'relative',
+
+            overflow: 'hidden',
           }}
         >
-          <Icon size={23} />
+          <div
+            style={{
+              position: 'absolute',
+
+              inset: 0,
+
+              background:
+                'radial-gradient(circle at 25% 15%, rgba(255,255,255,0.95), transparent 34%)',
+            }}
+          />
+
+          <Icon
+            size={30}
+            strokeWidth={2.25}
+            style={{
+              position: 'relative',
+
+              filter:
+                'drop-shadow(0 4px 5px rgba(31,41,55,0.16))',
+            }}
+          />
         </div>
 
         <div
@@ -340,49 +444,75 @@ export default function ResponsibilityCard({
 
             minWidth: 0,
 
-            paddingTop: 1,
+            flex: 1,
           }}
         >
           <div
             style={{
-              fontSize: 17,
+              display: 'flex',
 
-              fontWeight: 760,
+              alignItems:
+                'flex-start',
 
-              color: '#111',
+              justifyContent:
+                'space-between',
 
-              lineHeight: 1.14,
-
-              letterSpacing: -0.1,
-
-              overflow: 'hidden',
-
-              textOverflow: 'ellipsis',
-
-              whiteSpace: 'nowrap',
+              gap: 10,
             }}
           >
-            {title}
-          </div>
+            <div
+              style={{
+                minWidth: 0,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 16,
 
-          <div
-            style={{
-              fontSize: 14,
+                  fontWeight: 820,
 
-              color: '#666',
+                  color: '#18202c',
 
-              lineHeight: 1.25,
+                  lineHeight: 1.15,
 
-              fontWeight: 550,
+                  letterSpacing: -0.2,
 
-              overflow: 'hidden',
+                  overflow: 'hidden',
 
-              textOverflow: 'ellipsis',
+                  textOverflow:
+                    'ellipsis',
 
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {subtitle}
+                  whiteSpace:
+                    'nowrap',
+                }}
+              >
+                {title}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 3,
+
+                  fontSize: 13,
+
+                  color: '#6f7a89',
+
+                  lineHeight: 1.25,
+
+                  fontWeight: 620,
+
+                  overflow: 'hidden',
+
+                  textOverflow:
+                    'ellipsis',
+
+                  whiteSpace:
+                    'nowrap',
+                }}
+              >
+                {subtitle}
+              </div>
+            </div>
           </div>
 
           {card.dueAt && (
@@ -400,24 +530,29 @@ export default function ResponsibilityCard({
 
                 fontSize: 12,
 
-                color: isDelayed
-                  ? '#a16207'
-                  : '#666',
+                color: isOverdue
+                  ? '#dc2626'
+                  : isDelayed
+                  ? '#d97706'
+                  : '#7c8795',
 
                 fontWeight:
+                  isOverdue ||
                   isDelayed
-                    ? 700
-                    : 600,
+                    ? 750
+                    : 650,
 
                 overflow: 'hidden',
 
-                textOverflow: 'ellipsis',
+                textOverflow:
+                  'ellipsis',
 
                 whiteSpace: 'nowrap',
               }}
             >
               <Clock3
                 size={13}
+                strokeWidth={2.25}
               />
 
               {formatDueAt(
@@ -432,7 +567,9 @@ export default function ResponsibilityCard({
         style={{
           flexShrink: 0,
 
-          paddingTop: 1,
+          alignSelf: 'flex-start',
+
+          paddingTop: 3,
         }}
       >
         <div
@@ -441,48 +578,24 @@ export default function ResponsibilityCard({
 
             alignItems: 'center',
 
-            height: 26,
+            height: 25,
 
             padding:
-              '0 11px',
+              '0 10px',
 
             borderRadius: 999,
 
             fontSize: 10,
 
-            fontWeight: 800,
+            fontWeight: 850,
 
-            letterSpacing: 0.35,
-
-            textTransform:
-              'uppercase',
+            letterSpacing: 0.15,
 
             background:
-              isOverdue
-                ? 'rgba(220, 38, 38, 0.08)'
-                : isDelayed
-                ? 'rgba(217, 119, 6, 0.12)'
-                : isRequested
-                ? 'rgba(0,0,0,0.06)'
-                : 'rgba(34, 197, 94, 0.14)',
+              stateStyle.background,
 
             color:
-              isOverdue
-                ? '#dc2626'
-                : isDelayed
-                ? '#a16207'
-                : isRequested
-                ? '#555'
-                : '#15803d',
-
-            border:
-              isOverdue
-                ? '1px solid rgba(220, 38, 38, 0.16)'
-                : isAccepted
-                ? '1px solid rgba(34, 197, 94, 0.28)'
-                : isDelayed
-                ? '1px solid rgba(217, 119, 6, 0.14)'
-                : 'none',
+              stateStyle.color,
           }}
         >
           {getStateLabel(

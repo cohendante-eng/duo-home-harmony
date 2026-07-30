@@ -293,26 +293,74 @@ function getDetailRows(
 
 function getIcon(card: any) {
   if (card.type === 'transport') {
-    return <CarFront size={26} />;
+    return <CarFront size={30} />;
   }
 
   if (card.type === 'pay') {
-    return <CreditCard size={26} />;
+    return <CreditCard size={30} />;
   }
 
   if (card.type === 'acquire') {
-    return <ShoppingBag size={26} />;
+    return <ShoppingBag size={30} />;
   }
 
   if (card.type === 'appointment') {
-    return <Calendar size={26} />;
+    return <Calendar size={30} />;
   }
 
   if (card.type === 'maintenance') {
-    return <Wrench size={26} />;
+    return <Wrench size={30} />;
   }
 
   return null;
+}
+
+function getIconAccent(card: any) {
+  if (card.type === 'transport') {
+    return '#2f7df6';
+  }
+
+  if (card.type === 'pay') {
+    return '#243142';
+  }
+
+  if (card.type === 'acquire') {
+    return '#d97706';
+  }
+
+  if (card.type === 'appointment') {
+    return '#2563eb';
+  }
+
+  if (card.type === 'maintenance') {
+    return '#475569';
+  }
+
+  return '#2f7df6';
+}
+
+function getTypeLabel(card: any) {
+  if (card.type === 'transport') {
+    return 'Transport';
+  }
+
+  if (card.type === 'pay') {
+    return 'Pay';
+  }
+
+  if (card.type === 'acquire') {
+    return 'Acquire';
+  }
+
+  if (card.type === 'appointment') {
+    return 'Appointment';
+  }
+
+  if (card.type === 'maintenance') {
+    return 'Maintenance';
+  }
+
+  return card.type;
 }
 
 function getStateLabel(
@@ -354,60 +402,73 @@ function getStateLabel(
   return card.state;
 }
 
-function getStateColor(
+function getStateStyle(
   card: any,
   now: number
 ) {
   if (isActiveOverdue(card, now)) {
-    return '#dc2626';
+    return {
+      background:
+        'rgba(239, 68, 68, 0.1)',
+
+      color: '#dc2626',
+    };
   }
 
-  if (card.state === 'delayed') {
-    return '#a16207';
+  if (card.state === 'requested') {
+    return {
+      background:
+        'rgba(47, 125, 246, 0.11)',
+
+      color: '#2563eb',
+    };
   }
 
   if (card.state === 'accepted') {
-    return '#2e7d32';
+    return {
+      background:
+        'rgba(16, 185, 129, 0.12)',
+
+      color: '#059669',
+    };
+  }
+
+  if (card.state === 'delayed') {
+    return {
+      background:
+        'rgba(245, 158, 11, 0.13)',
+
+      color: '#d97706',
+    };
   }
 
   if (
-    card.state === 'done' ||
     card.state === 'cancelled' ||
     card.state === 'stopped' ||
     card.state === 'expired'
   ) {
-    return '#777';
+    return {
+      background:
+        'rgba(100, 116, 139, 0.11)',
+
+      color: '#64748b',
+    };
   }
 
-  return '#555';
+  return {
+    background:
+      'rgba(24,32,44,0.06)',
+
+    color: '#64748b',
+  };
 }
 
-function getStateBackground(
-  card: any,
-  now: number
+function getPersonLabel(
+  id: 'me' | 'partner'
 ) {
-  if (isActiveOverdue(card, now)) {
-    return 'rgba(220, 38, 38, 0.08)';
-  }
-
-  if (card.state === 'delayed') {
-    return 'rgba(217, 119, 6, 0.12)';
-  }
-
-  if (card.state === 'accepted') {
-    return 'rgba(52, 168, 83, 0.08)';
-  }
-
-  if (
-    card.state === 'done' ||
-    card.state === 'cancelled' ||
-    card.state === 'stopped' ||
-    card.state === 'expired'
-  ) {
-    return 'rgba(0,0,0,0.045)';
-  }
-
-  return 'rgba(0,0,0,0.06)';
+  return id === 'me'
+    ? 'You'
+    : 'Partner';
 }
 
 export default function ExpandedCard({
@@ -535,6 +596,15 @@ export default function ExpandedCard({
 
   const detailRows =
     getDetailRows(card);
+
+  const iconAccent =
+    getIconAccent(card);
+
+  const stateStyle =
+    getStateStyle(
+      card,
+      now
+    );
 
   function getRealUserId(
     localId: 'me' | 'partner'
@@ -726,245 +796,323 @@ export default function ExpandedCard({
 
         inset: 0,
 
-        background: '#fff',
-
         zIndex: 100,
 
-        padding: 24,
+        background:
+          'linear-gradient(180deg, #f7f9fb 0%, #eef2f6 100%)',
 
-        paddingBottom: 100,
+        overflowY: 'auto',
 
-        display: 'flex',
-
-        flexDirection: 'column',
+        padding:
+          '18px 16px 28px',
       }}
     >
       <div
         style={{
+          width: '100%',
+
+          maxWidth: 520,
+
+          minHeight:
+            'calc(100vh - 36px)',
+
+          margin: '0 auto',
+
           display: 'flex',
 
-          justifyContent:
-            'space-between',
-
-          alignItems:
-            'center',
-
-          marginBottom: 34,
+          flexDirection: 'column',
         }}
       >
         <div
           style={{
             display: 'flex',
 
-            alignItems: 'center',
-
-            gap: 14,
-          }}
-        >
-          <div
-            style={{
-              width: 52,
-
-              height: 52,
-
-              borderRadius: 17,
-
-              background:
-                'rgba(0,0,0,0.04)',
-
-              display: 'flex',
-
-              alignItems:
-                'center',
-
-              justifyContent:
-                'center',
-
-              color: '#444',
-            }}
-          >
-            {getIcon(card)}
-          </div>
-
-          <div>
-            <div
-              style={{
-                fontSize: 13,
-
-                color: '#999',
-
-                fontWeight: 650,
-
-                textTransform:
-                  'capitalize',
-
-                marginBottom: 3,
-              }}
-            >
-              {card.type}
-            </div>
-
-            <div
-              style={{
-                display:
-                  'inline-flex',
-
-                alignItems:
-                  'center',
-
-                height: 24,
-
-                padding:
-                  '0 10px',
-
-                borderRadius: 999,
-
-                background:
-                  getStateBackground(
-                    card,
-                    now
-                  ),
-
-                color:
-                  getStateColor(
-                    card,
-                    now
-                  ),
-
-                fontSize: 10,
-
-                fontWeight: 800,
-
-                letterSpacing: 0.35,
-
-                textTransform:
-                  'uppercase',
-              }}
-            >
-              {getStateLabel(
-                card,
-                now
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
+            justifyContent:
+              'space-between',
 
             alignItems: 'center',
 
-            gap: 10,
-
-            position: 'relative',
+            marginBottom: 18,
           }}
         >
-          {!isHistoryCard &&
-            (isOwner ||
-              canStop) && (
-              <button
-                onClick={() =>
-                  setShowMenu(
-                    !showMenu
-                  )
-                }
-                style={{
-                  width: 40,
-
-                  height: 40,
-
-                  borderRadius: 999,
-
-                  border:
-                    '1px solid rgba(0,0,0,0.06)',
-
-                  background: '#fff',
-
-                  display: 'flex',
-
-                  alignItems:
-                    'center',
-
-                  justifyContent:
-                    'center',
-
-                  cursor: 'pointer',
-                }}
-              >
-                <MoreHorizontal
-                  size={19}
-                />
-              </button>
-            )}
-
           <button
             onClick={onClose}
+            aria-label="Close"
             style={{
-              width: 40,
+              width: 42,
 
-              height: 40,
+              height: 42,
 
-              borderRadius: 999,
+              borderRadius: 16,
 
               border:
-                '1px solid rgba(0,0,0,0.06)',
+                '1px solid rgba(24,32,44,0.075)',
 
-              background: '#fff',
+              background:
+                'rgba(255,255,255,0.82)',
+
+              boxShadow:
+                '0 10px 26px rgba(31,41,55,0.06)',
 
               display: 'flex',
 
-              alignItems:
-                'center',
+              alignItems: 'center',
 
               justifyContent:
                 'center',
 
               cursor: 'pointer',
+
+              color: '#18202c',
             }}
           >
             <X size={18} />
           </button>
 
-          {showMenu && (
-            <div
-              style={{
-                position:
-                  'absolute',
+          <div
+            style={{
+              display: 'flex',
 
-                top: 48,
+              alignItems: 'center',
 
-                right: 48,
+              gap: 10,
 
-                width: 220,
+              position: 'relative',
+            }}
+          >
+            {!isHistoryCard &&
+              (isOwner ||
+                canStop) && (
+                <button
+                  onClick={() =>
+                    setShowMenu(
+                      !showMenu
+                    )
+                  }
+                  aria-label="More actions"
+                  style={{
+                    width: 42,
 
-                borderRadius: 16,
+                    height: 42,
 
-                border:
-                  '1px solid rgba(0,0,0,0.06)',
+                    borderRadius: 16,
 
-                background: '#fff',
+                    border:
+                      '1px solid rgba(24,32,44,0.075)',
 
-                boxShadow:
-                  '0 12px 36px rgba(0,0,0,0.1)',
+                    background:
+                      'rgba(255,255,255,0.82)',
 
-                overflow: 'hidden',
+                    boxShadow:
+                      '0 10px 26px rgba(31,41,55,0.06)',
 
-                zIndex: 200,
-              }}
-            >
-              {isOwner &&
-                isAccepted && (
-                  <button
-                    onClick={() => {
-                      setShowReschedule(
-                        !showReschedule
-                      );
+                    display: 'flex',
+
+                    alignItems:
+                      'center',
+
+                    justifyContent:
+                      'center',
+
+                    cursor:
+                      'pointer',
+
+                    color: '#18202c',
+                  }}
+                >
+                  <MoreHorizontal
+                    size={20}
+                  />
+                </button>
+              )}
+
+            {showMenu && (
+              <div
+                style={{
+                  position:
+                    'absolute',
+
+                  top: 50,
+
+                  right: 0,
+
+                  width: 230,
+
+                  borderRadius: 18,
+
+                  border:
+                    '1px solid rgba(24,32,44,0.075)',
+
+                  background:
+                    '#fff',
+
+                  boxShadow:
+                    '0 20px 52px rgba(31,41,55,0.18)',
+
+                  overflow: 'hidden',
+
+                  zIndex: 200,
+                }}
+              >
+                {isOwner &&
+                  isAccepted && (
+                    <button
+                      onClick={() => {
+                        setShowReschedule(
+                          !showReschedule
+                        );
+                      }}
+                      style={{
+                        width: '100%',
+
+                        height: 50,
+
+                        border: 'none',
+
+                        background:
+                          '#fff',
+
+                        textAlign:
+                          'left',
+
+                        padding:
+                          '0 16px',
+
+                        fontWeight: 650,
+
+                        color: '#18202c',
+
+                        cursor:
+                          'pointer',
+                      }}
+                    >
+                      Reschedule
+                    </button>
+                  )}
+
+                {showReschedule && (
+                  <div
+                    style={{
+                      borderTop:
+                        '1px solid rgba(24,32,44,0.06)',
+
+                      borderBottom:
+                        '1px solid rgba(24,32,44,0.06)',
+
+                      background:
+                        '#f7f9fb',
                     }}
+                  >
+                    <button
+                      onClick={() =>
+                        handleReschedule(
+                          30
+                        )
+                      }
+                      style={{
+                        width: '100%',
+
+                        height: 44,
+
+                        border: 'none',
+
+                        background:
+                          'transparent',
+
+                        textAlign:
+                          'left',
+
+                        padding:
+                          '0 16px',
+
+                        cursor:
+                          'pointer',
+
+                        color: '#465364',
+
+                        fontWeight: 560,
+                      }}
+                    >
+                      +30 minutes
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        handleReschedule(
+                          60
+                        )
+                      }
+                      style={{
+                        width: '100%',
+
+                        height: 44,
+
+                        border: 'none',
+
+                        background:
+                          'transparent',
+
+                        textAlign:
+                          'left',
+
+                        padding:
+                          '0 16px',
+
+                        cursor:
+                          'pointer',
+
+                        color: '#465364',
+
+                        fontWeight: 560,
+                      }}
+                    >
+                      +1 hour
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        handleReschedule(
+                          180
+                        )
+                      }
+                      style={{
+                        width: '100%',
+
+                        height: 44,
+
+                        border: 'none',
+
+                        background:
+                          'transparent',
+
+                        textAlign:
+                          'left',
+
+                        padding:
+                          '0 16px',
+
+                        cursor:
+                          'pointer',
+
+                        color: '#465364',
+
+                        fontWeight: 560,
+                      }}
+                    >
+                      +3 hours
+                    </button>
+                  </div>
+                )}
+
+                {isOwner && (
+                  <button
+                    onClick={
+                      handleDecline
+                    }
                     style={{
                       width: '100%',
 
-                      height: 48,
+                      height: 50,
 
                       border: 'none',
 
@@ -975,307 +1123,415 @@ export default function ExpandedCard({
                       padding:
                         '0 16px',
 
-                      fontWeight: 600,
+                      fontWeight: 650,
+
+                      color: '#18202c',
 
                       cursor: 'pointer',
                     }}
                   >
-                    Reschedule
+                    Decline
                   </button>
                 )}
 
-              {showReschedule && (
-                <div
-                  style={{
-                    borderTop:
-                      '1px solid rgba(0,0,0,0.05)',
-
-                    borderBottom:
-                      '1px solid rgba(0,0,0,0.05)',
-
-                    background:
-                      '#fafafa',
-                  }}
-                >
+                {canStop && (
                   <button
-                    onClick={() =>
-                      handleReschedule(
-                        30
-                      )
+                    onClick={
+                      handleStop
                     }
                     style={{
                       width: '100%',
 
-                      height: 44,
+                      height: 50,
 
                       border: 'none',
 
-                      background:
-                        'transparent',
+                      background: '#fff',
 
-                      textAlign:
-                        'left',
+                      textAlign: 'left',
 
                       padding:
                         '0 16px',
 
-                      cursor:
-                        'pointer',
+                      color: '#64748b',
+
+                      fontWeight: 650,
+
+                      cursor: 'pointer',
                     }}
                   >
-                    +30 minutes
+                    Stop
                   </button>
+                )}
 
+                {isOwner && (
                   <button
-                    onClick={() =>
-                      handleReschedule(
-                        60
-                      )
+                    onClick={
+                      handleCancel
                     }
                     style={{
                       width: '100%',
 
-                      height: 44,
+                      height: 50,
 
                       border: 'none',
 
-                      background:
-                        'transparent',
+                      background: '#fff',
 
-                      textAlign:
-                        'left',
+                      textAlign: 'left',
 
                       padding:
                         '0 16px',
 
-                      cursor:
-                        'pointer',
+                      color: '#dc2626',
+
+                      fontWeight: 650,
+
+                      cursor: 'pointer',
                     }}
                   >
-                    +1 hour
+                    Cancel
                   </button>
-
-                  <button
-                    onClick={() =>
-                      handleReschedule(
-                        180
-                      )
-                    }
-                    style={{
-                      width: '100%',
-
-                      height: 44,
-
-                      border: 'none',
-
-                      background:
-                        'transparent',
-
-                      textAlign:
-                        'left',
-
-                      padding:
-                        '0 16px',
-
-                      cursor:
-                        'pointer',
-                    }}
-                  >
-                    +3 hours
-                  </button>
-                </div>
-              )}
-
-              {isOwner && (
-                <button
-                  onClick={
-                    handleDecline
-                  }
-                  style={{
-                    width: '100%',
-
-                    height: 48,
-
-                    border: 'none',
-
-                    background: '#fff',
-
-                    textAlign: 'left',
-
-                    padding:
-                      '0 16px',
-
-                    fontWeight: 600,
-
-                    cursor: 'pointer',
-                  }}
-                >
-                  Decline
-                </button>
-              )}
-
-              {canStop && (
-                <button
-                  onClick={
-                    handleStop
-                  }
-                  style={{
-                    width: '100%',
-
-                    height: 48,
-
-                    border: 'none',
-
-                    background: '#fff',
-
-                    textAlign: 'left',
-
-                    padding:
-                      '0 16px',
-
-                    color: '#777',
-
-                    fontWeight: 600,
-
-                    cursor: 'pointer',
-                  }}
-                >
-                  Stop
-                </button>
-              )}
-
-              {isOwner && (
-                <button
-                  onClick={
-                    handleCancel
-                  }
-                  style={{
-                    width: '100%',
-
-                    height: 48,
-
-                    border: 'none',
-
-                    background: '#fff',
-
-                    textAlign: 'left',
-
-                    padding:
-                      '0 16px',
-
-                    color: '#777',
-
-                    fontWeight: 600,
-
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel Task
-                </button>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div
-        style={{
-          marginTop: 10,
-        }}
-      >
         <div
           style={{
-            fontSize: 30,
+            borderRadius: 28,
 
-            fontWeight: 780,
+            background:
+              'rgba(255,255,255,0.9)',
 
-            letterSpacing: -0.5,
+            border:
+              '1px solid rgba(24,32,44,0.07)',
 
-            color: '#111',
+            boxShadow:
+              '0 18px 45px rgba(31,41,55,0.08)',
 
-            lineHeight: 1.1,
+            padding: 16,
 
-            marginBottom: 10,
+            marginBottom: 14,
           }}
         >
-          {title}
-        </div>
-
-        {context && (
           <div
             style={{
-              fontSize: 17,
+              display: 'flex',
 
-              color: '#777',
+              alignItems:
+                'flex-start',
 
-              lineHeight: 1.35,
-
-              fontWeight: 500,
-
-              marginBottom: 24,
+              gap: 14,
             }}
           >
-            {context}
-          </div>
-        )}
+            <div
+              style={{
+                width: 78,
 
-        {card.dueAt && (
+                height: 78,
+
+                borderRadius: 24,
+
+                background:
+                  'linear-gradient(180deg, #ffffff 0%, #f1f4f8 100%)',
+
+                border:
+                  '1px solid rgba(24,32,44,0.06)',
+
+                boxShadow:
+                  'inset 0 1px 0 rgba(255,255,255,0.9), 0 12px 24px rgba(31,41,55,0.08)',
+
+                display: 'flex',
+
+                alignItems:
+                  'center',
+
+                justifyContent:
+                  'center',
+
+                color: iconAccent,
+
+                flexShrink: 0,
+
+                position: 'relative',
+
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  position:
+                    'absolute',
+
+                  inset: 0,
+
+                  background:
+                    'radial-gradient(circle at 25% 15%, rgba(255,255,255,0.95), transparent 34%)',
+                }}
+              />
+
+              <div
+                style={{
+                  position:
+                    'relative',
+
+                  filter:
+                    'drop-shadow(0 5px 6px rgba(31,41,55,0.16))',
+                }}
+              >
+                {getIcon(card)}
+              </div>
+            </div>
+
+            <div
+              style={{
+                minWidth: 0,
+
+                flex: 1,
+
+                paddingTop: 2,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+
+                  alignItems:
+                    'center',
+
+                  justifyContent:
+                    'space-between',
+
+                  gap: 10,
+
+                  marginBottom: 8,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 12,
+
+                    color: '#8a94a3',
+
+                    fontWeight: 700,
+
+                    letterSpacing: 0.35,
+                  }}
+                >
+                  {getTypeLabel(card)}
+                </div>
+
+                <div
+                  style={{
+                    display:
+                      'inline-flex',
+
+                    alignItems:
+                      'center',
+
+                    height: 26,
+
+                    padding:
+                      '0 10px',
+
+                    borderRadius: 999,
+
+                    background:
+                      stateStyle.background,
+
+                    color:
+                      stateStyle.color,
+
+                    fontSize: 10,
+
+                    fontWeight: 700,
+
+                    letterSpacing: 0.15,
+                  }}
+                >
+                  {getStateLabel(
+                    card,
+                    now
+                  )}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  fontSize: 24,
+
+                  fontWeight: 760,
+
+                  letterSpacing: -0.35,
+
+                  color: '#18202c',
+
+                  lineHeight: 1.08,
+
+                  marginBottom: 7,
+                }}
+              >
+                {title}
+              </div>
+
+              {context && (
+                <div
+                  style={{
+                    fontSize: 14,
+
+                    color: '#6f7a89',
+
+                    lineHeight: 1.35,
+
+                    fontWeight: 560,
+                  }}
+                >
+                  {context}
+                </div>
+              )}
+            </div>
+          </div>
+
           <div
             style={{
-              display: 'inline-flex',
+              display: 'flex',
 
               alignItems: 'center',
 
-              gap: 8,
+              justifyContent:
+                'space-between',
 
-              padding:
-                '10px 12px',
+              gap: 12,
 
-              borderRadius: 999,
+              marginTop: 18,
 
-              background:
-                isDelayed
-                  ? 'rgba(217, 119, 6, 0.1)'
-                  : 'rgba(0,0,0,0.045)',
+              paddingTop: 14,
 
-              color:
-                isDelayed
-                  ? '#a16207'
-                  : '#555',
-
-              fontSize: 14,
-
-              fontWeight: 700,
-
-              marginBottom: 28,
+              borderTop:
+                '1px solid rgba(24,32,44,0.06)',
             }}
           >
-            <Clock3 size={16} />
+            <div
+              style={{
+                display: 'flex',
 
-            {formatDueAt(card.dueAt)}
+                flexDirection:
+                  'column',
+
+                gap: 3,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+
+                  color: '#9aa3af',
+
+                  fontWeight: 700,
+                }}
+              >
+                Responsible
+              </div>
+
+              <div
+                style={{
+                  fontSize: 13,
+
+                  color: '#18202c',
+
+                  fontWeight: 650,
+                }}
+              >
+                {getPersonLabel(
+                  card.ownerId
+                )}
+              </div>
+            </div>
+
+            {card.dueAt && (
+              <div
+                style={{
+                  display:
+                    'inline-flex',
+
+                  alignItems:
+                    'center',
+
+                  gap: 7,
+
+                  padding:
+                    '9px 11px',
+
+                  borderRadius: 999,
+
+                  background:
+                    isActiveOverdue(
+                      card,
+                      now
+                    )
+                      ? 'rgba(239,68,68,0.1)'
+                      : isDelayed
+                      ? 'rgba(245,158,11,0.12)'
+                      : 'rgba(24,32,44,0.055)',
+
+                  color:
+                    isActiveOverdue(
+                      card,
+                      now
+                    )
+                      ? '#dc2626'
+                      : isDelayed
+                      ? '#d97706'
+                      : '#64748b',
+
+                  fontSize: 12,
+
+                  fontWeight: 700,
+
+                  whiteSpace:
+                    'nowrap',
+                }}
+              >
+                <Clock3 size={14} />
+
+                {formatDueAt(
+                  card.dueAt
+                )}
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {detailRows.length > 0 && (
           <div
             style={{
-              marginTop: 4,
+              borderRadius: 24,
 
-              borderTop:
-                '1px solid rgba(0,0,0,0.06)',
+              background:
+                'rgba(255,255,255,0.88)',
 
-              paddingTop: 20,
+              border:
+                '1px solid rgba(24,32,44,0.07)',
+
+              boxShadow:
+                '0 14px 34px rgba(31,41,55,0.065)',
+
+              padding: 16,
+
+              marginBottom: 14,
             }}
           >
             <div
               style={{
                 fontSize: 12,
 
-                color: '#999',
+                color: '#8a94a3',
 
-                fontWeight: 800,
+                fontWeight: 700,
 
-                letterSpacing: 0.5,
+                letterSpacing: 0.55,
 
                 textTransform:
                   'uppercase',
@@ -1292,12 +1548,10 @@ export default function ExpandedCard({
 
                 flexDirection:
                   'column',
-
-                gap: 12,
               }}
             >
               {detailRows.map(
-                (row) => (
+                (row, index) => (
                   <div
                     key={row.label}
                     style={{
@@ -1309,17 +1563,24 @@ export default function ExpandedCard({
 
                       gap: 18,
 
-                      paddingBottom: 12,
+                      padding:
+                        index === 0
+                          ? '0 0 13px'
+                          : '13px 0',
 
                       borderBottom:
-                        '1px solid rgba(0,0,0,0.045)',
+                        index ===
+                        detailRows.length -
+                          1
+                          ? 'none'
+                          : '1px solid rgba(24,32,44,0.055)',
                     }}
                   >
                     <div
                       style={{
-                        fontSize: 14,
+                        fontSize: 13,
 
-                        color: '#999',
+                        color: '#8a94a3',
 
                         fontWeight: 650,
                       }}
@@ -1329,18 +1590,18 @@ export default function ExpandedCard({
 
                     <div
                       style={{
-                        fontSize: 15,
+                        fontSize: 14,
 
-                        color: '#222',
+                        color: '#18202c',
 
-                        fontWeight: 700,
+                        fontWeight: 650,
 
                         textAlign:
                           'right',
 
-                        lineHeight: 1.25,
+                        lineHeight: 1.35,
 
-                        maxWidth: '65%',
+                        maxWidth: '66%',
                       }}
                     >
                       {row.value}
@@ -1351,130 +1612,190 @@ export default function ExpandedCard({
             </div>
           </div>
         )}
-      </div>
 
-      <div
-        style={{
-          marginTop: 'auto',
-        }}
-      >
-        {isHistoryCard && (
-          <button
-            onClick={
-              handleRemoveFromHistory
-            }
-            style={{
-              width: '100%',
+        <div
+          style={{
+            marginTop: 'auto',
 
-              height: 58,
+            paddingTop: 12,
 
-              borderRadius: 18,
+            display: 'flex',
 
-              border:
-                '1px solid rgba(0,0,0,0.08)',
+            flexDirection: 'column',
 
-              background: '#fff',
-
-              color: '#777',
-
-              fontSize: 16,
-
-              fontWeight: 750,
-
-              cursor: 'pointer',
-            }}
-          >
-            Remove from history
-          </button>
-        )}
-
-        {!isHistoryCard &&
-          isSurfaced && (
-            <button
-              onClick={handleTake}
-              style={{
-                width: '100%',
-
-                height: 58,
-
-                borderRadius: 18,
-
-                border: 'none',
-
-                background: '#111',
-
-                color: '#fff',
-
-                fontSize: 16,
-
-                fontWeight: 750,
-
-                cursor: 'pointer',
-              }}
-            >
-              I’ll handle it
-            </button>
-          )}
-
-        {!isHistoryCard &&
-          isOwner &&
-          isRequested && (
+            gap: 10,
+          }}
+        >
+          {isHistoryCard && (
             <button
               onClick={
-                handleAccept
+                handleRemoveFromHistory
               }
               style={{
                 width: '100%',
 
                 height: 58,
 
-                borderRadius: 18,
+                borderRadius: 20,
 
-                border: 'none',
+                border:
+                  '1px solid rgba(24,32,44,0.08)',
 
-                background: '#111',
+                background:
+                  'rgba(255,255,255,0.88)',
 
-                color: '#fff',
+                color: '#64748b',
 
-                fontSize: 16,
+                fontSize: 15,
 
-                fontWeight: 750,
+                fontWeight: 760,
 
                 cursor: 'pointer',
+
+                boxShadow:
+                  '0 10px 24px rgba(31,41,55,0.055)',
               }}
             >
-              Accept
+              Remove from history
             </button>
           )}
 
-        {!isHistoryCard &&
-          isOwner &&
-          isAccepted && (
-            <button
-              onClick={handleDone}
-              style={{
-                width: '100%',
+          {!isHistoryCard &&
+            isSurfaced && (
+              <button
+                onClick={handleTake}
+                style={{
+                  width: '100%',
 
-                height: 58,
+                  height: 58,
 
-                borderRadius: 18,
+                  borderRadius: 20,
 
-                border: 'none',
+                  border:
+                    '1px solid rgba(255,255,255,0.24)',
 
-                background: '#111',
+                  background:
+                    'linear-gradient(180deg, #283242 0%, #111722 100%)',
 
-                color: '#fff',
+                  color: '#fff',
 
-                fontSize: 16,
+                  fontSize: 15,
 
-                fontWeight: 750,
+                  fontWeight: 760,
 
-                cursor: 'pointer',
-              }}
-            >
-              Done
-            </button>
-          )}
+                  cursor: 'pointer',
+
+                  boxShadow:
+                    '0 16px 36px rgba(17,24,39,0.22)',
+                }}
+              >
+                I’ll handle it
+              </button>
+            )}
+
+          {!isHistoryCard &&
+            isOwner &&
+            isRequested && (
+              <button
+                onClick={
+                  handleAccept
+                }
+                style={{
+                  width: '100%',
+
+                  height: 58,
+
+                  borderRadius: 20,
+
+                  border:
+                    '1px solid rgba(255,255,255,0.24)',
+
+                  background:
+                    'linear-gradient(180deg, #283242 0%, #111722 100%)',
+
+                  color: '#fff',
+
+                  fontSize: 15,
+
+                  fontWeight: 760,
+
+                  cursor: 'pointer',
+
+                  boxShadow:
+                    '0 16px 36px rgba(17,24,39,0.22)',
+                }}
+              >
+                Accept
+              </button>
+            )}
+
+          {!isHistoryCard &&
+            isOwner &&
+            isAccepted && (
+              <button
+                onClick={handleDone}
+                style={{
+                  width: '100%',
+
+                  height: 58,
+
+                  borderRadius: 20,
+
+                  border:
+                    '1px solid rgba(255,255,255,0.24)',
+
+                  background:
+                    'linear-gradient(180deg, #283242 0%, #111722 100%)',
+
+                  color: '#fff',
+
+                  fontSize: 15,
+
+                  fontWeight: 760,
+
+                  cursor: 'pointer',
+
+                  boxShadow:
+                    '0 16px 36px rgba(17,24,39,0.22)',
+                }}
+              >
+                Done
+              </button>
+            )}
+
+          {!isHistoryCard &&
+            isOwner &&
+            isAccepted && (
+              <button
+                onClick={
+                  handleDecline
+                }
+                style={{
+                  width: '100%',
+
+                  height: 52,
+
+                  borderRadius: 18,
+
+                  border:
+                    '1px solid rgba(24,32,44,0.08)',
+
+                  background:
+                    'rgba(255,255,255,0.78)',
+
+                  color: '#64748b',
+
+                  fontSize: 14,
+
+                  fontWeight: 760,
+
+                  cursor: 'pointer',
+                }}
+              >
+                Decline
+              </button>
+            )}
+        </div>
       </div>
     </div>
   );

@@ -29,26 +29,50 @@ type Props = {
 
 function getIcon(card: DuoCard) {
   if (card.type === 'transport') {
-    return <CarFront size={22} />;
+    return <CarFront size={28} />;
   }
 
   if (card.type === 'pay') {
-    return <CreditCard size={22} />;
+    return <CreditCard size={28} />;
   }
 
   if (card.type === 'acquire') {
-    return <ShoppingBag size={22} />;
+    return <ShoppingBag size={28} />;
   }
 
   if (card.type === 'appointment') {
-    return <Calendar size={22} />;
+    return <Calendar size={28} />;
   }
 
   if (card.type === 'maintenance') {
-    return <Wrench size={22} />;
+    return <Wrench size={28} />;
   }
 
   return null;
+}
+
+function getIconAccent(card: DuoCard) {
+  if (card.type === 'transport') {
+    return '#2f7df6';
+  }
+
+  if (card.type === 'pay') {
+    return '#243142';
+  }
+
+  if (card.type === 'acquire') {
+    return '#d97706';
+  }
+
+  if (card.type === 'appointment') {
+    return '#2563eb';
+  }
+
+  if (card.type === 'maintenance') {
+    return '#475569';
+  }
+
+  return '#2f7df6';
 }
 
 function isActiveOverdue(
@@ -102,6 +126,54 @@ function getStateLabel(
   }
 
   return card.state;
+}
+
+function getStateStyle(
+  card: DuoCard,
+  now: number
+) {
+  if (isActiveOverdue(card, now)) {
+    return {
+      background:
+        'rgba(239, 68, 68, 0.1)',
+
+      color: '#dc2626',
+    };
+  }
+
+  if (card.state === 'requested') {
+    return {
+      background:
+        'rgba(47, 125, 246, 0.11)',
+
+      color: '#2563eb',
+    };
+  }
+
+  if (card.state === 'accepted') {
+    return {
+      background:
+        'rgba(16, 185, 129, 0.12)',
+
+      color: '#059669',
+    };
+  }
+
+  if (card.state === 'delayed') {
+    return {
+      background:
+        'rgba(245, 158, 11, 0.13)',
+
+      color: '#d97706',
+    };
+  }
+
+  return {
+    background:
+      'rgba(24,32,44,0.06)',
+
+    color: '#64748b',
+  };
 }
 
 function formatDueAt(
@@ -190,17 +262,23 @@ export default function CreatedCard({
     };
   }, []);
 
+  const isDelayed =
+    card.state === 'delayed';
+
   const isOverdue =
     isActiveOverdue(
       card,
       now
     );
 
-  const isDelayed =
-    card.state === 'delayed';
+  const stateStyle =
+    getStateStyle(
+      card,
+      now
+    );
 
-  const isRequested =
-    card.state === 'requested';
+  const iconAccent =
+    getIconAccent(card);
 
   return (
     <button
@@ -210,18 +288,22 @@ export default function CreatedCard({
       style={{
         width: '100%',
 
-        minHeight: 88,
+        minHeight: 98,
 
         boxSizing: 'border-box',
 
-        padding: 16,
+        padding: 12,
 
-        borderRadius: 18,
+        borderRadius: 22,
 
         border:
-          '1px solid rgba(0,0,0,0.06)',
+          '1px solid rgba(24,32,44,0.07)',
 
-        background: '#fff',
+        background:
+          'rgba(255,255,255,0.88)',
+
+        boxShadow:
+          '0 14px 34px rgba(31,41,55,0.075)',
 
         textAlign: 'left',
 
@@ -229,21 +311,27 @@ export default function CreatedCard({
 
         display: 'flex',
 
-        alignItems: 'flex-start',
+        alignItems: 'center',
 
         gap: 13,
       }}
     >
       <div
         style={{
-          width: 46,
+          width: 64,
 
-          height: 46,
+          height: 64,
 
-          borderRadius: 15,
+          borderRadius: 20,
 
           background:
-            'rgba(0,0,0,0.04)',
+            'linear-gradient(180deg, #ffffff 0%, #f1f4f8 100%)',
+
+          border:
+            '1px solid rgba(24,32,44,0.06)',
+
+          boxShadow:
+            'inset 0 1px 0 rgba(255,255,255,0.9), 0 10px 20px rgba(31,41,55,0.07)',
 
           display: 'flex',
 
@@ -251,12 +339,36 @@ export default function CreatedCard({
 
           justifyContent: 'center',
 
-          color: '#666',
+          color: iconAccent,
 
           flexShrink: 0,
+
+          position: 'relative',
+
+          overflow: 'hidden',
         }}
       >
-        {getIcon(card)}
+        <div
+          style={{
+            position: 'absolute',
+
+            inset: 0,
+
+            background:
+              'radial-gradient(circle at 25% 15%, rgba(255,255,255,0.95), transparent 34%)',
+          }}
+        />
+
+        <div
+          style={{
+            position: 'relative',
+
+            filter:
+              'drop-shadow(0 4px 5px rgba(31,41,55,0.16))',
+          }}
+        >
+          {getIcon(card)}
+        </div>
       </div>
 
       <div
@@ -270,8 +382,6 @@ export default function CreatedCard({
           flexDirection: 'column',
 
           gap: 5,
-
-          paddingTop: 1,
         }}
       >
         <div
@@ -290,11 +400,13 @@ export default function CreatedCard({
             style={{
               fontSize: 16,
 
-              fontWeight: 700,
+              fontWeight: 820,
 
-              color: '#111',
+              color: '#18202c',
 
-              lineHeight: 1.16,
+              lineHeight: 1.15,
+
+              letterSpacing: -0.2,
 
               overflow: 'hidden',
 
@@ -312,44 +424,24 @@ export default function CreatedCard({
 
               alignItems: 'center',
 
-              height: 24,
+              height: 25,
 
               padding:
-                '0 9px',
+                '0 10px',
 
               borderRadius: 999,
 
-              fontSize: 9,
+              fontSize: 10,
 
-              fontWeight: 800,
+              fontWeight: 850,
 
-              letterSpacing: 0.35,
-
-              textTransform:
-                'uppercase',
+              letterSpacing: 0.15,
 
               background:
-                isOverdue
-                  ? 'rgba(220, 38, 38, 0.08)'
-                  : isDelayed
-                  ? 'rgba(217, 119, 6, 0.12)'
-                  : isRequested
-                  ? 'rgba(0,0,0,0.06)'
-                  : 'rgba(34, 197, 94, 0.12)',
+                stateStyle.background,
 
               color:
-                isOverdue
-                  ? '#dc2626'
-                  : isDelayed
-                  ? '#a16207'
-                  : isRequested
-                  ? '#555'
-                  : '#15803d',
-
-              border:
-                isOverdue
-                  ? '1px solid rgba(220, 38, 38, 0.16)'
-                  : 'none',
+                stateStyle.color,
 
               flexShrink: 0,
             }}
@@ -365,11 +457,11 @@ export default function CreatedCard({
           style={{
             fontSize: 13,
 
-            color: '#888',
+            color: '#6f7a89',
 
             lineHeight: 1.25,
 
-            fontWeight: 500,
+            fontWeight: 620,
 
             overflow: 'hidden',
 
@@ -392,19 +484,22 @@ export default function CreatedCard({
 
               gap: 6,
 
-              marginTop: 4,
+              marginTop: 5,
 
               fontSize: 12,
 
               color:
-                isDelayed
-                  ? '#a16207'
-                  : '#666',
+                isOverdue
+                  ? '#dc2626'
+                  : isDelayed
+                  ? '#d97706'
+                  : '#7c8795',
 
               fontWeight:
+                isOverdue ||
                 isDelayed
-                  ? 700
-                  : 600,
+                  ? 750
+                  : 650,
 
               overflow: 'hidden',
 

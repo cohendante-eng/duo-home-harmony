@@ -1,4 +1,11 @@
 import {
+  CheckCircle2,
+  XCircle,
+  TimerOff,
+  CircleStop,
+} from 'lucide-react';
+
+import {
   DuoCard,
 } from '../../types/card';
 
@@ -10,7 +17,7 @@ import {
 type Props = {
   card: DuoCard;
 
-  onOpen: (
+  onOpen?: (
     card: DuoCard
   ) => void;
 };
@@ -19,36 +26,72 @@ function getStatusLabel(
   card: DuoCard
 ) {
   if (card.state === 'stopped') {
-    return 'STOPPED';
+    return 'Stopped';
   }
 
   if (card.state === 'cancelled') {
-    return 'CANCELLED';
+    return 'Cancelled';
   }
 
   if (card.state === 'expired') {
-    return 'EXPIRED';
+    return 'Expired';
   }
 
-  return 'DONE';
+  return 'Done';
 }
 
 function getStatusColor(
   card: DuoCard
 ) {
   if (card.state === 'expired') {
-    return '#888';
+    return '#64748b';
   }
 
   if (card.state === 'cancelled') {
-    return '#777';
+    return '#ef4444';
   }
 
   if (card.state === 'stopped') {
-    return '#666';
+    return '#64748b';
   }
 
-  return '#777';
+  return '#059669';
+}
+
+function getStatusBackground(
+  card: DuoCard
+) {
+  if (card.state === 'expired') {
+    return 'rgba(100,116,139,0.11)';
+  }
+
+  if (card.state === 'cancelled') {
+    return 'rgba(239,68,68,0.1)';
+  }
+
+  if (card.state === 'stopped') {
+    return 'rgba(100,116,139,0.11)';
+  }
+
+  return 'rgba(16,185,129,0.12)';
+}
+
+function getStatusIcon(
+  card: DuoCard
+) {
+  if (card.state === 'expired') {
+    return TimerOff;
+  }
+
+  if (card.state === 'cancelled') {
+    return XCircle;
+  }
+
+  if (card.state === 'stopped') {
+    return CircleStop;
+  }
+
+  return CheckCircle2;
 }
 
 export default function HistoryCard({
@@ -56,37 +99,48 @@ export default function HistoryCard({
 
   onOpen,
 }: Props) {
+  const StatusIcon =
+    getStatusIcon(card);
+
   return (
     <button
-      onClick={() =>
-        onOpen(card)
-      }
+      onClick={() => {
+        if (onOpen) {
+          onOpen(card);
+        }
+      }}
       style={{
         width: '100%',
 
-        height: 88,
+        minHeight: 88,
 
         boxSizing: 'border-box',
 
-        padding: 16,
+        padding: 12,
 
-        borderRadius: 18,
+        borderRadius: 22,
 
         border:
-          '1px solid rgba(0,0,0,0.06)',
+          '1px solid rgba(24,32,44,0.07)',
 
-        background: '#fff',
+        background:
+          'rgba(255,255,255,0.88)',
+
+        boxShadow:
+          '0 14px 34px rgba(31,41,55,0.065)',
 
         display: 'flex',
 
-        alignItems: 'flex-start',
+        alignItems: 'center',
 
         justifyContent:
           'space-between',
 
         gap: 14,
 
-        cursor: 'pointer',
+        cursor: onOpen
+          ? 'pointer'
+          : 'default',
 
         textAlign: 'left',
       }}
@@ -96,21 +150,19 @@ export default function HistoryCard({
           minWidth: 0,
 
           flex: 1,
-
-          paddingTop: 1,
         }}
       >
         <div
           style={{
             fontSize: 16,
 
-            fontWeight: 700,
+            fontWeight: 820,
 
-            color: '#111',
+            color: '#18202c',
 
-            lineHeight: 1.16,
+            lineHeight: 1.15,
 
-            letterSpacing: -0.05,
+            letterSpacing: -0.2,
 
             overflow: 'hidden',
 
@@ -124,15 +176,15 @@ export default function HistoryCard({
 
         <div
           style={{
-            marginTop: 8,
+            marginTop: 6,
 
             fontSize: 13,
 
-            color: '#888',
+            color: '#6f7a89',
 
             lineHeight: 1.25,
 
-            fontWeight: 500,
+            fontWeight: 620,
 
             overflow: 'hidden',
 
@@ -153,7 +205,9 @@ export default function HistoryCard({
 
           alignItems: 'center',
 
-          height: 26,
+          gap: 6,
+
+          height: 28,
 
           padding:
             '0 10px',
@@ -161,23 +215,25 @@ export default function HistoryCard({
           borderRadius: 999,
 
           background:
-            'rgba(0,0,0,0.035)',
+            getStatusBackground(card),
 
           fontSize: 10,
 
-          fontWeight: 800,
+          fontWeight: 850,
 
-          letterSpacing: 0.55,
+          letterSpacing: 0.15,
 
           color:
             getStatusColor(card),
 
           whiteSpace: 'nowrap',
-
-          textTransform:
-            'uppercase',
         }}
       >
+        <StatusIcon
+          size={13}
+          strokeWidth={2.4}
+        />
+
         {getStatusLabel(card)}
       </div>
     </button>
