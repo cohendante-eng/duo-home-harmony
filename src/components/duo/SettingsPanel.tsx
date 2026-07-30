@@ -49,6 +49,17 @@ import {
   setReminderLeadTimeMinutes,
 } from '../../lib/reminderPreferences';
 
+import {
+  cardSurfaceStyle,
+  dangerButtonStyle,
+  duoColors,
+  inputStyle,
+  panelInnerStyle,
+  panelScreenStyle,
+  primaryButtonStyle,
+  secondaryButtonStyle,
+} from '../../styles/ui';
+
 type Props = {
   onClose: () => void;
 };
@@ -59,6 +70,62 @@ function clearRuntimeCards() {
 
     historyCards: [],
   });
+}
+
+function closeButtonStyle():
+  React.CSSProperties {
+  return {
+    width: 44,
+
+    height: 44,
+
+    borderRadius: 17,
+
+    border:
+      '1px solid rgba(24,32,44,0.075)',
+
+    background:
+      'rgba(255,255,255,0.84)',
+
+    boxShadow:
+      '0 12px 28px rgba(31,41,55,0.07)',
+
+    display: 'flex',
+
+    alignItems: 'center',
+
+    justifyContent: 'center',
+
+    cursor: 'pointer',
+
+    color: duoColors.text,
+  };
+}
+
+function SectionTitle({
+  label,
+}: {
+  label: string;
+}) {
+  return (
+    <div
+      style={{
+        fontSize: 12,
+
+        fontWeight: 650,
+
+        letterSpacing: 0.7,
+
+        textTransform: 'uppercase',
+
+        color: duoColors.softMuted,
+
+        marginBottom: 12,
+      }}
+    >
+      {label}
+    </div>
+  );
 }
 
 export default function SettingsPanel({
@@ -632,880 +699,783 @@ export default function SettingsPanel({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-
-        inset: 0,
-
-        background: '#fff',
-
-        zIndex: 100,
-
-        padding: 24,
-
-        overflowY: 'auto',
-
-        display: 'flex',
-
-        flexDirection:
-          'column',
-      }}
+      style={panelScreenStyle}
     >
       <div
-        style={{
-          display: 'flex',
-
-          justifyContent:
-            'space-between',
-
-          alignItems:
-            'center',
-
-          marginBottom: 34,
-        }}
+        style={panelInnerStyle}
       >
         <div
           style={{
-            fontSize: 28,
-
-            fontWeight: 700,
-          }}
-        >
-          Settings
-        </div>
-
-        <button
-          onClick={onClose}
-          style={{
-            width: 36,
-
-            height: 36,
-
-            borderRadius: 999,
-
-            border:
-              '1px solid rgba(0,0,0,0.06)',
-
-            background:
-              '#fff',
-
             display: 'flex',
 
-            alignItems:
-              'center',
-
             justifyContent:
-              'center',
+              'space-between',
 
-            cursor: 'pointer',
+            alignItems: 'center',
+
+            marginBottom: 22,
           }}
         >
-          <X size={18} />
-        </button>
-      </div>
+          <div>
+            <div
+              style={{
+                fontSize: 28,
 
-      <div
-        style={{
-          display: 'flex',
+                fontWeight: 700,
 
-          flexDirection:
-            'column',
+                letterSpacing: -0.7,
 
-          gap: 18,
+                color: duoColors.text,
 
-          paddingBottom: 30,
-        }}
-      >
-        <section
-          style={{
-            padding: 16,
+                lineHeight: 1.05,
+              }}
+            >
+              Settings
+            </div>
 
-            borderRadius: 18,
+            <div
+              style={{
+                marginTop: 6,
 
-            border:
-              '1px solid rgba(0,0,0,0.06)',
+                fontSize: 13,
 
-            background:
-              '#fff',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 12,
+                color: duoColors.muted,
 
-              fontWeight: 700,
-
-              letterSpacing: 0.8,
-
-              textTransform:
-                'uppercase',
-
-              opacity: 0.45,
-
-              marginBottom: 10,
-            }}
-          >
-            Partner connection
+                fontWeight: 500,
+              }}
+            >
+              Manage Duo on this device.
+            </div>
           </div>
 
-          {isNotConnected && (
-            <>
+          <button
+            onClick={onClose}
+            aria-label="Close settings"
+            style={closeButtonStyle()}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+
+            flexDirection:
+              'column',
+
+            gap: 14,
+
+            paddingBottom: 24,
+          }}
+        >
+          <section
+            style={{
+              ...cardSurfaceStyle,
+
+              padding: 17,
+            }}
+          >
+            <SectionTitle label="Partner connection" />
+
+            {isNotConnected && (
+              <>
+                <div
+                  style={{
+                    fontSize: 17,
+
+                    fontWeight: 650,
+
+                    marginBottom: 7,
+
+                    color: duoColors.text,
+                  }}
+                >
+                  Not connected yet
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 13,
+
+                    color: duoColors.muted,
+
+                    lineHeight: 1.45,
+
+                    marginBottom: 16,
+
+                    fontWeight: 500,
+                  }}
+                >
+                  Invite one partner to share responsibilities.
+                </div>
+
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(event) => {
+                    setInviteEmail(
+                      event.target.value
+                    );
+
+                    setInviteStatus('idle');
+
+                    setInviteError('');
+                  }}
+                  placeholder="Partner email"
+                  style={{
+                    ...inputStyle,
+
+                    marginBottom: 12,
+                  }}
+                />
+
+                <button
+                  onClick={
+                    handleInvitePartner
+                  }
+                  disabled={
+                    inviteStatus ===
+                    'sending'
+                  }
+                  style={{
+                    ...primaryButtonStyle,
+
+                    width: '100%',
+
+                    height: 52,
+
+                    opacity:
+                      inviteStatus ===
+                      'sending'
+                        ? 0.58
+                        : 1,
+                  }}
+                >
+                  {inviteStatus ===
+                  'sending'
+                    ? 'Sending invite'
+                    : 'Invite partner'}
+                </button>
+              </>
+            )}
+
+            {isPending && (
+              <>
+                <div
+                  style={{
+                    fontSize: 17,
+
+                    fontWeight: 650,
+
+                    marginBottom: 7,
+
+                    color: duoColors.text,
+                  }}
+                >
+                  {isIncomingInvite
+                    ? 'Invite received'
+                    : 'Invite pending'}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 13,
+
+                    color: duoColors.muted,
+
+                    lineHeight: 1.45,
+
+                    marginBottom: 16,
+
+                    fontWeight: 500,
+                  }}
+                >
+                  {isIncomingInvite
+                    ? 'A partner invited you to connect on Duo.'
+                    : `Waiting for ${
+                        pendingInvite?.email ??
+                        'partner'
+                      } to accept the connection.`}
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+
+                    gap: 10,
+                  }}
+                >
+                  {isIncomingInvite && (
+                    <button
+                      onClick={
+                        handleAcceptInvite
+                      }
+                      disabled={
+                        inviteStatus ===
+                        'accepting'
+                      }
+                      style={{
+                        ...primaryButtonStyle,
+
+                        flex: 1,
+
+                        height: 50,
+
+                        opacity:
+                          inviteStatus ===
+                          'accepting'
+                            ? 0.58
+                            : 1,
+                      }}
+                    >
+                      {inviteStatus ===
+                      'accepting'
+                        ? 'Accepting'
+                        : 'Accept'}
+                    </button>
+                  )}
+
+                  {isOutgoingInvite && (
+                    <div
+                      style={{
+                        height: 50,
+
+                        flex: 1,
+
+                        display:
+                          'inline-flex',
+
+                        alignItems:
+                          'center',
+
+                        color:
+                          duoColors.muted,
+
+                        fontSize: 13,
+
+                        fontWeight: 600,
+                      }}
+                    >
+                      Waiting
+                    </div>
+                  )}
+
+                  <button
+                    onClick={
+                      handleCancelInvite
+                    }
+                    style={{
+                      ...secondaryButtonStyle,
+
+                      flex: 1,
+
+                      height: 50,
+                    }}
+                  >
+                    {isIncomingInvite
+                      ? 'Decline'
+                      : 'Cancel invite'}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {isConnected && (
+              <>
+                <div
+                  style={{
+                    fontSize: 17,
+
+                    fontWeight: 650,
+
+                    marginBottom: 5,
+
+                    color: duoColors.text,
+                  }}
+                >
+                  Connected to Partner
+                </div>
+
+                {partner?.email ? (
+                  <div
+                    style={{
+                      fontSize: 13,
+
+                      color:
+                        duoColors.muted,
+
+                      lineHeight: 1.4,
+
+                      fontWeight: 500,
+
+                      overflow:
+                        'hidden',
+
+                      textOverflow:
+                        'ellipsis',
+
+                      whiteSpace:
+                        'nowrap',
+                    }}
+                  >
+                    {partner.email}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      fontSize: 13,
+
+                      color:
+                        duoColors.muted,
+
+                      lineHeight: 1.4,
+
+                      fontWeight: 500,
+                    }}
+                  >
+                    Partner account will appear after the next sync.
+                  </div>
+                )}
+
+                <button
+                  onClick={
+                    handleDisconnectPartner
+                  }
+                  disabled={
+                    disconnectStatus ===
+                    'disconnecting'
+                  }
+                  style={{
+                    ...secondaryButtonStyle,
+
+                    width: '100%',
+
+                    marginTop: 16,
+
+                    opacity:
+                      disconnectStatus ===
+                      'disconnecting'
+                        ? 0.58
+                        : 1,
+                  }}
+                >
+                  {disconnectStatus ===
+                  'disconnecting'
+                    ? 'Disconnecting'
+                    : 'Disconnect partner'}
+                </button>
+
+                {disconnectStatus ===
+                  'error' && (
+                  <div
+                    style={{
+                      marginTop: 12,
+
+                      fontSize: 13,
+
+                      color: duoColors.red,
+
+                      lineHeight: 1.45,
+                    }}
+                  >
+                    {disconnectError}
+                  </div>
+                )}
+              </>
+            )}
+
+            {inviteStatus ===
+              'error' && (
               <div
                 style={{
-                  fontSize: 16,
+                  marginTop: 12,
 
-                  fontWeight: 600,
+                  fontSize: 13,
 
-                  marginBottom: 6,
+                  color: duoColors.red,
+
+                  lineHeight: 1.45,
                 }}
               >
-                Not connected yet
+                {inviteError}
               </div>
+            )}
+          </section>
 
+          <section
+            style={{
+              ...cardSurfaceStyle,
+
+              padding: 17,
+            }}
+          >
+            <SectionTitle label="Notifications" />
+
+            <div
+              style={{
+                fontSize: 17,
+
+                fontWeight: 650,
+
+                marginBottom: 7,
+
+                color: duoColors.text,
+              }}
+            >
+              Quiet by default
+            </div>
+
+            <div
+              style={{
+                fontSize: 13,
+
+                color: duoColors.muted,
+
+                lineHeight: 1.45,
+
+                marginBottom: 16,
+
+                fontWeight: 500,
+              }}
+            >
+              Duo reminds you before accepted responsibilities are due.
+            </div>
+
+            {notificationStatus ===
+              'unsupported' && (
               <div
                 style={{
                   fontSize: 13,
 
-                  color: '#777',
+                  color: duoColors.muted,
 
                   lineHeight: 1.45,
-
-                  marginBottom: 16,
                 }}
               >
-                Invite one partner to share responsibilities.
+                Browser notifications are not supported in this browser.
               </div>
+            )}
 
-              <input
-                type="email"
-                value={inviteEmail}
-                onChange={(event) => {
-                  setInviteEmail(
-                    event.target.value
-                  );
-
-                  setInviteStatus('idle');
-
-                  setInviteError('');
-                }}
-                placeholder="Partner email"
+            {notificationStatus ===
+              'blocked' && (
+              <div
                 style={{
-                  width: '100%',
+                  fontSize: 13,
 
-                  height: 48,
+                  color: duoColors.red,
 
-                  boxSizing:
-                    'border-box',
-
-                  borderRadius: 14,
-
-                  border:
-                    '1px solid rgba(0,0,0,0.08)',
-
-                  padding:
-                    '0 14px',
-
-                  fontSize: 15,
-
-                  outline: 'none',
-
-                  marginBottom: 12,
+                  lineHeight: 1.45,
                 }}
-              />
+              >
+                Notifications are blocked for Duo. Enable them in your browser settings.
+              </div>
+            )}
 
+            {notificationStatus ===
+              'enabled' && (
+              <>
+                <div
+                  style={{
+                    display:
+                      'inline-flex',
+
+                    alignItems:
+                      'center',
+
+                    height: 30,
+
+                    padding:
+                      '0 11px',
+
+                    borderRadius: 999,
+
+                    background:
+                      'rgba(22,163,106,0.12)',
+
+                    color:
+                      duoColors.green,
+
+                    fontSize: 12,
+
+                    fontWeight: 650,
+
+                    marginBottom: 12,
+                  }}
+                >
+                  Browser notifications are enabled
+                </div>
+
+                <button
+                  onClick={
+                    handleDisableNotifications
+                  }
+                  style={{
+                    ...secondaryButtonStyle,
+
+                    width: 'auto',
+
+                    padding:
+                      '0 15px',
+
+                    height: 42,
+                  }}
+                >
+                  Disable notifications
+                </button>
+              </>
+            )}
+
+            {(notificationStatus ===
+              'idle' ||
+              notificationStatus ===
+                'disabled' ||
+              notificationStatus ===
+                'requesting') && (
               <button
                 onClick={
-                  handleInvitePartner
+                  handleEnableNotifications
                 }
                 disabled={
-                  inviteStatus ===
-                  'sending'
+                  notificationStatus ===
+                  'requesting'
                 }
                 style={{
-                  height: 44,
+                  ...secondaryButtonStyle,
+
+                  width: 'auto',
 
                   padding:
-                    '0 16px',
+                    '0 15px',
 
-                  borderRadius: 14,
+                  height: 42,
 
-                  border: 'none',
+                  color:
+                    duoColors.text,
 
-                  background:
-                    inviteStatus ===
-                    'sending'
-                      ? 'rgba(0,0,0,0.18)'
-                      : '#111',
-
-                  color: '#fff',
-
-                  fontWeight: 600,
-
-                  cursor:
-                    inviteStatus ===
-                    'sending'
-                      ? 'default'
-                      : 'pointer',
+                  opacity:
+                    notificationStatus ===
+                    'requesting'
+                      ? 0.58
+                      : 1,
                 }}
               >
-                {inviteStatus ===
-                'sending'
-                  ? 'Sending invite'
-                  : 'Invite partner'}
+                {notificationStatus ===
+                'requesting'
+                  ? 'Requesting permission'
+                  : 'Enable notifications'}
               </button>
-            </>
-          )}
+            )}
 
-          {isPending && (
-            <>
+            <div
+              style={{
+                marginTop: 18,
+
+                paddingTop: 16,
+
+                borderTop:
+                  '1px solid rgba(24,32,44,0.06)',
+              }}
+            >
               <div
                 style={{
-                  fontSize: 16,
+                  fontSize: 15,
 
-                  fontWeight: 600,
+                  fontWeight: 650,
 
                   marginBottom: 6,
+
+                  color: duoColors.text,
                 }}
               >
-                {isIncomingInvite
-                  ? 'Invite received'
-                  : 'Invite pending'}
+                Reminder time
               </div>
 
               <div
                 style={{
                   fontSize: 13,
 
-                  color: '#777',
+                  color: duoColors.muted,
 
                   lineHeight: 1.45,
 
-                  marginBottom: 16,
+                  marginBottom: 12,
+
+                  fontWeight: 500,
                 }}
               >
-                {isIncomingInvite
-                  ? 'A partner invited you to connect on Duo.'
-                  : `Waiting for ${
-                      pendingInvite?.email ??
-                      'partner'
-                    } to accept the connection.`}
+                Choose when Duo reminds you.
               </div>
 
               <div
                 style={{
                   display: 'flex',
 
-                  gap: 10,
+                  gap: 8,
+
+                  flexWrap: 'wrap',
                 }}
               >
-                {isIncomingInvite && (
-                  <button
-                    onClick={
-                      handleAcceptInvite
-                    }
-                    disabled={
-                      inviteStatus ===
-                      'accepting'
-                    }
-                    style={{
-                      height: 44,
+                {REMINDER_LEAD_TIME_OPTIONS.map(
+                  (minutes) => {
+                    const selected =
+                      reminderLeadTime ===
+                      minutes;
 
-                      padding:
-                        '0 16px',
+                    return (
+                      <button
+                        key={minutes}
+                        onClick={() =>
+                          handleReminderLeadTimeChange(
+                            minutes
+                          )
+                        }
+                        style={{
+                          minHeight: 38,
 
-                      borderRadius: 14,
+                          padding:
+                            '0 12px',
 
-                      border: 'none',
+                          borderRadius: 999,
 
-                      background:
-                        inviteStatus ===
-                        'accepting'
-                          ? 'rgba(0,0,0,0.18)'
-                          : '#111',
+                          border: selected
+                            ? '1px solid rgba(24,32,44,0.9)'
+                            : '1px solid rgba(24,32,44,0.08)',
 
-                      color: '#fff',
+                          background: selected
+                            ? duoColors.text
+                            : 'rgba(255,255,255,0.82)',
 
-                      fontWeight: 600,
+                          color: selected
+                            ? '#fff'
+                            : duoColors.muted,
 
-                      cursor:
-                        inviteStatus ===
-                        'accepting'
-                          ? 'default'
-                          : 'pointer',
-                    }}
-                  >
-                    {inviteStatus ===
-                    'accepting'
-                      ? 'Accepting'
-                      : 'Accept'}
-                  </button>
-                )}
+                          fontSize: 13,
 
-                {isOutgoingInvite && (
-                  <div
-                    style={{
-                      height: 44,
+                          fontWeight: 600,
 
-                      display: 'inline-flex',
+                          cursor: 'pointer',
 
-                      alignItems: 'center',
-
-                      padding:
-                        '0 2px',
-
-                      color: '#999',
-
-                      fontSize: 13,
-
-                      fontWeight: 600,
-                    }}
-                  >
-                    Waiting
-                  </div>
-                )}
-
-                <button
-                  onClick={
-                    handleCancelInvite
+                          boxShadow: selected
+                            ? '0 10px 22px rgba(17,24,39,0.16)'
+                            : 'none',
+                        }}
+                      >
+                        {formatReminderLeadTime(
+                          minutes
+                        )}
+                      </button>
+                    );
                   }
-                  style={{
-                    height: 44,
-
-                    padding:
-                      '0 16px',
-
-                    borderRadius: 14,
-
-                    border:
-                      '1px solid rgba(0,0,0,0.08)',
-
-                    background:
-                      '#fff',
-
-                    color: '#777',
-
-                    fontWeight: 600,
-
-                    cursor:
-                      'pointer',
-                  }}
-                >
-                  {isIncomingInvite
-                    ? 'Decline'
-                    : 'Cancel invite'}
-                </button>
+                )}
               </div>
-            </>
-          )}
 
-          {isConnected && (
-            <>
               <div
                 style={{
-                  fontSize: 16,
+                  marginTop: 10,
 
-                  fontWeight: 600,
+                  fontSize: 12,
 
-                  marginBottom: 6,
+                  color:
+                    duoColors.softMuted,
+
+                  lineHeight: 1.4,
+
+                  fontWeight: 500,
                 }}
               >
-                Connected to Partner
+                Mobile shows in-app reminders. Full background push comes later.
               </div>
+            </div>
+          </section>
 
-              {partner?.email ? (
-                <div
-                  style={{
-                    fontSize: 13,
+          <section
+            style={{
+              ...cardSurfaceStyle,
 
-                    color: '#555',
+              padding: 17,
+            }}
+          >
+            <SectionTitle label="Account" />
 
-                    lineHeight: 1.45,
-
-                    marginBottom: 16,
-                  }}
-                >
-                  Partner account:{' '}
-                  <strong>
-                    {partner.email}
-                  </strong>
-                </div>
-              ) : (
-                <div
-                  style={{
-                    fontSize: 13,
-
-                    color: '#999',
-
-                    lineHeight: 1.45,
-
-                    marginBottom: 16,
-                  }}
-                >
-                  Partner account will appear after the next sync.
-                </div>
-              )}
-
-              <button
-                onClick={
-                  handleDisconnectPartner
-                }
-                disabled={
-                  disconnectStatus ===
-                  'disconnecting'
-                }
-                style={{
-                  height: 44,
-
-                  padding:
-                    '0 16px',
-
-                  borderRadius: 14,
-
-                  border:
-                    '1px solid rgba(0,0,0,0.08)',
-
-                  background:
-                    '#fff',
-
-                  color: '#777',
-
-                  fontWeight: 600,
-
-                  cursor:
-                    disconnectStatus ===
-                    'disconnecting'
-                      ? 'default'
-                      : 'pointer',
-                }}
-              >
-                {disconnectStatus ===
-                'disconnecting'
-                  ? 'Disconnecting'
-                  : 'Disconnect partner'}
-              </button>
-
-              {disconnectStatus ===
-                'error' && (
-                <div
-                  style={{
-                    marginTop: 12,
-
-                    fontSize: 13,
-
-                    color: '#991b1b',
-
-                    lineHeight: 1.45,
-                  }}
-                >
-                  {disconnectError}
-                </div>
-              )}
-            </>
-          )}
-
-          {inviteStatus ===
-            'error' && (
             <div
               style={{
-                marginTop: 12,
+                fontSize: 17,
 
-                fontSize: 13,
+                fontWeight: 650,
 
-                color: '#991b1b',
+                marginBottom: 7,
 
-                lineHeight: 1.45,
+                color: duoColors.text,
+
+                overflow: 'hidden',
+
+                textOverflow: 'ellipsis',
+
+                whiteSpace: 'nowrap',
               }}
             >
-              {inviteError}
+              {email || 'Signed in'}
             </div>
-          )}
-        </section>
 
-        <section
-          style={{
-            padding: 16,
-
-            borderRadius: 18,
-
-            border:
-              '1px solid rgba(0,0,0,0.06)',
-
-            background:
-              '#fff',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 12,
-
-              fontWeight: 700,
-
-              letterSpacing: 0.8,
-
-              textTransform:
-                'uppercase',
-
-              opacity: 0.45,
-
-              marginBottom: 10,
-            }}
-          >
-            Notifications
-          </div>
-
-          <div
-            style={{
-              fontSize: 16,
-
-              fontWeight: 600,
-
-              marginBottom: 6,
-            }}
-          >
-            Quiet by default
-          </div>
-
-          <div
-            style={{
-              fontSize: 13,
-
-              color: '#777',
-
-              lineHeight: 1.45,
-
-              marginBottom: 16,
-            }}
-          >
-            Duo reminds you before accepted responsibilities are due.
-          </div>
-
-          {notificationStatus ===
-            'unsupported' && (
             <div
               style={{
                 fontSize: 13,
 
-                color: '#999',
+                color: duoColors.muted,
 
                 lineHeight: 1.45,
+
+                marginBottom: 16,
+
+                fontWeight: 500,
               }}
             >
-              Browser notifications are not supported in this browser.
+              Duo uses this account to connect responsibilities to the right person.
             </div>
-          )}
 
-          {notificationStatus ===
-            'blocked' && (
-            <div
-              style={{
-                fontSize: 13,
-
-                color: '#991b1b',
-
-                lineHeight: 1.45,
-              }}
-            >
-              Notifications are blocked for Duo. Enable them in your browser settings.
-            </div>
-          )}
-
-          {notificationStatus ===
-            'enabled' && (
-            <>
-              <div
-                style={{
-                  fontSize: 13,
-
-                  color: '#2e7d32',
-
-                  lineHeight: 1.45,
-
-                  marginBottom: 12,
-
-                  fontWeight: 600,
-                }}
-              >
-                Browser notifications are enabled.
-              </div>
-
-              <button
-                onClick={
-                  handleDisableNotifications
-                }
-                style={{
-                  height: 44,
-
-                  padding:
-                    '0 16px',
-
-                  borderRadius: 14,
-
-                  border:
-                    '1px solid rgba(0,0,0,0.08)',
-
-                  background:
-                    '#fff',
-
-                  color: '#777',
-
-                  fontWeight: 600,
-
-                  cursor:
-                    'pointer',
-                }}
-              >
-                Disable notifications
-              </button>
-            </>
-          )}
-
-          {(notificationStatus ===
-            'idle' ||
-            notificationStatus ===
-              'disabled' ||
-            notificationStatus ===
-              'requesting') && (
             <button
               onClick={
-                handleEnableNotifications
+                handleSignOut
+              }
+              style={{
+                ...secondaryButtonStyle,
+
+                width: '100%',
+              }}
+            >
+              Sign out
+            </button>
+          </section>
+
+          {isConnected && (
+            <button
+              onClick={
+                handleDisconnectPartner
               }
               disabled={
-                notificationStatus ===
-                'requesting'
+                disconnectStatus ===
+                'disconnecting'
               }
               style={{
-                height: 44,
+                ...dangerButtonStyle,
 
-                padding:
-                  '0 16px',
+                width: '100%',
 
-                borderRadius: 14,
-
-                border: 'none',
-
-                background:
-                  notificationStatus ===
-                  'requesting'
-                    ? 'rgba(0,0,0,0.18)'
-                    : '#111',
-
-                color: '#fff',
-
-                fontWeight: 600,
-
-                cursor:
-                  notificationStatus ===
-                  'requesting'
-                    ? 'default'
-                    : 'pointer',
+                opacity:
+                  disconnectStatus ===
+                  'disconnecting'
+                    ? 0.58
+                    : 1,
               }}
             >
-              {notificationStatus ===
-              'requesting'
-                ? 'Requesting permission'
-                : 'Enable notifications'}
+              {disconnectStatus ===
+              'disconnecting'
+                ? 'Disconnecting'
+                : 'Disconnect partner'}
             </button>
           )}
-
-          <div
-            style={{
-              marginTop: 18,
-
-              paddingTop: 16,
-
-              borderTop:
-                '1px solid rgba(0,0,0,0.06)',
-            }}
-          >
-            <div
-              style={{
-                fontSize: 14,
-
-                fontWeight: 700,
-
-                marginBottom: 6,
-
-                color: '#111',
-              }}
-            >
-              Reminder time
-            </div>
-
-            <div
-              style={{
-                fontSize: 13,
-
-                color: '#777',
-
-                lineHeight: 1.45,
-
-                marginBottom: 12,
-              }}
-            >
-              Choose when Duo reminds you.
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-
-                gap: 8,
-
-                flexWrap: 'wrap',
-              }}
-            >
-              {REMINDER_LEAD_TIME_OPTIONS.map(
-                (minutes) => {
-                  const selected =
-                    reminderLeadTime ===
-                    minutes;
-
-                  return (
-                    <button
-                      key={minutes}
-                      onClick={() =>
-                        handleReminderLeadTimeChange(
-                          minutes
-                        )
-                      }
-                      style={{
-                        height: 38,
-
-                        padding:
-                          '0 12px',
-
-                        borderRadius: 999,
-
-                        border: selected
-                          ? '1px solid rgba(0,0,0,0.85)'
-                          : '1px solid rgba(0,0,0,0.08)',
-
-                        background: selected
-                          ? '#111'
-                          : '#fff',
-
-                        color: selected
-                          ? '#fff'
-                          : '#555',
-
-                        fontSize: 13,
-
-                        fontWeight: 700,
-
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {formatReminderLeadTime(
-                        minutes
-                      )}
-                    </button>
-                  );
-                }
-              )}
-            </div>
-
-            <div
-              style={{
-                marginTop: 10,
-
-                fontSize: 12,
-
-                color: '#999',
-
-                lineHeight: 1.4,
-              }}
-            >
-              Mobile shows in-app reminders. Full background push comes later.
-            </div>
-          </div>
-        </section>
-
-        <section
-          style={{
-            padding: 16,
-
-            borderRadius: 18,
-
-            border:
-              '1px solid rgba(0,0,0,0.06)',
-
-            background:
-              '#fff',
-          }}
-        >
-          <div
-            style={{
-              fontSize: 12,
-
-              fontWeight: 700,
-
-              letterSpacing: 0.8,
-
-              textTransform:
-                'uppercase',
-
-              opacity: 0.45,
-
-              marginBottom: 10,
-            }}
-          >
-            Account
-          </div>
-
-          <div
-            style={{
-              fontSize: 16,
-
-              fontWeight: 600,
-
-              marginBottom: 6,
-            }}
-          >
-            {email || 'Signed in'}
-          </div>
-
-          <div
-            style={{
-              fontSize: 13,
-
-              color: '#777',
-
-              lineHeight: 1.45,
-
-              marginBottom: 16,
-            }}
-          >
-            Duo uses this account to connect responsibilities to the right person.
-          </div>
-
-          <button
-            onClick={
-              handleSignOut
-            }
-            style={{
-              height: 44,
-
-              padding:
-                '0 16px',
-
-              borderRadius: 14,
-
-              border:
-                '1px solid rgba(0,0,0,0.08)',
-
-              background:
-                '#fff',
-
-              color: '#777',
-
-              fontWeight: 600,
-
-              cursor: 'pointer',
-            }}
-          >
-            Sign out
-          </button>
-        </section>
+        </div>
       </div>
     </div>
   );

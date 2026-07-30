@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   inputStyle,
   secondaryButtonStyle,
@@ -49,9 +47,15 @@ export default function TimeSection({
             !showTime
           )
         }
-        style={
-          secondaryButtonStyle
-        }
+        style={{
+          ...secondaryButtonStyle,
+
+          width: 'auto',
+
+          padding: '0 15px',
+
+          height: 42,
+        }}
       >
         {showTime
           ? 'Remove time'
@@ -63,12 +67,12 @@ export default function TimeSection({
           style={{
             marginTop: 14,
 
-            display: 'flex',
+            display: 'grid',
 
-            flexDirection:
-              'column',
+            gridTemplateColumns:
+              '1fr 1fr',
 
-            gap: 12,
+            gap: 10,
           }}
         >
           <input

@@ -1,3 +1,7 @@
+import {
+  inputStyle,
+} from '../../../styles/ui';
+
 type Props = {
   payload: any;
 
@@ -48,16 +52,3 @@ export default function MaintenanceFields({
     </>
   );
 }
-
-const inputStyle = {
-  height: 52,
-
-  borderRadius: 16,
-
-  border:
-    '1px solid rgba(0,0,0,0.08)',
-
-  padding: '0 16px',
-
-  fontSize: 16,
-};

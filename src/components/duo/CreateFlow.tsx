@@ -1,13 +1,10 @@
-import { useState } from 'react';
+import {
+  useState,
+} from 'react';
 
 import {
   ChevronLeft,
   X,
-  CarFront,
-  CreditCard,
-  ShoppingBag,
-  Calendar,
-  Wrench,
 } from 'lucide-react';
 
 import {
@@ -44,6 +41,17 @@ import AppointmentFields from './templates/AppointmentFields';
 
 import MaintenanceFields from './templates/MaintenanceFields';
 
+import {
+  IconTile,
+  cardSurfaceStyle,
+  duoColors,
+  getTypeLabel,
+  inputStyle,
+  panelInnerStyle,
+  panelScreenStyle,
+  primaryButtonStyle,
+} from '../../styles/ui';
+
 type Step =
   | 'types'
   | 'fields';
@@ -59,32 +67,6 @@ type Props = {
 
   onClose: () => void;
 };
-
-function getTypeIcon(
-  type: DuoCard['type']
-) {
-  if (type === 'transport') {
-    return <CarFront size={22} />;
-  }
-
-  if (type === 'pay') {
-    return <CreditCard size={22} />;
-  }
-
-  if (type === 'acquire') {
-    return <ShoppingBag size={22} />;
-  }
-
-  if (type === 'appointment') {
-    return <Calendar size={22} />;
-  }
-
-  if (type === 'maintenance') {
-    return <Wrench size={22} />;
-  }
-
-  return null;
-}
 
 function getTypeDescription(
   type: DuoCard['type']
@@ -129,6 +111,64 @@ function getDateString(
     ).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
+}
+
+function closeButtonStyle():
+  React.CSSProperties {
+  return {
+    width: 44,
+
+    height: 44,
+
+    borderRadius: 17,
+
+    border:
+      '1px solid rgba(24,32,44,0.075)',
+
+    background:
+      'rgba(255,255,255,0.84)',
+
+    boxShadow:
+      '0 12px 28px rgba(31,41,55,0.07)',
+
+    display: 'flex',
+
+    alignItems: 'center',
+
+    justifyContent: 'center',
+
+    cursor: 'pointer',
+
+    color: duoColors.text,
+  };
+}
+
+function SectionTitle({
+  children,
+}: {
+  children: string;
+}) {
+  return (
+    <div
+      style={{
+        fontSize: 12,
+
+        fontWeight: 650,
+
+        letterSpacing: 0.65,
+
+        textTransform:
+          'uppercase',
+
+        color:
+          duoColors.softMuted,
+
+        marginBottom: 12,
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 export default function CreateFlow({
@@ -427,29 +467,33 @@ export default function CreateFlow({
       timeMode === mode;
 
     return {
-      height: 40,
+      minHeight: 40,
 
       padding: '0 14px',
 
       borderRadius: 999,
 
       border: selected
-        ? '1px solid #111'
-        : '1px solid rgba(0,0,0,0.07)',
+        ? '1px solid rgba(24,32,44,0.9)'
+        : '1px solid rgba(24,32,44,0.08)',
 
       background: selected
-        ? '#111'
-        : '#fff',
+        ? duoColors.text
+        : 'rgba(255,255,255,0.82)',
 
       color: selected
         ? '#fff'
-        : '#777',
+        : duoColors.muted,
 
       fontSize: 13,
 
-      fontWeight: 700,
+      fontWeight: 600,
 
       cursor: 'pointer',
+
+      boxShadow: selected
+        ? '0 10px 22px rgba(17,24,39,0.16)'
+        : 'none',
     };
   }
 
@@ -459,187 +503,145 @@ export default function CreateFlow({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-
-        inset: 0,
-
-        background: '#fff',
-
-        zIndex: 100,
-
-        overflowY: 'auto',
-
-        padding: 24,
-
-        paddingBottom: 190,
-      }}
+      style={panelScreenStyle}
     >
       <div
         style={{
-          display: 'flex',
+          ...panelInnerStyle,
 
-          justifyContent:
-            'space-between',
-
-          alignItems: 'center',
-
-          marginBottom: 30,
+          paddingBottom:
+            step === 'fields'
+              ? 88
+              : 0,
         }}
       >
-        <div>
-          <div
-            style={{
-              fontSize: 28,
-
-              fontWeight: 750,
-
-              letterSpacing: -0.4,
-
-              color: '#111',
-            }}
-          >
-            {selectedTemplate
-              ? selectedTemplate.label
-              : 'Create'}
-          </div>
-
-          <div
-            style={{
-              marginTop: 6,
-
-              fontSize: 13,
-
-              color: '#999',
-            }}
-          >
-            {step === 'types'
-              ? 'Choose the responsibility type.'
-              : 'Fill only what is needed.'}
-          </div>
-        </div>
-
-        <button
-          onClick={() => {
-            if (
-              step === 'fields'
-            ) {
-              setStep('types');
-
-              setSelectedType(null);
-
-              setPayload({});
-
-              setTimeMode('none');
-
-              setDueDate('');
-
-              setDueTime('');
-
-              setCreateError('');
-
-              return;
-            }
-
-            resetFlow();
-          }}
-          style={{
-            width: 40,
-
-            height: 40,
-
-            borderRadius: 999,
-
-            border:
-              '1px solid rgba(0,0,0,0.06)',
-
-            background: '#fff',
-
-            display: 'flex',
-
-            alignItems: 'center',
-
-            justifyContent: 'center',
-
-            cursor: 'pointer',
-          }}
-        >
-          {step === 'fields' ? (
-            <ChevronLeft
-              size={19}
-            />
-          ) : (
-            <X size={18} />
-          )}
-        </button>
-      </div>
-
-      {step === 'types' && (
         <div
           style={{
             display: 'flex',
 
-            flexDirection:
-              'column',
+            justifyContent:
+              'space-between',
 
-            gap: 12,
+            alignItems:
+              'center',
+
+            marginBottom: 22,
           }}
         >
-          {CARD_TEMPLATES.map(
-            (template) => (
-              <button
-                key={
-                  template.type
-                }
-                onClick={() => {
-                  setSelectedType(
+          <div>
+            <div
+              style={{
+                fontSize: 28,
+
+                fontWeight: 700,
+
+                letterSpacing: -0.7,
+
+                color: duoColors.text,
+
+                lineHeight: 1.05,
+              }}
+            >
+              {selectedTemplate
+                ? selectedTemplate.label
+                : 'Create'}
+            </div>
+
+            <div
+              style={{
+                marginTop: 6,
+
+                fontSize: 13,
+
+                color: duoColors.muted,
+
+                fontWeight: 500,
+              }}
+            >
+              {step === 'types'
+                ? 'Choose the responsibility type.'
+                : 'Fill only what is needed.'}
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              if (
+                step === 'fields'
+              ) {
+                setStep('types');
+
+                setSelectedType(null);
+
+                setPayload({});
+
+                setTimeMode('none');
+
+                setDueDate('');
+
+                setDueTime('');
+
+                setCreateError('');
+
+                return;
+              }
+
+              resetFlow();
+            }}
+            aria-label={
+              step === 'fields'
+                ? 'Back'
+                : 'Close create'
+            }
+            style={closeButtonStyle()}
+          >
+            {step === 'fields' ? (
+              <ChevronLeft
+                size={19}
+              />
+            ) : (
+              <X size={18} />
+            )}
+          </button>
+        </div>
+
+        {step === 'types' && (
+          <div
+            style={{
+              display: 'flex',
+
+              flexDirection:
+                'column',
+
+              gap: 12,
+            }}
+          >
+            {CARD_TEMPLATES.map(
+              (template) => (
+                <button
+                  key={
                     template.type
-                  );
+                  }
+                  onClick={() => {
+                    setSelectedType(
+                      template.type
+                    );
 
-                  setStep(
-                    'fields'
-                  );
+                    setStep(
+                      'fields'
+                    );
 
-                  setCreateError('');
-                }}
-                style={{
-                  minHeight: 76,
-
-                  borderRadius: 20,
-
-                  border:
-                    '1px solid rgba(0,0,0,0.06)',
-
-                  background:
-                    '#fff',
-
-                  textAlign:
-                    'left',
-
-                  padding: 16,
-
-                  display:
-                    'flex',
-
-                  alignItems:
-                    'center',
-
-                  gap: 14,
-
-                  cursor:
-                    'pointer',
-                }}
-              >
-                <div
+                    setCreateError('');
+                  }}
                   style={{
-                    width: 46,
+                    ...cardSurfaceStyle,
 
-                    height: 46,
+                    minHeight: 94,
 
-                    borderRadius: 15,
+                    textAlign:
+                      'left',
 
-                    background:
-                      'rgba(0,0,0,0.04)',
+                    padding: 14,
 
                     display:
                       'flex',
@@ -647,464 +649,406 @@ export default function CreateFlow({
                     alignItems:
                       'center',
 
-                    justifyContent:
-                      'center',
+                    gap: 14,
 
-                    color: '#555',
-
-                    flexShrink: 0,
+                    cursor:
+                      'pointer',
                   }}
                 >
-                  {getTypeIcon(
-                    template.type
-                  )}
-                </div>
-
-                <div>
-                  <div
-                    style={{
-                      fontSize: 16,
-
-                      fontWeight: 700,
-
-                      color: '#111',
-
-                      marginBottom: 4,
-                    }}
-                  >
-                    {
-                      template.label
-                    }
-                  </div>
-
-                  <div
-                    style={{
-                      fontSize: 13,
-
-                      lineHeight: 1.35,
-
-                      color: '#888',
-                    }}
-                  >
-                    {getTypeDescription(
+                  <IconTile
+                    type={
                       template.type
-                    )}
+                    }
+                    size={66}
+                    iconSize={30}
+                  />
+
+                  <div
+                    style={{
+                      minWidth: 0,
+
+                      flex: 1,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 16,
+
+                        fontWeight: 650,
+
+                        color:
+                          duoColors.text,
+
+                        marginBottom: 5,
+
+                        letterSpacing:
+                          -0.15,
+                      }}
+                    >
+                      {
+                        template.label
+                      }
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: 13,
+
+                        lineHeight: 1.38,
+
+                        color:
+                          duoColors.muted,
+
+                        fontWeight: 500,
+                      }}
+                    >
+                      {getTypeDescription(
+                        template.type
+                      )}
+                    </div>
                   </div>
-                </div>
-              </button>
-            )
-          )}
-        </div>
-      )}
+                </button>
+              )
+            )}
+          </div>
+        )}
 
-      {step === 'fields' && (
-        <>
-          <section
-            style={{
-              marginBottom: 28,
-            }}
-          >
-            <div
+        {step === 'fields' && (
+          <>
+            <section
               style={{
-                fontSize: 12,
+                ...cardSurfaceStyle,
 
-                fontWeight: 750,
-
-                letterSpacing: 0.6,
-
-                textTransform:
-                  'uppercase',
-
-                color: '#aaa',
-
-                marginBottom: 10,
-              }}
-            >
-              Responsibility
-            </div>
-
-            <div
-              style={{
-                display:
-                  'inline-flex',
-
-                padding: 4,
-
-                borderRadius: 999,
-
-                background:
-                  'rgba(0,0,0,0.035)',
-
-                border:
-                  '1px solid rgba(0,0,0,0.04)',
-              }}
-            >
-              <button
-                onClick={() =>
-                  setOwnerId('me')
-                }
-                style={{
-                  height: 34,
-
-                  padding:
-                    '0 16px',
-
-                  borderRadius: 999,
-
-                  border: 'none',
-
-                  background:
-                    ownerId === 'me'
-                      ? '#111'
-                      : 'transparent',
-
-                  color:
-                    ownerId === 'me'
-                      ? '#fff'
-                      : '#777',
-
-                  cursor: 'pointer',
-
-                  fontWeight: 700,
-
-                  fontSize: 13,
-                }}
-              >
-                Me
-              </button>
-
-              <button
-                onClick={() =>
-                  setOwnerId(
-                    'partner'
-                  )
-                }
-                style={{
-                  height: 34,
-
-                  padding:
-                    '0 16px',
-
-                  borderRadius: 999,
-
-                  border: 'none',
-
-                  background:
-                    ownerId ===
-                    'partner'
-                      ? '#111'
-                      : 'transparent',
-
-                  color:
-                    ownerId ===
-                    'partner'
-                      ? '#fff'
-                      : '#777',
-
-                  cursor: 'pointer',
-
-                  fontWeight: 700,
-
-                  fontSize: 13,
-                }}
-              >
-                Partner
-              </button>
-            </div>
-          </section>
-
-          <section
-            style={{
-              marginBottom: 28,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 12,
-
-                fontWeight: 750,
-
-                letterSpacing: 0.6,
-
-                textTransform:
-                  'uppercase',
-
-                color: '#aaa',
-
-                marginBottom: 10,
-              }}
-            >
-              Details
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-
-                flexDirection:
-                  'column',
-
-                gap: 14,
-              }}
-            >
-              {renderFields()}
-            </div>
-          </section>
-
-          <section>
-            <div
-              style={{
-                fontSize: 12,
-
-                fontWeight: 750,
-
-                letterSpacing: 0.6,
-
-                textTransform:
-                  'uppercase',
-
-                color: '#aaa',
-
-                marginBottom: 10,
-              }}
-            >
-              Time
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-
-                flexWrap: 'wrap',
-
-                gap: 8,
+                padding: 17,
 
                 marginBottom: 14,
               }}
             >
-              <button
-                onClick={() => {
-                  setTimeMode('none');
+              <SectionTitle>
+                Responsibility
+              </SectionTitle>
 
-                  setDueDate('');
-
-                  setDueTime('');
-                }}
-                style={getTimeButtonStyle(
-                  'none'
-                )}
-              >
-                No time
-              </button>
-
-              <button
-                onClick={() => {
-                  setTimeMode('today');
-
-                  setDueDate('');
-
-                  setDueTime('');
-                }}
-                style={getTimeButtonStyle(
-                  'today'
-                )}
-              >
-                Today
-              </button>
-
-              <button
-                onClick={() => {
-                  setTimeMode(
-                    'tomorrow'
-                  );
-
-                  setDueDate('');
-
-                  setDueTime('');
-                }}
-                style={getTimeButtonStyle(
-                  'tomorrow'
-                )}
-              >
-                Tomorrow
-              </button>
-
-              <button
-                onClick={() =>
-                  setTimeMode('other')
-                }
-                style={getTimeButtonStyle(
-                  'other'
-                )}
-              >
-                Other
-              </button>
-            </div>
-
-            <div
-              style={{
-                minHeight: 54,
-
-                transition:
-                  'opacity 0.16s ease',
-
-                opacity:
-                  timeMode === 'other'
-                    ? 1
-                    : 0,
-
-                pointerEvents:
-                  timeMode === 'other'
-                    ? 'auto'
-                    : 'none',
-              }}
-            >
               <div
                 style={{
-                  display: 'grid',
+                  display:
+                    'inline-flex',
 
-                  gridTemplateColumns:
-                    '1fr 1fr',
+                  padding: 4,
 
-                  gap: 10,
+                  borderRadius: 999,
+
+                  background:
+                    'rgba(24,32,44,0.045)',
+
+                  border:
+                    '1px solid rgba(24,32,44,0.055)',
                 }}
               >
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) =>
-                    setDueDate(
-                      e.target.value
+                <button
+                  onClick={() =>
+                    setOwnerId('me')
+                  }
+                  style={{
+                    height: 36,
+
+                    padding:
+                      '0 17px',
+
+                    borderRadius: 999,
+
+                    border: 'none',
+
+                    background:
+                      ownerId === 'me'
+                        ? duoColors.text
+                        : 'transparent',
+
+                    color:
+                      ownerId === 'me'
+                        ? '#fff'
+                        : duoColors.muted,
+
+                    cursor: 'pointer',
+
+                    fontWeight: 600,
+
+                    fontSize: 13,
+
+                    boxShadow:
+                      ownerId === 'me'
+                        ? '0 8px 18px rgba(17,24,39,0.16)'
+                        : 'none',
+                  }}
+                >
+                  Me
+                </button>
+
+                <button
+                  onClick={() =>
+                    setOwnerId(
+                      'partner'
                     )
                   }
                   style={{
-                    height: 52,
-
-                    borderRadius: 17,
-
-                    border:
-                      '1px solid rgba(0,0,0,0.08)',
+                    height: 36,
 
                     padding:
-                      '0 14px',
+                      '0 17px',
 
-                    fontSize: 15,
+                    borderRadius: 999,
 
-                    background:
-                      '#fff',
-                  }}
-                />
-
-                <input
-                  type="time"
-                  value={dueTime}
-                  onChange={(e) =>
-                    setDueTime(
-                      e.target.value
-                    )
-                  }
-                  style={{
-                    height: 52,
-
-                    borderRadius: 17,
-
-                    border:
-                      '1px solid rgba(0,0,0,0.08)',
-
-                    padding:
-                      '0 14px',
-
-                    fontSize: 15,
+                    border: 'none',
 
                     background:
-                      '#fff',
+                      ownerId ===
+                      'partner'
+                        ? duoColors.text
+                        : 'transparent',
+
+                    color:
+                      ownerId ===
+                      'partner'
+                        ? '#fff'
+                        : duoColors.muted,
+
+                    cursor: 'pointer',
+
+                    fontWeight: 600,
+
+                    fontSize: 13,
+
+                    boxShadow:
+                      ownerId ===
+                      'partner'
+                        ? '0 8px 18px rgba(17,24,39,0.16)'
+                        : 'none',
                   }}
-                />
+                >
+                  Partner
+                </button>
               </div>
-            </div>
-          </section>
+            </section>
 
-          {createError && (
-            <div
+            <section
               style={{
-                marginTop: 18,
+                ...cardSurfaceStyle,
 
-                padding: '12px 14px',
+                padding: 17,
 
-                borderRadius: 16,
-
-                background:
-                  'rgba(220, 38, 38, 0.08)',
-
-                color: '#b42318',
-
-                fontSize: 13,
-
-                lineHeight: 1.4,
-
-                fontWeight: 650,
+                marginBottom: 14,
               }}
             >
-              {createError}
-            </div>
-          )}
+              <SectionTitle>
+                Details
+              </SectionTitle>
 
-          <button
-            onClick={
-              handleCreate
-            }
-            disabled={
-              !canCreate ||
-              isCreating
-            }
-            style={{
-              position: 'fixed',
+              <div
+                style={{
+                  display: 'flex',
 
-              left: 24,
+                  flexDirection:
+                    'column',
 
-              right: 24,
+                  gap: 12,
+                }}
+              >
+                {renderFields()}
+              </div>
+            </section>
 
-              bottom: 28,
+            <section
+              style={{
+                ...cardSurfaceStyle,
 
-              height: 58,
+                padding: 17,
 
-              borderRadius: 18,
+                marginBottom: 14,
+              }}
+            >
+              <SectionTitle>
+                Time
+              </SectionTitle>
 
-              border: 'none',
+              <div
+                style={{
+                  display: 'flex',
 
-              background:
-                canCreate &&
-                !isCreating
-                  ? '#111'
-                  : 'rgba(0,0,0,0.12)',
+                  flexWrap: 'wrap',
 
-              color: '#fff',
+                  gap: 8,
 
-              fontSize: 16,
+                  marginBottom:
+                    timeMode === 'other'
+                      ? 14
+                      : 0,
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setTimeMode('none');
 
-              fontWeight: 750,
+                    setDueDate('');
 
-              boxShadow:
-                canCreate &&
-                !isCreating
-                  ? '0 10px 30px rgba(0,0,0,0.12)'
-                  : 'none',
+                    setDueTime('');
+                  }}
+                  style={getTimeButtonStyle(
+                    'none'
+                  )}
+                >
+                  No time
+                </button>
 
-              cursor:
-                canCreate &&
-                !isCreating
-                  ? 'pointer'
-                  : 'default',
+                <button
+                  onClick={() => {
+                    setTimeMode('today');
 
-              zIndex: 120,
-            }}
-          >
-            {isCreating
-              ? 'Creating...'
-              : 'Create'}
-          </button>
-        </>
-      )}
+                    setDueDate('');
+
+                    setDueTime('');
+                  }}
+                  style={getTimeButtonStyle(
+                    'today'
+                  )}
+                >
+                  Today
+                </button>
+
+                <button
+                  onClick={() => {
+                    setTimeMode(
+                      'tomorrow'
+                    );
+
+                    setDueDate('');
+
+                    setDueTime('');
+                  }}
+                  style={getTimeButtonStyle(
+                    'tomorrow'
+                  )}
+                >
+                  Tomorrow
+                </button>
+
+                <button
+                  onClick={() =>
+                    setTimeMode('other')
+                  }
+                  style={getTimeButtonStyle(
+                    'other'
+                  )}
+                >
+                  Other
+                </button>
+              </div>
+
+              {timeMode === 'other' && (
+                <div
+                  style={{
+                    display: 'grid',
+
+                    gridTemplateColumns:
+                      '1fr 1fr',
+
+                    gap: 10,
+                  }}
+                >
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) =>
+                      setDueDate(
+                        e.target.value
+                      )
+                    }
+                    style={inputStyle}
+                  />
+
+                  <input
+                    type="time"
+                    value={dueTime}
+                    onChange={(e) =>
+                      setDueTime(
+                        e.target.value
+                      )
+                    }
+                    style={inputStyle}
+                  />
+                </div>
+              )}
+            </section>
+
+            {createError && (
+              <div
+                style={{
+                  marginBottom: 14,
+
+                  padding:
+                    '12px 14px',
+
+                  borderRadius: 18,
+
+                  background:
+                    'rgba(229, 57, 53, 0.08)',
+
+                  color: duoColors.red,
+
+                  fontSize: 13,
+
+                  lineHeight: 1.4,
+
+                  fontWeight: 600,
+                }}
+              >
+                {createError}
+              </div>
+            )}
+
+            <button
+              onClick={
+                handleCreate
+              }
+              disabled={
+                !canCreate ||
+                isCreating
+              }
+              style={{
+                ...primaryButtonStyle,
+
+                position: 'fixed',
+
+                left: '50%',
+
+                bottom: 24,
+
+                transform:
+                  'translateX(-50%)',
+
+                width:
+                  'min(calc(100% - 32px), 488px)',
+
+                opacity:
+                  canCreate &&
+                  !isCreating
+                    ? 1
+                    : 0.42,
+
+                cursor:
+                  canCreate &&
+                  !isCreating
+                    ? 'pointer'
+                    : 'default',
+
+                zIndex: 120,
+              }}
+            >
+              {isCreating
+                ? 'Creating...'
+                : 'Create'}
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

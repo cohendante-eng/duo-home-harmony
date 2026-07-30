@@ -2,11 +2,6 @@ import {
   Clock3,
   MoreHorizontal,
   X,
-  CarFront,
-  CreditCard,
-  ShoppingBag,
-  Calendar,
-  Wrench,
 } from 'lucide-react';
 
 import {
@@ -35,6 +30,20 @@ import {
   takeSupabaseCard,
 } from '../../lib/supabaseCards';
 
+import {
+  IconTile,
+  cardSurfaceStyle,
+  duoColors,
+  formatDueAt,
+  getStatusLabel,
+  getStatusStyle,
+  getTypeLabel,
+  panelInnerStyle,
+  panelScreenStyle,
+  primaryButtonStyle,
+  secondaryButtonStyle,
+} from '../../styles/ui';
+
 type Props = {
   cardId: string;
 
@@ -59,72 +68,6 @@ function isActiveOverdue(
     typeof card.dueAt === 'number' &&
     card.dueAt < now
   );
-}
-
-function formatDueAt(
-  dueAt?: number
-) {
-  if (!dueAt) return '';
-
-  const now =
-    new Date();
-
-  const date =
-    new Date(dueAt);
-
-  const today =
-    new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate()
-    );
-
-  const targetDay =
-    new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate()
-    );
-
-  const diffDays =
-    Math.round(
-      (
-        targetDay.getTime() -
-        today.getTime()
-      ) /
-        (1000 *
-          60 *
-          60 *
-          24)
-    );
-
-  const time =
-    date.toLocaleTimeString(
-      [],
-      {
-        hour: '2-digit',
-        minute: '2-digit',
-      }
-    );
-
-  if (diffDays === 0) {
-    return `Today · ${time}`;
-  }
-
-  if (diffDays === 1) {
-    return `Tomorrow · ${time}`;
-  }
-
-  if (diffDays === -1) {
-    return `Yesterday · ${time}`;
-  }
-
-  return `${date.toLocaleDateString(
-    [],
-    {
-      weekday: 'short',
-    }
-  )} · ${time}`;
 }
 
 function getTitle(card: any) {
@@ -291,184 +234,42 @@ function getDetailRows(
   return rows;
 }
 
-function getIcon(card: any) {
-  if (card.type === 'transport') {
-    return <CarFront size={30} />;
-  }
-
-  if (card.type === 'pay') {
-    return <CreditCard size={30} />;
-  }
-
-  if (card.type === 'acquire') {
-    return <ShoppingBag size={30} />;
-  }
-
-  if (card.type === 'appointment') {
-    return <Calendar size={30} />;
-  }
-
-  if (card.type === 'maintenance') {
-    return <Wrench size={30} />;
-  }
-
-  return null;
-}
-
-function getIconAccent(card: any) {
-  if (card.type === 'transport') {
-    return '#2f7df6';
-  }
-
-  if (card.type === 'pay') {
-    return '#243142';
-  }
-
-  if (card.type === 'acquire') {
-    return '#d97706';
-  }
-
-  if (card.type === 'appointment') {
-    return '#2563eb';
-  }
-
-  if (card.type === 'maintenance') {
-    return '#475569';
-  }
-
-  return '#2f7df6';
-}
-
-function getTypeLabel(card: any) {
-  if (card.type === 'transport') {
-    return 'Transport';
-  }
-
-  if (card.type === 'pay') {
-    return 'Pay';
-  }
-
-  if (card.type === 'acquire') {
-    return 'Acquire';
-  }
-
-  if (card.type === 'appointment') {
-    return 'Appointment';
-  }
-
-  if (card.type === 'maintenance') {
-    return 'Maintenance';
-  }
-
-  return card.type;
-}
-
-function getStateLabel(
-  card: any,
-  now: number
-) {
-  if (isActiveOverdue(card, now)) {
-    return 'Overdue';
-  }
-
-  if (card.state === 'requested') {
-    return 'Requested';
-  }
-
-  if (card.state === 'accepted') {
-    return 'Accepted';
-  }
-
-  if (card.state === 'delayed') {
-    return 'Delayed';
-  }
-
-  if (card.state === 'done') {
-    return 'Done';
-  }
-
-  if (card.state === 'cancelled') {
-    return 'Cancelled';
-  }
-
-  if (card.state === 'stopped') {
-    return 'Stopped';
-  }
-
-  if (card.state === 'expired') {
-    return 'Expired';
-  }
-
-  return card.state;
-}
-
-function getStateStyle(
-  card: any,
-  now: number
-) {
-  if (isActiveOverdue(card, now)) {
-    return {
-      background:
-        'rgba(239, 68, 68, 0.1)',
-
-      color: '#dc2626',
-    };
-  }
-
-  if (card.state === 'requested') {
-    return {
-      background:
-        'rgba(47, 125, 246, 0.11)',
-
-      color: '#2563eb',
-    };
-  }
-
-  if (card.state === 'accepted') {
-    return {
-      background:
-        'rgba(16, 185, 129, 0.12)',
-
-      color: '#059669',
-    };
-  }
-
-  if (card.state === 'delayed') {
-    return {
-      background:
-        'rgba(245, 158, 11, 0.13)',
-
-      color: '#d97706',
-    };
-  }
-
-  if (
-    card.state === 'cancelled' ||
-    card.state === 'stopped' ||
-    card.state === 'expired'
-  ) {
-    return {
-      background:
-        'rgba(100, 116, 139, 0.11)',
-
-      color: '#64748b',
-    };
-  }
-
-  return {
-    background:
-      'rgba(24,32,44,0.06)',
-
-    color: '#64748b',
-  };
-}
-
 function getPersonLabel(
   id: 'me' | 'partner'
 ) {
   return id === 'me'
     ? 'You'
     : 'Partner';
+}
+
+function circleButtonStyle():
+  React.CSSProperties {
+  return {
+    width: 44,
+
+    height: 44,
+
+    borderRadius: 17,
+
+    border:
+      '1px solid rgba(24,32,44,0.075)',
+
+    background:
+      'rgba(255,255,255,0.84)',
+
+    boxShadow:
+      '0 12px 28px rgba(31,41,55,0.07)',
+
+    display: 'flex',
+
+    alignItems: 'center',
+
+    justifyContent: 'center',
+
+    cursor: 'pointer',
+
+    color: duoColors.text,
+  };
 }
 
 export default function ExpandedCard({
@@ -573,6 +374,12 @@ export default function ExpandedCard({
   const isDelayed =
     card.state === 'delayed';
 
+  const isOverdue =
+    isActiveOverdue(
+      card,
+      now
+    );
+
   const isSurfaced =
     !isOwner &&
     card.modifierFor ===
@@ -597,11 +404,8 @@ export default function ExpandedCard({
   const detailRows =
     getDetailRows(card);
 
-  const iconAccent =
-    getIconAccent(card);
-
   const stateStyle =
-    getStateStyle(
+    getStatusStyle(
       card,
       now
     );
@@ -791,37 +595,10 @@ export default function ExpandedCard({
 
   return (
     <div
-      style={{
-        position: 'fixed',
-
-        inset: 0,
-
-        zIndex: 100,
-
-        background:
-          'linear-gradient(180deg, #f7f9fb 0%, #eef2f6 100%)',
-
-        overflowY: 'auto',
-
-        padding:
-          '18px 16px 28px',
-      }}
+      style={panelScreenStyle}
     >
       <div
-        style={{
-          width: '100%',
-
-          maxWidth: 520,
-
-          minHeight:
-            'calc(100vh - 36px)',
-
-          margin: '0 auto',
-
-          display: 'flex',
-
-          flexDirection: 'column',
-        }}
+        style={panelInnerStyle}
       >
         <div
           style={{
@@ -838,45 +615,13 @@ export default function ExpandedCard({
           <button
             onClick={onClose}
             aria-label="Close"
-            style={{
-              width: 42,
-
-              height: 42,
-
-              borderRadius: 16,
-
-              border:
-                '1px solid rgba(24,32,44,0.075)',
-
-              background:
-                'rgba(255,255,255,0.82)',
-
-              boxShadow:
-                '0 10px 26px rgba(31,41,55,0.06)',
-
-              display: 'flex',
-
-              alignItems: 'center',
-
-              justifyContent:
-                'center',
-
-              cursor: 'pointer',
-
-              color: '#18202c',
-            }}
+            style={circleButtonStyle()}
           >
             <X size={18} />
           </button>
 
           <div
             style={{
-              display: 'flex',
-
-              alignItems: 'center',
-
-              gap: 10,
-
               position: 'relative',
             }}
           >
@@ -890,35 +635,7 @@ export default function ExpandedCard({
                     )
                   }
                   aria-label="More actions"
-                  style={{
-                    width: 42,
-
-                    height: 42,
-
-                    borderRadius: 16,
-
-                    border:
-                      '1px solid rgba(24,32,44,0.075)',
-
-                    background:
-                      'rgba(255,255,255,0.82)',
-
-                    boxShadow:
-                      '0 10px 26px rgba(31,41,55,0.06)',
-
-                    display: 'flex',
-
-                    alignItems:
-                      'center',
-
-                    justifyContent:
-                      'center',
-
-                    cursor:
-                      'pointer',
-
-                    color: '#18202c',
-                  }}
+                  style={circleButtonStyle()}
                 >
                   <MoreHorizontal
                     size={20}
@@ -932,13 +649,13 @@ export default function ExpandedCard({
                   position:
                     'absolute',
 
-                  top: 50,
+                  top: 52,
 
                   right: 0,
 
                   width: 230,
 
-                  borderRadius: 18,
+                  borderRadius: 19,
 
                   border:
                     '1px solid rgba(24,32,44,0.075)',
@@ -978,9 +695,9 @@ export default function ExpandedCard({
                         padding:
                           '0 16px',
 
-                        fontWeight: 650,
+                        fontWeight: 600,
 
-                        color: '#18202c',
+                        color: duoColors.text,
 
                         cursor:
                           'pointer',
@@ -1003,104 +720,49 @@ export default function ExpandedCard({
                         '#f7f9fb',
                     }}
                   >
-                    <button
-                      onClick={() =>
-                        handleReschedule(
-                          30
-                        )
-                      }
-                      style={{
-                        width: '100%',
+                    {[
+                      [30, '+30 minutes'],
+                      [60, '+1 hour'],
+                      [180, '+3 hours'],
+                    ].map(([minutes, label]) => (
+                      <button
+                        key={String(
+                          minutes
+                        )}
+                        onClick={() =>
+                          handleReschedule(
+                            Number(
+                              minutes
+                            )
+                          )
+                        }
+                        style={{
+                          width: '100%',
 
-                        height: 44,
+                          height: 44,
 
-                        border: 'none',
+                          border: 'none',
 
-                        background:
-                          'transparent',
+                          background:
+                            'transparent',
 
-                        textAlign:
-                          'left',
+                          textAlign:
+                            'left',
 
-                        padding:
-                          '0 16px',
+                          padding:
+                            '0 16px',
 
-                        cursor:
-                          'pointer',
+                          cursor:
+                            'pointer',
 
-                        color: '#465364',
+                          color: '#465364',
 
-                        fontWeight: 560,
-                      }}
-                    >
-                      +30 minutes
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        handleReschedule(
-                          60
-                        )
-                      }
-                      style={{
-                        width: '100%',
-
-                        height: 44,
-
-                        border: 'none',
-
-                        background:
-                          'transparent',
-
-                        textAlign:
-                          'left',
-
-                        padding:
-                          '0 16px',
-
-                        cursor:
-                          'pointer',
-
-                        color: '#465364',
-
-                        fontWeight: 560,
-                      }}
-                    >
-                      +1 hour
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        handleReschedule(
-                          180
-                        )
-                      }
-                      style={{
-                        width: '100%',
-
-                        height: 44,
-
-                        border: 'none',
-
-                        background:
-                          'transparent',
-
-                        textAlign:
-                          'left',
-
-                        padding:
-                          '0 16px',
-
-                        cursor:
-                          'pointer',
-
-                        color: '#465364',
-
-                        fontWeight: 560,
-                      }}
-                    >
-                      +3 hours
-                    </button>
+                          fontWeight: 500,
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
                   </div>
                 )}
 
@@ -1123,9 +785,9 @@ export default function ExpandedCard({
                       padding:
                         '0 16px',
 
-                      fontWeight: 650,
+                      fontWeight: 600,
 
-                      color: '#18202c',
+                      color: duoColors.text,
 
                       cursor: 'pointer',
                     }}
@@ -1153,9 +815,9 @@ export default function ExpandedCard({
                       padding:
                         '0 16px',
 
-                      color: '#64748b',
+                      color: duoColors.muted,
 
-                      fontWeight: 650,
+                      fontWeight: 600,
 
                       cursor: 'pointer',
                     }}
@@ -1183,9 +845,9 @@ export default function ExpandedCard({
                       padding:
                         '0 16px',
 
-                      color: '#dc2626',
+                      color: duoColors.red,
 
-                      fontWeight: 650,
+                      fontWeight: 600,
 
                       cursor: 'pointer',
                     }}
@@ -1198,18 +860,9 @@ export default function ExpandedCard({
           </div>
         </div>
 
-        <div
+        <section
           style={{
-            borderRadius: 28,
-
-            background:
-              'rgba(255,255,255,0.9)',
-
-            border:
-              '1px solid rgba(24,32,44,0.07)',
-
-            boxShadow:
-              '0 18px 45px rgba(31,41,55,0.08)',
+            ...cardSurfaceStyle,
 
             padding: 16,
 
@@ -1226,64 +879,11 @@ export default function ExpandedCard({
               gap: 14,
             }}
           >
-            <div
-              style={{
-                width: 78,
-
-                height: 78,
-
-                borderRadius: 24,
-
-                background:
-                  'linear-gradient(180deg, #ffffff 0%, #f1f4f8 100%)',
-
-                border:
-                  '1px solid rgba(24,32,44,0.06)',
-
-                boxShadow:
-                  'inset 0 1px 0 rgba(255,255,255,0.9), 0 12px 24px rgba(31,41,55,0.08)',
-
-                display: 'flex',
-
-                alignItems:
-                  'center',
-
-                justifyContent:
-                  'center',
-
-                color: iconAccent,
-
-                flexShrink: 0,
-
-                position: 'relative',
-
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  position:
-                    'absolute',
-
-                  inset: 0,
-
-                  background:
-                    'radial-gradient(circle at 25% 15%, rgba(255,255,255,0.95), transparent 34%)',
-                }}
-              />
-
-              <div
-                style={{
-                  position:
-                    'relative',
-
-                  filter:
-                    'drop-shadow(0 5px 6px rgba(31,41,55,0.16))',
-                }}
-              >
-                {getIcon(card)}
-              </div>
-            </div>
+            <IconTile
+              type={card.type}
+              size={78}
+              iconSize={31}
+            />
 
             <div
               style={{
@@ -1291,7 +891,7 @@ export default function ExpandedCard({
 
                 flex: 1,
 
-                paddingTop: 2,
+                paddingTop: 3,
               }}
             >
               <div
@@ -1313,14 +913,16 @@ export default function ExpandedCard({
                   style={{
                     fontSize: 12,
 
-                    color: '#8a94a3',
+                    color: duoColors.muted,
 
-                    fontWeight: 700,
+                    fontWeight: 600,
 
-                    letterSpacing: 0.35,
+                    letterSpacing: 0.25,
                   }}
                 >
-                  {getTypeLabel(card)}
+                  {getTypeLabel(
+                    card.type
+                  )}
                 </div>
 
                 <div
@@ -1346,12 +948,12 @@ export default function ExpandedCard({
 
                     fontSize: 10,
 
-                    fontWeight: 700,
+                    fontWeight: 650,
 
-                    letterSpacing: 0.15,
+                    letterSpacing: 0.1,
                   }}
                 >
-                  {getStateLabel(
+                  {getStatusLabel(
                     card,
                     now
                   )}
@@ -1362,13 +964,13 @@ export default function ExpandedCard({
                 style={{
                   fontSize: 24,
 
-                  fontWeight: 760,
+                  fontWeight: 700,
 
                   letterSpacing: -0.35,
 
-                  color: '#18202c',
+                  color: duoColors.text,
 
-                  lineHeight: 1.08,
+                  lineHeight: 1.1,
 
                   marginBottom: 7,
                 }}
@@ -1381,11 +983,11 @@ export default function ExpandedCard({
                   style={{
                     fontSize: 14,
 
-                    color: '#6f7a89',
+                    color: duoColors.muted,
 
                     lineHeight: 1.35,
 
-                    fontWeight: 560,
+                    fontWeight: 500,
                   }}
                 >
                   {context}
@@ -1420,16 +1022,17 @@ export default function ExpandedCard({
                 flexDirection:
                   'column',
 
-                gap: 3,
+                gap: 4,
               }}
             >
               <div
                 style={{
                   fontSize: 11,
 
-                  color: '#9aa3af',
+                  color:
+                    duoColors.softMuted,
 
-                  fontWeight: 700,
+                  fontWeight: 650,
                 }}
               >
                 Responsible
@@ -1439,9 +1042,9 @@ export default function ExpandedCard({
                 style={{
                   fontSize: 13,
 
-                  color: '#18202c',
+                  color: duoColors.text,
 
-                  fontWeight: 650,
+                  fontWeight: 600,
                 }}
               >
                 {getPersonLabel(
@@ -1466,29 +1069,21 @@ export default function ExpandedCard({
 
                   borderRadius: 999,
 
-                  background:
-                    isActiveOverdue(
-                      card,
-                      now
-                    )
-                      ? 'rgba(239,68,68,0.1)'
-                      : isDelayed
-                      ? 'rgba(245,158,11,0.12)'
-                      : 'rgba(24,32,44,0.055)',
+                  background: isOverdue
+                    ? 'rgba(229,57,53,0.1)'
+                    : isDelayed
+                    ? 'rgba(225,132,16,0.13)'
+                    : 'rgba(24,32,44,0.055)',
 
-                  color:
-                    isActiveOverdue(
-                      card,
-                      now
-                    )
-                      ? '#dc2626'
-                      : isDelayed
-                      ? '#d97706'
-                      : '#64748b',
+                  color: isOverdue
+                    ? duoColors.red
+                    : isDelayed
+                    ? duoColors.amber
+                    : duoColors.muted,
 
                   fontSize: 12,
 
-                  fontWeight: 700,
+                  fontWeight: 650,
 
                   whiteSpace:
                     'nowrap',
@@ -1502,21 +1097,12 @@ export default function ExpandedCard({
               </div>
             )}
           </div>
-        </div>
+        </section>
 
         {detailRows.length > 0 && (
-          <div
+          <section
             style={{
-              borderRadius: 24,
-
-              background:
-                'rgba(255,255,255,0.88)',
-
-              border:
-                '1px solid rgba(24,32,44,0.07)',
-
-              boxShadow:
-                '0 14px 34px rgba(31,41,55,0.065)',
+              ...cardSurfaceStyle,
 
               padding: 16,
 
@@ -1527,11 +1113,11 @@ export default function ExpandedCard({
               style={{
                 fontSize: 12,
 
-                color: '#8a94a3',
+                color: duoColors.muted,
 
-                fontWeight: 700,
+                fontWeight: 650,
 
-                letterSpacing: 0.55,
+                letterSpacing: 0.5,
 
                 textTransform:
                   'uppercase',
@@ -1580,9 +1166,10 @@ export default function ExpandedCard({
                       style={{
                         fontSize: 13,
 
-                        color: '#8a94a3',
+                        color:
+                          duoColors.muted,
 
-                        fontWeight: 650,
+                        fontWeight: 500,
                       }}
                     >
                       {row.label}
@@ -1592,9 +1179,10 @@ export default function ExpandedCard({
                       style={{
                         fontSize: 14,
 
-                        color: '#18202c',
+                        color:
+                          duoColors.text,
 
-                        fontWeight: 650,
+                        fontWeight: 600,
 
                         textAlign:
                           'right',
@@ -1610,7 +1198,7 @@ export default function ExpandedCard({
                 )
               )}
             </div>
-          </div>
+          </section>
         )}
 
         <div
@@ -1632,28 +1220,13 @@ export default function ExpandedCard({
                 handleRemoveFromHistory
               }
               style={{
+                ...secondaryButtonStyle,
+
                 width: '100%',
 
                 height: 58,
 
-                borderRadius: 20,
-
-                border:
-                  '1px solid rgba(24,32,44,0.08)',
-
-                background:
-                  'rgba(255,255,255,0.88)',
-
-                color: '#64748b',
-
-                fontSize: 15,
-
-                fontWeight: 760,
-
-                cursor: 'pointer',
-
-                boxShadow:
-                  '0 10px 24px rgba(31,41,55,0.055)',
+                fontWeight: 650,
               }}
             >
               Remove from history
@@ -1665,28 +1238,9 @@ export default function ExpandedCard({
               <button
                 onClick={handleTake}
                 style={{
+                  ...primaryButtonStyle,
+
                   width: '100%',
-
-                  height: 58,
-
-                  borderRadius: 20,
-
-                  border:
-                    '1px solid rgba(255,255,255,0.24)',
-
-                  background:
-                    'linear-gradient(180deg, #283242 0%, #111722 100%)',
-
-                  color: '#fff',
-
-                  fontSize: 15,
-
-                  fontWeight: 760,
-
-                  cursor: 'pointer',
-
-                  boxShadow:
-                    '0 16px 36px rgba(17,24,39,0.22)',
                 }}
               >
                 I’ll handle it
@@ -1701,28 +1255,9 @@ export default function ExpandedCard({
                   handleAccept
                 }
                 style={{
+                  ...primaryButtonStyle,
+
                   width: '100%',
-
-                  height: 58,
-
-                  borderRadius: 20,
-
-                  border:
-                    '1px solid rgba(255,255,255,0.24)',
-
-                  background:
-                    'linear-gradient(180deg, #283242 0%, #111722 100%)',
-
-                  color: '#fff',
-
-                  fontSize: 15,
-
-                  fontWeight: 760,
-
-                  cursor: 'pointer',
-
-                  boxShadow:
-                    '0 16px 36px rgba(17,24,39,0.22)',
                 }}
               >
                 Accept
@@ -1735,64 +1270,12 @@ export default function ExpandedCard({
               <button
                 onClick={handleDone}
                 style={{
+                  ...primaryButtonStyle,
+
                   width: '100%',
-
-                  height: 58,
-
-                  borderRadius: 20,
-
-                  border:
-                    '1px solid rgba(255,255,255,0.24)',
-
-                  background:
-                    'linear-gradient(180deg, #283242 0%, #111722 100%)',
-
-                  color: '#fff',
-
-                  fontSize: 15,
-
-                  fontWeight: 760,
-
-                  cursor: 'pointer',
-
-                  boxShadow:
-                    '0 16px 36px rgba(17,24,39,0.22)',
                 }}
               >
                 Done
-              </button>
-            )}
-
-          {!isHistoryCard &&
-            isOwner &&
-            isAccepted && (
-              <button
-                onClick={
-                  handleDecline
-                }
-                style={{
-                  width: '100%',
-
-                  height: 52,
-
-                  borderRadius: 18,
-
-                  border:
-                    '1px solid rgba(24,32,44,0.08)',
-
-                  background:
-                    'rgba(255,255,255,0.78)',
-
-                  color: '#64748b',
-
-                  fontSize: 14,
-
-                  fontWeight: 760,
-
-                  cursor: 'pointer',
-                }}
-              >
-                Decline
               </button>
             )}
         </div>
