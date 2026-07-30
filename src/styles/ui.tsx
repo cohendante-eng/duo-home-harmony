@@ -206,18 +206,44 @@ export function getIconAccent(
   }
 
   if (type === 'acquire') {
-    return '#d97706';
+    return '#6f8f79';
   }
 
   if (type === 'appointment') {
-    return '#2563eb';
+    return '#d66a4b';
   }
 
   if (type === 'maintenance') {
-    return '#475569';
+    return '#e18410';
   }
 
   return '#2f7df6';
+}
+
+export function getIconImagePath(
+  type: DuoCard['type']
+) {
+  if (type === 'transport') {
+    return '/icons/duo/transport.png';
+  }
+
+  if (type === 'pay') {
+    return '/icons/duo/pay.png';
+  }
+
+  if (type === 'acquire') {
+    return '/icons/duo/acquire.png';
+  }
+
+  if (type === 'appointment') {
+    return '/icons/duo/appointment.png';
+  }
+
+  if (type === 'maintenance') {
+    return '/icons/duo/maintenance.png';
+  }
+
+  return '/icons/duo/transport.png';
 }
 
 export function getStatusLabel(
@@ -389,6 +415,58 @@ export function formatDueAt(
   )} · ${time}`;
 }
 
+function getImageScale(
+  type: DuoCard['type']
+) {
+  if (type === 'transport') {
+    return 1.38;
+  }
+
+  if (type === 'pay') {
+    return 1.42;
+  }
+
+  if (type === 'acquire') {
+    return 1.35;
+  }
+
+  if (type === 'appointment') {
+    return 1.34;
+  }
+
+  if (type === 'maintenance') {
+    return 1.43;
+  }
+
+  return 1.36;
+}
+
+function getImageShift(
+  type: DuoCard['type']
+) {
+  if (type === 'transport') {
+    return 'translateY(3px)';
+  }
+
+  if (type === 'pay') {
+    return 'translateY(1px)';
+  }
+
+  if (type === 'acquire') {
+    return 'translateY(3px)';
+  }
+
+  if (type === 'appointment') {
+    return 'translateY(2px)';
+  }
+
+  if (type === 'maintenance') {
+    return 'translateY(2px)';
+  }
+
+  return 'translateY(2px)';
+}
+
 export function IconTile({
   type,
   size = 64,
@@ -406,6 +484,14 @@ export function IconTile({
   const accent =
     getIconAccent(type);
 
+  const imagePath =
+    getIconImagePath(type);
+
+  const imageSize =
+    Math.round(
+      size * getImageScale(type)
+    );
+
   return (
     <div
       style={{
@@ -414,15 +500,15 @@ export function IconTile({
         height: size,
 
         borderRadius:
-          Math.round(size * 0.32),
+          Math.round(size * 0.3),
 
         background:
-          'linear-gradient(180deg, #ffffff 0%, #f2f5f9 100%)',
+          'rgba(255,255,255,0.78)',
 
         border: `1px solid ${duoColors.borderSoft}`,
 
         boxShadow:
-          'inset 0 1px 0 rgba(255,255,255,0.95), 0 10px 24px rgba(31,41,55,0.075)',
+          'inset 0 1px 0 rgba(255,255,255,0.92), 0 10px 24px rgba(31,41,55,0.07)',
 
         display: 'flex',
 
@@ -436,17 +522,42 @@ export function IconTile({
 
         position: 'relative',
 
-        overflow: 'hidden',
+        overflow: 'visible',
       }}
     >
-      <div
+      <img
+        src={imagePath}
+        alt=""
+        aria-hidden="true"
         style={{
-          position: 'absolute',
+          width: imageSize,
 
-          inset: 0,
+          height: imageSize,
 
-          background:
-            'radial-gradient(circle at 24% 14%, rgba(255,255,255,0.96), transparent 36%)',
+          objectFit: 'contain',
+
+          position: 'relative',
+
+          display: 'block',
+
+          transform:
+            getImageShift(type),
+
+          filter:
+            'drop-shadow(0 7px 8px rgba(31,41,55,0.14))',
+        }}
+        onError={(event) => {
+          event.currentTarget.style.display =
+            'none';
+
+          const fallback =
+            event.currentTarget
+              .nextElementSibling as HTMLElement | null;
+
+          if (fallback) {
+            fallback.style.display =
+              'block';
+          }
         }}
       />
 
@@ -455,6 +566,8 @@ export function IconTile({
         strokeWidth={2.15}
         style={{
           position: 'relative',
+
+          display: 'none',
 
           filter:
             'drop-shadow(0 4px 5px rgba(31,41,55,0.13))',

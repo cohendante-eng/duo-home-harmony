@@ -51,7 +51,6 @@ import {
 
 import {
   cardSurfaceStyle,
-  dangerButtonStyle,
   duoColors,
   inputStyle,
   panelInnerStyle,
@@ -1339,15 +1338,15 @@ export default function SettingsPanel({
                           borderRadius: 999,
 
                           border: selected
-                            ? '1px solid rgba(24,32,44,0.9)'
+                            ? '1px solid rgba(24,32,44,0.16)'
                             : '1px solid rgba(24,32,44,0.08)',
 
                           background: selected
-                            ? duoColors.text
+                            ? 'rgba(24,32,44,0.075)'
                             : 'rgba(255,255,255,0.82)',
 
                           color: selected
-                            ? '#fff'
+                            ? duoColors.text
                             : duoColors.muted,
 
                           fontSize: 13,
@@ -1356,9 +1355,7 @@ export default function SettingsPanel({
 
                           cursor: 'pointer',
 
-                          boxShadow: selected
-                            ? '0 10px 22px rgba(17,24,39,0.16)'
-                            : 'none',
+                          boxShadow: 'none',
                         }}
                       >
                         {formatReminderLeadTime(
@@ -1447,34 +1444,6 @@ export default function SettingsPanel({
               Sign out
             </button>
           </section>
-
-          {isConnected && (
-            <button
-              onClick={
-                handleDisconnectPartner
-              }
-              disabled={
-                disconnectStatus ===
-                'disconnecting'
-              }
-              style={{
-                ...dangerButtonStyle,
-
-                width: '100%',
-
-                opacity:
-                  disconnectStatus ===
-                  'disconnecting'
-                    ? 0.58
-                    : 1,
-              }}
-            >
-              {disconnectStatus ===
-              'disconnecting'
-                ? 'Disconnecting'
-                : 'Disconnect partner'}
-            </button>
-          )}
         </div>
       </div>
     </div>

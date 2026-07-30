@@ -226,15 +226,6 @@ export default function CreateFlow({
   const [createError, setCreateError] =
     useState('');
 
-  const selectedTemplate =
-    selectedType
-      ? CARD_TEMPLATES.find(
-          (template) =>
-            template.type ===
-            selectedType
-        )
-      : null;
-
   const canCreate =
     Boolean(
       payload.title ||
@@ -261,6 +252,28 @@ export default function CreateFlow({
     setCreateError('');
 
     onClose();
+  }
+
+  function handleBackOrClose() {
+    if (step === 'fields') {
+      setStep('types');
+
+      setSelectedType(null);
+
+      setPayload({});
+
+      setTimeMode('none');
+
+      setDueDate('');
+
+      setDueTime('');
+
+      setCreateError('');
+
+      return;
+    }
+
+    resetFlow();
   }
 
   function buildDueAt() {
@@ -525,69 +538,49 @@ export default function CreateFlow({
             alignItems:
               'center',
 
-            marginBottom: 22,
+            marginBottom: 18,
           }}
         >
-          <div>
-            <div
-              style={{
-                fontSize: 28,
+          {step === 'types' ? (
+            <div>
+              <div
+                style={{
+                  fontSize: 28,
 
-                fontWeight: 700,
+                  fontWeight: 700,
 
-                letterSpacing: -0.7,
+                  letterSpacing: -0.7,
 
-                color: duoColors.text,
+                  color: duoColors.text,
 
-                lineHeight: 1.05,
-              }}
-            >
-              {selectedTemplate
-                ? selectedTemplate.label
-                : 'Create'}
+                  lineHeight: 1.05,
+                }}
+              >
+                Create
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+
+                  fontSize: 13,
+
+                  color: duoColors.muted,
+
+                  fontWeight: 500,
+                }}
+              >
+                Choose the responsibility type.
+              </div>
             </div>
-
-            <div
-              style={{
-                marginTop: 6,
-
-                fontSize: 13,
-
-                color: duoColors.muted,
-
-                fontWeight: 500,
-              }}
-            >
-              {step === 'types'
-                ? 'Choose the responsibility type.'
-                : 'Fill only what is needed.'}
-            </div>
-          </div>
+          ) : (
+            <div />
+          )}
 
           <button
-            onClick={() => {
-              if (
-                step === 'fields'
-              ) {
-                setStep('types');
-
-                setSelectedType(null);
-
-                setPayload({});
-
-                setTimeMode('none');
-
-                setDueDate('');
-
-                setDueTime('');
-
-                setCreateError('');
-
-                return;
-              }
-
-              resetFlow();
-            }}
+            onClick={
+              handleBackOrClose
+            }
             aria-label={
               step === 'fields'
                 ? 'Back'
@@ -713,8 +706,70 @@ export default function CreateFlow({
           </div>
         )}
 
-        {step === 'fields' && (
+        {step === 'fields' &&
+          selectedType && (
           <>
+            <section
+              style={{
+                ...cardSurfaceStyle,
+
+                padding: 16,
+
+                marginBottom: 14,
+
+                display: 'flex',
+
+                alignItems: 'center',
+
+                gap: 14,
+              }}
+            >
+              <IconTile
+                type={selectedType}
+                size={78}
+                iconSize={32}
+              />
+
+              <div>
+                <div
+                  style={{
+                    fontSize: 20,
+
+                    fontWeight: 700,
+
+                    letterSpacing:
+                      -0.35,
+
+                    color:
+                      duoColors.text,
+
+                    marginBottom: 5,
+                  }}
+                >
+                  {getTypeLabel(
+                    selectedType
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    fontSize: 14,
+
+                    lineHeight: 1.35,
+
+                    color:
+                      duoColors.muted,
+
+                    fontWeight: 500,
+                  }}
+                >
+                  {getTypeDescription(
+                    selectedType
+                  )}
+                </div>
+              </div>
+            </section>
+
             <section
               style={{
                 ...cardSurfaceStyle,
@@ -1025,7 +1080,7 @@ export default function CreateFlow({
                   'translateX(-50%)',
 
                 width:
-                  'min(calc(100% - 32px), 488px)',
+                  'min(calc(100% - 32px), 520px)',
 
                 opacity:
                   canCreate &&
