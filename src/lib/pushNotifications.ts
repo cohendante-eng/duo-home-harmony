@@ -220,3 +220,50 @@ import {
   
     await subscription.unsubscribe();
   }
+  
+  export async function sendTestPushNotification() {
+    const {
+      data,
+      error,
+    } =
+      await supabase.auth.getSession();
+  
+    if (error) {
+      throw error;
+    }
+  
+    const accessToken =
+      data.session?.access_token;
+  
+    if (!accessToken) {
+      throw new Error(
+        'You need to be signed in.'
+      );
+    }
+  
+    const response =
+      await fetch(
+        '/api/send-test-push',
+        {
+          method: 'POST',
+          headers: {
+            Authorization:
+              `Bearer ${accessToken}`,
+          },
+        }
+      );
+  
+    const responseData =
+      await response.json().catch(
+        () => null
+      );
+  
+    if (!response.ok) {
+      throw new Error(
+        responseData?.error ||
+          'Could not send test notification.'
+      );
+    }
+  
+    return responseData;
+  }

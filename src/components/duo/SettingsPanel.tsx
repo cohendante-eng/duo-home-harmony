@@ -37,6 +37,7 @@ import {
   getPushPermissionStatus,
   isPushNotificationSupported,
   registerPushNotifications,
+  sendTestPushNotification,
   unregisterPushNotifications,
 } from '../../lib/pushNotifications';
 
@@ -156,6 +157,17 @@ export default function SettingsPanel({
     >('idle');
 
   const [notificationError, setNotificationError] =
+    useState('');
+
+  const [testPushStatus, setTestPushStatus] =
+    useState<
+      | 'idle'
+      | 'sending'
+      | 'sent'
+      | 'error'
+    >('idle');
+
+  const [testPushError, setTestPushError] =
     useState('');
 
   const [
@@ -439,6 +451,8 @@ export default function SettingsPanel({
     );
 
     setNotificationError('');
+    setTestPushStatus('idle');
+    setTestPushError('');
 
     try {
       const result =
@@ -505,6 +519,8 @@ export default function SettingsPanel({
 
   async function handleDisableNotifications() {
     setNotificationError('');
+    setTestPushStatus('idle');
+    setTestPushError('');
 
     try {
       await unregisterPushNotifications();
@@ -521,6 +537,25 @@ export default function SettingsPanel({
         error instanceof Error
           ? error.message
           : 'Could not disable notifications.'
+      );
+    }
+  }
+
+  async function handleSendTestPush() {
+    setTestPushStatus('sending');
+    setTestPushError('');
+
+    try {
+      await sendTestPushNotification();
+
+      setTestPushStatus('sent');
+    } catch (error) {
+      setTestPushStatus('error');
+
+      setTestPushError(
+        error instanceof Error
+          ? error.message
+          : 'Could not send test notification.'
       );
     }
   }
@@ -1139,48 +1174,118 @@ export default function SettingsPanel({
               <div
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  flexWrap: 'wrap',
+                  flexDirection:
+                    'column',
+                  gap: 12,
                 }}
               >
                 <div
                   style={{
-                    minHeight: 42,
-                    padding: '0 16px',
-                    borderRadius: 999,
-                    background:
-                      'rgba(22,163,106,0.12)',
-                    color: duoColors.green,
-                    fontSize: 13,
-                    fontWeight: 650,
-                    lineHeight: 1,
-                    display: 'inline-flex',
+                    display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    whiteSpace: 'nowrap',
+                    gap: 10,
+                    flexWrap: 'wrap',
                   }}
                 >
-                  Real notifications are enabled
+                  <div
+                    style={{
+                      minHeight: 42,
+                      padding: '0 16px',
+                      borderRadius: 999,
+                      background:
+                        'rgba(22,163,106,0.12)',
+                      color: duoColors.green,
+                      fontSize: 13,
+                      fontWeight: 650,
+                      lineHeight: 1,
+                      display:
+                        'inline-flex',
+                      alignItems:
+                        'center',
+                      justifyContent:
+                        'center',
+                      whiteSpace:
+                        'nowrap',
+                    }}
+                  >
+                    Real notifications are enabled
+                  </div>
+
+                  <button
+                    onClick={
+                      handleDisableNotifications
+                    }
+                    style={{
+                      ...secondaryButtonStyle,
+                      width: 'auto',
+                      minHeight: 42,
+                      padding: '0 16px',
+                      display:
+                        'inline-flex',
+                      alignItems:
+                        'center',
+                      justifyContent:
+                        'center',
+                      lineHeight: 1,
+                    }}
+                  >
+                    Disable notifications
+                  </button>
                 </div>
 
                 <button
                   onClick={
-                    handleDisableNotifications
+                    handleSendTestPush
+                  }
+                  disabled={
+                    testPushStatus ===
+                    'sending'
                   }
                   style={{
                     ...secondaryButtonStyle,
-                    width: 'auto',
+                    width: 'fit-content',
                     minHeight: 42,
                     padding: '0 16px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    lineHeight: 1,
+                    opacity:
+                      testPushStatus ===
+                      'sending'
+                        ? 0.58
+                        : 1,
                   }}
                 >
-                  Disable notifications
+                  {testPushStatus ===
+                  'sending'
+                    ? 'Sending test'
+                    : 'Send test notification'}
                 </button>
+
+                {testPushStatus ===
+                  'sent' && (
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: duoColors.green,
+                      lineHeight: 1.45,
+                      fontWeight: 600,
+                    }}
+                  >
+                    Test notification sent.
+                  </div>
+                )}
+
+                {testPushStatus ===
+                  'error' && (
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: duoColors.red,
+                      lineHeight: 1.45,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {testPushError}
+                  </div>
+                )}
               </div>
             )}
 
