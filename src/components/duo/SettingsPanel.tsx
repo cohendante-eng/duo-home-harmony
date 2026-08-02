@@ -1136,24 +1136,29 @@ export default function SettingsPanel({
 
             {notificationStatus ===
               'enabled' && (
-              <>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  flexWrap: 'wrap',
+                }}
+              >
                 <div
                   style={{
-                    display:
-                      'inline-flex',
-                    alignItems:
-                      'center',
-                    height: 30,
-                    padding:
-                      '0 11px',
+                    minHeight: 42,
+                    padding: '0 16px',
                     borderRadius: 999,
                     background:
                       'rgba(22,163,106,0.12)',
-                    color:
-                      duoColors.green,
-                    fontSize: 12,
+                    color: duoColors.green,
+                    fontSize: 13,
                     fontWeight: 650,
-                    marginBottom: 12,
+                    lineHeight: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   Real notifications are enabled
@@ -1166,14 +1171,17 @@ export default function SettingsPanel({
                   style={{
                     ...secondaryButtonStyle,
                     width: 'auto',
-                    padding:
-                      '0 15px',
-                    height: 42,
+                    minHeight: 42,
+                    padding: '0 16px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1,
                   }}
                 >
                   Disable notifications
                 </button>
-              </>
+              </div>
             )}
 
             {(notificationStatus ===
@@ -1214,7 +1222,7 @@ export default function SettingsPanel({
 
             <div
               style={{
-                marginTop: 18,
+                marginTop: 22,
                 paddingTop: 16,
                 borderTop:
                   '1px solid rgba(24,32,44,0.06)',
