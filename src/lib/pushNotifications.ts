@@ -119,9 +119,35 @@ import {
     const userId =
       await getCurrentUserId();
   
+    const existingRegistrations =
+      await navigator.serviceWorker.getRegistrations();
+  
+    await Promise.all(
+      existingRegistrations.map(
+        async (registration) => {
+          const scriptUrl =
+            registration.active?.scriptURL ||
+            registration.installing?.scriptURL ||
+            registration.waiting?.scriptURL ||
+            '';
+  
+          if (
+            scriptUrl.includes(
+              '/push-sw.js'
+            )
+          ) {
+            await registration.unregister();
+          }
+        }
+      )
+    );
+  
     const registration =
       await navigator.serviceWorker.register(
-        '/push-sw.js'
+        '/sw.js',
+        {
+          scope: '/',
+        }
       );
   
     await navigator.serviceWorker.ready;
@@ -194,7 +220,7 @@ import {
   
     const registration =
       await navigator.serviceWorker.getRegistration(
-        '/push-sw.js'
+        '/'
       );
   
     const subscription =
