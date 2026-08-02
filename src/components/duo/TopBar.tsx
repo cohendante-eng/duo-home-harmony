@@ -6,6 +6,8 @@ import {
   duoColors,
 } from '../../styles/ui';
 
+import DuoMark from './DuoMark';
+
 type Props = {
   email?: string | null;
 
@@ -44,63 +46,12 @@ export default function TopBar({
           minWidth: 0,
         }}
       >
-        <div
-          aria-hidden="true"
-          style={{
-            display: 'grid',
-            gridTemplateColumns:
-              'repeat(2, 7px)',
-            gap: 5,
-            transform:
-              'translateY(1px)',
-            flexShrink: 0,
-          }}
-        >
-          <span
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: 999,
-              background:
-                duoColors.blue,
-            }}
-          />
-
-          <span
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: 999,
-              background:
-                '#82b0ff',
-            }}
-          />
-
-          <span
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: 999,
-              background:
-                '#82b0ff',
-            }}
-          />
-
-          <span
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: 999,
-              background:
-                'transparent',
-            }}
-          />
-        </div>
+        <DuoMark size={34} />
 
         <div
           style={{
             fontSize: 30,
-            fontWeight: 700,
+            fontWeight: 750,
             letterSpacing: -1.25,
             lineHeight: 1,
             color: duoColors.text,
