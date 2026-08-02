@@ -34,12 +34,11 @@ import {
 } from '../../lib/partnerConnections';
 
 import {
-  areBrowserNotificationsEnabled,
-  disableBrowserNotifications,
-  getBrowserNotificationPermission,
-  isBrowserNotificationSupported,
-  requestBrowserNotifications,
-} from '../../lib/browserNotifications';
+  getPushPermissionStatus,
+  isPushNotificationSupported,
+  registerPushNotifications,
+  unregisterPushNotifications,
+} from '../../lib/pushNotifications';
 
 import {
   formatReminderLeadTime,
@@ -66,7 +65,6 @@ type Props = {
 function clearRuntimeCards() {
   useCards.setState({
     activeCards: [],
-
     historyCards: [],
   });
 }
@@ -75,28 +73,18 @@ function closeButtonStyle():
   React.CSSProperties {
   return {
     width: 44,
-
     height: 44,
-
     borderRadius: 17,
-
     border:
       '1px solid rgba(24,32,44,0.075)',
-
     background:
       'rgba(255,255,255,0.84)',
-
     boxShadow:
       '0 12px 28px rgba(31,41,55,0.07)',
-
     display: 'flex',
-
     alignItems: 'center',
-
     justifyContent: 'center',
-
     cursor: 'pointer',
-
     color: duoColors.text,
   };
 }
@@ -110,15 +98,10 @@ function SectionTitle({
     <div
       style={{
         fontSize: 12,
-
         fontWeight: 650,
-
         letterSpacing: 0.7,
-
         textTransform: 'uppercase',
-
         color: duoColors.softMuted,
-
         marginBottom: 12,
       }}
     >
@@ -168,7 +151,12 @@ export default function SettingsPanel({
       | 'disabled'
       | 'blocked'
       | 'unsupported'
+      | 'missing-public-key'
+      | 'error'
     >('idle');
+
+  const [notificationError, setNotificationError] =
+    useState('');
 
   const [
     reminderLeadTime,
@@ -222,7 +210,7 @@ export default function SettingsPanel({
   const refreshNotificationStatus =
     useCallback(() => {
       if (
-        !isBrowserNotificationSupported()
+        !isPushNotificationSupported()
       ) {
         setNotificationStatus(
           'unsupported'
@@ -232,7 +220,7 @@ export default function SettingsPanel({
       }
 
       const permission =
-        getBrowserNotificationPermission();
+        getPushPermissionStatus();
 
       if (permission === 'denied') {
         setNotificationStatus(
@@ -242,9 +230,7 @@ export default function SettingsPanel({
         return;
       }
 
-      if (
-        areBrowserNotificationsEnabled()
-      ) {
+      if (permission === 'granted') {
         setNotificationStatus(
           'enabled'
         );
@@ -283,12 +269,9 @@ export default function SettingsPanel({
         if (shouldUpdatePartner) {
           connectPartner({
             id: activeConnection.partnerId,
-
             connectionId:
               activeConnection.id,
-
             name: 'Partner',
-
             email:
               activeConnection.partnerEmail,
           });
@@ -327,19 +310,14 @@ export default function SettingsPanel({
         ) {
           setPendingInvite({
             id: incoming.id,
-
             direction:
               incoming.direction,
-
             inviterId:
               incoming.inviterId,
-
             inviterEmail:
               incoming.inviterEmail,
-
             email:
               incoming.email,
-
             createdAt:
               incoming.createdAt,
           });
@@ -365,19 +343,14 @@ export default function SettingsPanel({
         ) {
           setPendingInvite({
             id: outgoing.id,
-
             direction:
               outgoing.direction,
-
             inviterId:
               outgoing.inviterId,
-
             inviterEmail:
               outgoing.inviterEmail,
-
             email:
               outgoing.email,
-
             createdAt:
               outgoing.createdAt,
           });
@@ -465,44 +438,91 @@ export default function SettingsPanel({
       'requesting'
     );
 
-    const permission =
-      await requestBrowserNotifications();
+    setNotificationError('');
 
-    if (permission === 'granted') {
+    try {
+      const result =
+        await registerPushNotifications();
+
+      if (result === 'subscribed') {
+        setNotificationStatus(
+          'enabled'
+        );
+
+        return;
+      }
+
+      if (
+        result === 'unsupported'
+      ) {
+        setNotificationStatus(
+          'unsupported'
+        );
+
+        return;
+      }
+
+      if (
+        result ===
+        'missing-public-key'
+      ) {
+        setNotificationStatus(
+          'missing-public-key'
+        );
+
+        setNotificationError(
+          'Missing VITE_VAPID_PUBLIC_KEY in this deployment.'
+        );
+
+        return;
+      }
+
+      if (
+        result === 'blocked'
+      ) {
+        setNotificationStatus(
+          'blocked'
+        );
+
+        return;
+      }
+
       setNotificationStatus(
-        'enabled'
+        'disabled'
+      );
+    } catch (error) {
+      setNotificationStatus(
+        'error'
       );
 
-      return;
-    }
-
-    if (permission === 'denied') {
-      setNotificationStatus(
-        'blocked'
+      setNotificationError(
+        error instanceof Error
+          ? error.message
+          : 'Could not enable notifications.'
       );
-
-      return;
     }
-
-    if (
-      permission === 'unsupported'
-    ) {
-      setNotificationStatus(
-        'unsupported'
-      );
-
-      return;
-    }
-
-    setNotificationStatus(
-      'disabled'
-    );
   }
 
-  function handleDisableNotifications() {
-    disableBrowserNotifications();
+  async function handleDisableNotifications() {
+    setNotificationError('');
 
-    refreshNotificationStatus();
+    try {
+      await unregisterPushNotifications();
+
+      setNotificationStatus(
+        'disabled'
+      );
+    } catch (error) {
+      setNotificationStatus(
+        'error'
+      );
+
+      setNotificationError(
+        error instanceof Error
+          ? error.message
+          : 'Could not disable notifications.'
+      );
+    }
   }
 
   function handleReminderLeadTimeChange(
@@ -546,10 +566,8 @@ export default function SettingsPanel({
       const invitation =
         await createPartnerInvitation({
           inviterId: user.id,
-
           inviterEmail:
             email,
-
           inviteeEmail:
             inviteEmail,
         });
@@ -598,17 +616,13 @@ export default function SettingsPanel({
       await acceptPartnerInvitation({
         invitationId:
           pendingInvite.id,
-
         inviterId:
           pendingInvite.inviterId,
-
         inviterEmail:
           pendingInvite.inviterEmail ??
           '',
-
         currentUserId:
           user.id,
-
         currentUserEmail:
           email,
       });
@@ -706,12 +720,9 @@ export default function SettingsPanel({
         <div
           style={{
             display: 'flex',
-
             justifyContent:
               'space-between',
-
             alignItems: 'center',
-
             marginBottom: 22,
           }}
         >
@@ -719,13 +730,9 @@ export default function SettingsPanel({
             <div
               style={{
                 fontSize: 28,
-
                 fontWeight: 700,
-
                 letterSpacing: -0.7,
-
                 color: duoColors.text,
-
                 lineHeight: 1.05,
               }}
             >
@@ -735,11 +742,8 @@ export default function SettingsPanel({
             <div
               style={{
                 marginTop: 6,
-
                 fontSize: 13,
-
                 color: duoColors.muted,
-
                 fontWeight: 500,
               }}
             >
@@ -759,19 +763,15 @@ export default function SettingsPanel({
         <div
           style={{
             display: 'flex',
-
             flexDirection:
               'column',
-
             gap: 14,
-
             paddingBottom: 24,
           }}
         >
           <section
             style={{
               ...cardSurfaceStyle,
-
               padding: 17,
             }}
           >
@@ -782,11 +782,8 @@ export default function SettingsPanel({
                 <div
                   style={{
                     fontSize: 17,
-
                     fontWeight: 650,
-
                     marginBottom: 7,
-
                     color: duoColors.text,
                   }}
                 >
@@ -796,13 +793,9 @@ export default function SettingsPanel({
                 <div
                   style={{
                     fontSize: 13,
-
                     color: duoColors.muted,
-
                     lineHeight: 1.45,
-
                     marginBottom: 16,
-
                     fontWeight: 500,
                   }}
                 >
@@ -816,15 +809,12 @@ export default function SettingsPanel({
                     setInviteEmail(
                       event.target.value
                     );
-
                     setInviteStatus('idle');
-
                     setInviteError('');
                   }}
                   placeholder="Partner email"
                   style={{
                     ...inputStyle,
-
                     marginBottom: 12,
                   }}
                 />
@@ -839,11 +829,8 @@ export default function SettingsPanel({
                   }
                   style={{
                     ...primaryButtonStyle,
-
                     width: '100%',
-
                     height: 52,
-
                     opacity:
                       inviteStatus ===
                       'sending'
@@ -864,11 +851,8 @@ export default function SettingsPanel({
                 <div
                   style={{
                     fontSize: 17,
-
                     fontWeight: 650,
-
                     marginBottom: 7,
-
                     color: duoColors.text,
                   }}
                 >
@@ -880,13 +864,9 @@ export default function SettingsPanel({
                 <div
                   style={{
                     fontSize: 13,
-
                     color: duoColors.muted,
-
                     lineHeight: 1.45,
-
                     marginBottom: 16,
-
                     fontWeight: 500,
                   }}
                 >
@@ -901,7 +881,6 @@ export default function SettingsPanel({
                 <div
                   style={{
                     display: 'flex',
-
                     gap: 10,
                   }}
                 >
@@ -916,11 +895,8 @@ export default function SettingsPanel({
                       }
                       style={{
                         ...primaryButtonStyle,
-
                         flex: 1,
-
                         height: 50,
-
                         opacity:
                           inviteStatus ===
                           'accepting'
@@ -939,20 +915,14 @@ export default function SettingsPanel({
                     <div
                       style={{
                         height: 50,
-
                         flex: 1,
-
                         display:
                           'inline-flex',
-
                         alignItems:
                           'center',
-
                         color:
                           duoColors.muted,
-
                         fontSize: 13,
-
                         fontWeight: 600,
                       }}
                     >
@@ -966,9 +936,7 @@ export default function SettingsPanel({
                     }
                     style={{
                       ...secondaryButtonStyle,
-
                       flex: 1,
-
                       height: 50,
                     }}
                   >
@@ -985,11 +953,8 @@ export default function SettingsPanel({
                 <div
                   style={{
                     fontSize: 17,
-
                     fontWeight: 650,
-
                     marginBottom: 5,
-
                     color: duoColors.text,
                   }}
                 >
@@ -1000,20 +965,14 @@ export default function SettingsPanel({
                   <div
                     style={{
                       fontSize: 13,
-
                       color:
                         duoColors.muted,
-
                       lineHeight: 1.4,
-
                       fontWeight: 500,
-
                       overflow:
                         'hidden',
-
                       textOverflow:
                         'ellipsis',
-
                       whiteSpace:
                         'nowrap',
                     }}
@@ -1024,12 +983,9 @@ export default function SettingsPanel({
                   <div
                     style={{
                       fontSize: 13,
-
                       color:
                         duoColors.muted,
-
                       lineHeight: 1.4,
-
                       fontWeight: 500,
                     }}
                   >
@@ -1047,11 +1003,8 @@ export default function SettingsPanel({
                   }
                   style={{
                     ...secondaryButtonStyle,
-
                     width: '100%',
-
                     marginTop: 16,
-
                     opacity:
                       disconnectStatus ===
                       'disconnecting'
@@ -1070,11 +1023,8 @@ export default function SettingsPanel({
                   <div
                     style={{
                       marginTop: 12,
-
                       fontSize: 13,
-
                       color: duoColors.red,
-
                       lineHeight: 1.45,
                     }}
                   >
@@ -1089,11 +1039,8 @@ export default function SettingsPanel({
               <div
                 style={{
                   marginTop: 12,
-
                   fontSize: 13,
-
                   color: duoColors.red,
-
                   lineHeight: 1.45,
                 }}
               >
@@ -1105,7 +1052,6 @@ export default function SettingsPanel({
           <section
             style={{
               ...cardSurfaceStyle,
-
               padding: 17,
             }}
           >
@@ -1114,11 +1060,8 @@ export default function SettingsPanel({
             <div
               style={{
                 fontSize: 17,
-
                 fontWeight: 650,
-
                 marginBottom: 7,
-
                 color: duoColors.text,
               }}
             >
@@ -1128,17 +1071,13 @@ export default function SettingsPanel({
             <div
               style={{
                 fontSize: 13,
-
                 color: duoColors.muted,
-
                 lineHeight: 1.45,
-
                 marginBottom: 16,
-
                 fontWeight: 500,
               }}
             >
-              Duo reminds you before accepted responsibilities are due.
+              Duo can send real device notifications when your browser supports them.
             </div>
 
             {notificationStatus ===
@@ -1146,13 +1085,25 @@ export default function SettingsPanel({
               <div
                 style={{
                   fontSize: 13,
-
                   color: duoColors.muted,
-
                   lineHeight: 1.45,
                 }}
               >
-                Browser notifications are not supported in this browser.
+                Real push notifications are not supported in this browser.
+              </div>
+            )}
+
+            {notificationStatus ===
+              'missing-public-key' && (
+              <div
+                style={{
+                  fontSize: 13,
+                  color: duoColors.red,
+                  lineHeight: 1.45,
+                }}
+              >
+                {notificationError ||
+                  'Missing VAPID public key.'}
               </div>
             )}
 
@@ -1161,13 +1112,25 @@ export default function SettingsPanel({
               <div
                 style={{
                   fontSize: 13,
-
                   color: duoColors.red,
-
                   lineHeight: 1.45,
                 }}
               >
                 Notifications are blocked for Duo. Enable them in your browser settings.
+              </div>
+            )}
+
+            {notificationStatus ===
+              'error' && (
+              <div
+                style={{
+                  fontSize: 13,
+                  color: duoColors.red,
+                  lineHeight: 1.45,
+                  marginBottom: 12,
+                }}
+              >
+                {notificationError}
               </div>
             )}
 
@@ -1178,31 +1141,22 @@ export default function SettingsPanel({
                   style={{
                     display:
                       'inline-flex',
-
                     alignItems:
                       'center',
-
                     height: 30,
-
                     padding:
                       '0 11px',
-
                     borderRadius: 999,
-
                     background:
                       'rgba(22,163,106,0.12)',
-
                     color:
                       duoColors.green,
-
                     fontSize: 12,
-
                     fontWeight: 650,
-
                     marginBottom: 12,
                   }}
                 >
-                  Browser notifications are enabled
+                  Real notifications are enabled
                 </div>
 
                 <button
@@ -1211,12 +1165,9 @@ export default function SettingsPanel({
                   }
                   style={{
                     ...secondaryButtonStyle,
-
                     width: 'auto',
-
                     padding:
                       '0 15px',
-
                     height: 42,
                   }}
                 >
@@ -1241,17 +1192,12 @@ export default function SettingsPanel({
                 }
                 style={{
                   ...secondaryButtonStyle,
-
                   width: 'auto',
-
                   padding:
                     '0 15px',
-
                   height: 42,
-
                   color:
                     duoColors.text,
-
                   opacity:
                     notificationStatus ===
                     'requesting'
@@ -1261,7 +1207,7 @@ export default function SettingsPanel({
               >
                 {notificationStatus ===
                 'requesting'
-                  ? 'Requesting permission'
+                  ? 'Enabling'
                   : 'Enable notifications'}
               </button>
             )}
@@ -1269,9 +1215,7 @@ export default function SettingsPanel({
             <div
               style={{
                 marginTop: 18,
-
                 paddingTop: 16,
-
                 borderTop:
                   '1px solid rgba(24,32,44,0.06)',
               }}
@@ -1279,11 +1223,8 @@ export default function SettingsPanel({
               <div
                 style={{
                   fontSize: 15,
-
                   fontWeight: 650,
-
                   marginBottom: 6,
-
                   color: duoColors.text,
                 }}
               >
@@ -1293,13 +1234,9 @@ export default function SettingsPanel({
               <div
                 style={{
                   fontSize: 13,
-
                   color: duoColors.muted,
-
                   lineHeight: 1.45,
-
                   marginBottom: 12,
-
                   fontWeight: 500,
                 }}
               >
@@ -1309,9 +1246,7 @@ export default function SettingsPanel({
               <div
                 style={{
                   display: 'flex',
-
                   gap: 8,
-
                   flexWrap: 'wrap',
                 }}
               >
@@ -1331,30 +1266,21 @@ export default function SettingsPanel({
                         }
                         style={{
                           minHeight: 38,
-
                           padding:
                             '0 12px',
-
                           borderRadius: 999,
-
                           border: selected
                             ? '1px solid rgba(24,32,44,0.16)'
                             : '1px solid rgba(24,32,44,0.08)',
-
                           background: selected
                             ? 'rgba(24,32,44,0.075)'
                             : 'rgba(255,255,255,0.82)',
-
                           color: selected
                             ? duoColors.text
                             : duoColors.muted,
-
                           fontSize: 13,
-
                           fontWeight: 600,
-
                           cursor: 'pointer',
-
                           boxShadow: 'none',
                         }}
                       >
@@ -1370,18 +1296,14 @@ export default function SettingsPanel({
               <div
                 style={{
                   marginTop: 10,
-
                   fontSize: 12,
-
                   color:
                     duoColors.softMuted,
-
                   lineHeight: 1.4,
-
                   fontWeight: 500,
                 }}
               >
-                Mobile shows in-app reminders. Full background push comes later.
+                Due-soon background reminders will be connected after push sending works.
               </div>
             </div>
           </section>
@@ -1389,7 +1311,6 @@ export default function SettingsPanel({
           <section
             style={{
               ...cardSurfaceStyle,
-
               padding: 17,
             }}
           >
@@ -1398,17 +1319,11 @@ export default function SettingsPanel({
             <div
               style={{
                 fontSize: 17,
-
                 fontWeight: 650,
-
                 marginBottom: 7,
-
                 color: duoColors.text,
-
                 overflow: 'hidden',
-
                 textOverflow: 'ellipsis',
-
                 whiteSpace: 'nowrap',
               }}
             >
@@ -1418,13 +1333,9 @@ export default function SettingsPanel({
             <div
               style={{
                 fontSize: 13,
-
                 color: duoColors.muted,
-
                 lineHeight: 1.45,
-
                 marginBottom: 16,
-
                 fontWeight: 500,
               }}
             >
@@ -1437,7 +1348,6 @@ export default function SettingsPanel({
               }
               style={{
                 ...secondaryButtonStyle,
-
                 width: '100%',
               }}
             >
