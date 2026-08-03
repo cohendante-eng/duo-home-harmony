@@ -59,9 +59,65 @@ export type SupabaseCardRow = {
 };
 
 function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(
     value
   );
+}
+
+async function sendCardPushNotification({
+  cardId,
+}: {
+  cardId: string;
+}) {
+  const {
+    data,
+    error,
+  } =
+    await supabase.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  const accessToken =
+    data.session?.access_token;
+
+  if (!accessToken) {
+    throw new Error(
+      'You need to be signed in.'
+    );
+  }
+
+  const response =
+    await fetch(
+      '/api/send-card-push',
+      {
+        method: 'POST',
+        headers: {
+          Authorization:
+            `Bearer ${accessToken}`,
+          'Content-Type':
+            'application/json',
+        },
+        body: JSON.stringify({
+          cardId,
+        }),
+      }
+    );
+
+  const responseData =
+    await response.json().catch(
+      () => null
+    );
+
+  if (!response.ok) {
+    throw new Error(
+      responseData?.error ||
+        'Could not send card notification.'
+    );
+  }
+
+  return responseData;
 }
 
 export async function createSupabaseCard({
@@ -110,7 +166,24 @@ export async function createSupabaseCard({
     throw error;
   }
 
-  return data as SupabaseCardRow;
+  const createdCard =
+    data as SupabaseCardRow;
+
+  if (
+    createdCard.owner_id !==
+    createdCard.creator_id
+  ) {
+    sendCardPushNotification({
+      cardId: createdCard.id,
+    }).catch((pushError) => {
+      console.warn(
+        'Card saved, but push notification failed.',
+        pushError
+      );
+    });
+  }
+
+  return createdCard;
 }
 
 export async function getSupabaseCards({
@@ -337,7 +410,6 @@ export async function removeSupabaseCard({
     throw error;
   }
 }
-
 
 export async function removeAllSupabaseHistoryCards({
   cardIds,
