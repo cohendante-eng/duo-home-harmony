@@ -234,12 +234,17 @@ function getDetailRows(
   return rows;
 }
 
-function getPersonLabel(
-  id: 'me' | 'partner'
-) {
+function getPersonLabel({
+  id,
+  partnerLabel,
+}: {
+  id: 'me' | 'partner';
+
+  partnerLabel: string;
+}) {
   return id === 'me'
     ? 'You'
-    : 'Partner';
+    : partnerLabel;
 }
 
 function circleButtonStyle():
@@ -409,6 +414,9 @@ export default function ExpandedCard({
       card,
       now
     );
+
+  const partnerLabel =
+    partner?.email || 'Partner';
 
   function getRealUserId(
     localId: 'me' | 'partner'
@@ -792,7 +800,7 @@ export default function ExpandedCard({
                       cursor: 'pointer',
                     }}
                   >
-                    Decline
+                    Return to partner
                   </button>
                 )}
 
@@ -822,7 +830,7 @@ export default function ExpandedCard({
                       cursor: 'pointer',
                     }}
                   >
-                    Stop
+                    Stop request
                   </button>
                 )}
 
@@ -852,7 +860,7 @@ export default function ExpandedCard({
                       cursor: 'pointer',
                     }}
                   >
-                    Cancel
+                    Cancel request
                   </button>
                 )}
               </div>
@@ -1035,7 +1043,7 @@ export default function ExpandedCard({
                   fontWeight: 650,
                 }}
               >
-                Responsible
+                Who handles it
               </div>
 
               <div
@@ -1047,9 +1055,10 @@ export default function ExpandedCard({
                   fontWeight: 600,
                 }}
               >
-                {getPersonLabel(
-                  card.ownerId
-                )}
+                {getPersonLabel({
+                  id: card.ownerId,
+                  partnerLabel,
+                })}
               </div>
             </div>
 
@@ -1260,7 +1269,7 @@ export default function ExpandedCard({
                   width: '100%',
                 }}
               >
-                Accept
+                I’ll do it
               </button>
             )}
 
