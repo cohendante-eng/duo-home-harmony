@@ -58,9 +58,10 @@ export type SupabaseCardRow = {
   updated_at: string;
 };
 
-function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(
-    value
+function hasCardId(cardId: string) {
+  return Boolean(
+    cardId &&
+      String(cardId).trim().length > 0
   );
 }
 
@@ -220,8 +221,10 @@ export async function acceptSupabaseCard({
 }: {
   cardId: string;
 }) {
-  if (!isUuid(cardId)) {
-    return;
+  if (!hasCardId(cardId)) {
+    throw new Error(
+      'Missing card id.'
+    );
   }
 
   const { error } =
@@ -251,8 +254,10 @@ export async function completeSupabaseCard({
 }: {
   cardId: string;
 }) {
-  if (!isUuid(cardId)) {
-    return;
+  if (!hasCardId(cardId)) {
+    throw new Error(
+      'Missing card id.'
+    );
   }
 
   const { error } =
@@ -280,8 +285,10 @@ export async function cancelSupabaseCard({
 }: {
   cardId: string;
 }) {
-  if (!isUuid(cardId)) {
-    return;
+  if (!hasCardId(cardId)) {
+    throw new Error(
+      'Missing card id.'
+    );
   }
 
   const { error } =
@@ -309,8 +316,10 @@ export async function stopSupabaseCard({
 }: {
   cardId: string;
 }) {
-  if (!isUuid(cardId)) {
-    return;
+  if (!hasCardId(cardId)) {
+    throw new Error(
+      'Missing card id.'
+    );
   }
 
   const { error } =
@@ -338,8 +347,10 @@ export async function expireSupabaseCard({
 }: {
   cardId: string;
 }) {
-  if (!isUuid(cardId)) {
-    return;
+  if (!hasCardId(cardId)) {
+    throw new Error(
+      'Missing card id.'
+    );
   }
 
   const { error } =
@@ -367,8 +378,10 @@ export async function markSupabaseReminderSent({
 }: {
   cardId: string;
 }) {
-  if (!isUuid(cardId)) {
-    return;
+  if (!hasCardId(cardId)) {
+    throw new Error(
+      'Missing card id.'
+    );
   }
 
   const now =
@@ -396,8 +409,10 @@ export async function removeSupabaseCard({
 }: {
   cardId: string;
 }) {
-  if (!isUuid(cardId)) {
-    return;
+  if (!hasCardId(cardId)) {
+    throw new Error(
+      'Missing card id.'
+    );
   }
 
   const { error } =
@@ -417,7 +432,7 @@ export async function removeAllSupabaseHistoryCards({
   cardIds: string[];
 }) {
   const validCardIds =
-    cardIds.filter(isUuid);
+    cardIds.filter(hasCardId);
 
   if (validCardIds.length === 0) {
     return;
@@ -445,8 +460,10 @@ export async function delaySupabaseCard({
 
   modifierForId?: string;
 }) {
-  if (!isUuid(cardId)) {
-    return;
+  if (!hasCardId(cardId)) {
+    throw new Error(
+      'Missing card id.'
+    );
   }
 
   const { error } =
@@ -489,11 +506,16 @@ export async function declineSupabaseCard({
 
   nextBlockCount: number;
 }) {
-  if (
-    !isUuid(cardId) ||
-    !newOwnerId
-  ) {
-    return;
+  if (!hasCardId(cardId)) {
+    throw new Error(
+      'Missing card id.'
+    );
+  }
+
+  if (!newOwnerId) {
+    throw new Error(
+      'Missing new owner id.'
+    );
   }
 
   const { error } =
@@ -539,11 +561,16 @@ export async function takeSupabaseCard({
 
   currentUserId?: string;
 }) {
-  if (
-    !isUuid(cardId) ||
-    !currentUserId
-  ) {
-    return;
+  if (!hasCardId(cardId)) {
+    throw new Error(
+      'Missing card id.'
+    );
+  }
+
+  if (!currentUserId) {
+    throw new Error(
+      'Missing current user id.'
+    );
   }
 
   const { error } =
