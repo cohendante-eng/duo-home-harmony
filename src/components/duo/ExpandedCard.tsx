@@ -418,6 +418,21 @@ export default function ExpandedCard({
   const partnerLabel =
     partner?.email || 'Partner';
 
+  const canOpenMenu =
+    !isHistoryCard &&
+    (
+      isOwner ||
+      isCreator ||
+      canStop
+    );
+
+  const canCancelRequest =
+    !isHistoryCard &&
+    (
+      isCreator ||
+      isOwner
+    );
+
   function getRealUserId(
     localId: 'me' | 'partner'
   ) {
@@ -633,23 +648,21 @@ export default function ExpandedCard({
               position: 'relative',
             }}
           >
-            {!isHistoryCard &&
-              (isOwner ||
-                canStop) && (
-                <button
-                  onClick={() =>
-                    setShowMenu(
-                      !showMenu
-                    )
-                  }
-                  aria-label="More actions"
-                  style={circleButtonStyle()}
-                >
-                  <MoreHorizontal
-                    size={20}
-                  />
-                </button>
-              )}
+            {canOpenMenu && (
+              <button
+                onClick={() =>
+                  setShowMenu(
+                    !showMenu
+                  )
+                }
+                aria-label="More actions"
+                style={circleButtonStyle()}
+              >
+                <MoreHorizontal
+                  size={20}
+                />
+              </button>
+            )}
 
             {showMenu && (
               <div
@@ -834,7 +847,7 @@ export default function ExpandedCard({
                   </button>
                 )}
 
-                {isOwner && (
+                {canCancelRequest && (
                   <button
                     onClick={
                       handleCancel
