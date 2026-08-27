@@ -42,27 +42,6 @@ function getNavItemStyle(
   };
 }
 
-function ActiveDot({
-  show,
-}: {
-  show: boolean;
-}) {
-  if (!show) return null;
-
-  return (
-    <span
-      style={{
-        position: 'absolute',
-        top: 4,
-        width: 22,
-        height: 3,
-        borderRadius: 999,
-        background: duoColors.text,
-      }}
-    />
-  );
-}
-
 export default function BottomNav({
   tab,
   setTab,
@@ -104,10 +83,6 @@ export default function BottomNav({
           tab === 'main'
         )}
       >
-        <ActiveDot
-          show={tab === 'main'}
-        />
-
         <Home
           size={20}
           strokeWidth={
@@ -128,10 +103,6 @@ export default function BottomNav({
           tab === 'created'
         )}
       >
-        <ActiveDot
-          show={tab === 'created'}
-        />
-
         <Archive
           size={20}
           strokeWidth={
@@ -152,10 +123,6 @@ export default function BottomNav({
           tab === 'history'
         )}
       >
-        <ActiveDot
-          show={tab === 'history'}
-        />
-
         <History
           size={20}
           strokeWidth={
