@@ -21,6 +21,15 @@ type CreateSupabaseCardInput = {
   dueAt?: number;
 };
 
+type CardPushEvent =
+  | 'created'
+  | 'accepted'
+  | 'done'
+  | 'returned'
+  | 'cancelled'
+  | 'delayed'
+  | 'stopped';
+
 export type SupabaseCardRow = {
   id: string;
 
@@ -67,8 +76,11 @@ function hasCardId(cardId: string) {
 
 async function sendCardPushNotification({
   cardId,
+  eventType,
 }: {
   cardId: string;
+
+  eventType: CardPushEvent;
 }) {
   const {
     data,
@@ -102,6 +114,7 @@ async function sendCardPushNotification({
         },
         body: JSON.stringify({
           cardId,
+          eventType,
         }),
       }
     );
@@ -119,6 +132,25 @@ async function sendCardPushNotification({
   }
 
   return responseData;
+}
+
+function sendCardPushQuietly({
+  cardId,
+  eventType,
+}: {
+  cardId: string;
+
+  eventType: CardPushEvent;
+}) {
+  sendCardPushNotification({
+    cardId,
+    eventType,
+  }).catch((pushError) => {
+    console.warn(
+      'Card saved, but push notification failed.',
+      pushError
+    );
+  });
 }
 
 export async function createSupabaseCard({
@@ -174,13 +206,9 @@ export async function createSupabaseCard({
     createdCard.owner_id !==
     createdCard.creator_id
   ) {
-    sendCardPushNotification({
+    sendCardPushQuietly({
       cardId: createdCard.id,
-    }).catch((pushError) => {
-      console.warn(
-        'Card saved, but push notification failed.',
-        pushError
-      );
+      eventType: 'created',
     });
   }
 
@@ -247,6 +275,11 @@ export async function acceptSupabaseCard({
   if (error) {
     throw error;
   }
+
+  sendCardPushQuietly({
+    cardId,
+    eventType: 'accepted',
+  });
 }
 
 export async function completeSupabaseCard({
@@ -278,6 +311,11 @@ export async function completeSupabaseCard({
   if (error) {
     throw error;
   }
+
+  sendCardPushQuietly({
+    cardId,
+    eventType: 'done',
+  });
 }
 
 export async function cancelSupabaseCard({
@@ -309,6 +347,11 @@ export async function cancelSupabaseCard({
   if (error) {
     throw error;
   }
+
+  sendCardPushQuietly({
+    cardId,
+    eventType: 'cancelled',
+  });
 }
 
 export async function stopSupabaseCard({
@@ -340,6 +383,11 @@ export async function stopSupabaseCard({
   if (error) {
     throw error;
   }
+
+  sendCardPushQuietly({
+    cardId,
+    eventType: 'stopped',
+  });
 }
 
 export async function expireSupabaseCard({
@@ -493,6 +541,11 @@ export async function delaySupabaseCard({
   if (error) {
     throw error;
   }
+
+  sendCardPushQuietly({
+    cardId,
+    eventType: 'delayed',
+  });
 }
 
 export async function declineSupabaseCard({
@@ -551,6 +604,11 @@ export async function declineSupabaseCard({
   if (error) {
     throw error;
   }
+
+  sendCardPushQuietly({
+    cardId,
+    eventType: 'returned',
+  });
 }
 
 export async function takeSupabaseCard({
@@ -599,6 +657,11 @@ export async function takeSupabaseCard({
   if (error) {
     throw error;
   }
+
+  sendCardPushQuietly({
+    cardId,
+    eventType: 'accepted',
+  });
 }
 
 function mapUserId({
