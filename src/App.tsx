@@ -1,6 +1,6 @@
 import {
-  Check,
   Bell,
+  Check,
   Eye,
 } from 'lucide-react';
 
@@ -52,7 +52,7 @@ function OnboardingOverlay({
         inset: 0,
         zIndex: 999998,
         background:
-          'linear-gradient(180deg, #f7f9fc 0%, #edf1f5 100%)',
+          'linear-gradient(180deg, #f6f8fb 0%, #edf1f5 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -67,9 +67,9 @@ function OnboardingOverlay({
           background:
             'rgba(255,255,255,0.94)',
           border:
-            '1px solid rgba(24,32,44,0.075)',
+            '1px solid rgba(24,32,44,0.06)',
           boxShadow:
-            '0 30px 90px rgba(31,41,55,0.13)',
+            '0 26px 70px rgba(31,41,55,0.10)',
           padding: '28px 24px 24px',
         }}
       >
@@ -78,17 +78,17 @@ function OnboardingOverlay({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 12,
-            marginBottom: 34,
+            gap: 10,
+            marginBottom: 28,
           }}
         >
-          <DuoMark size={44} />
+          <DuoMark size={36} />
 
           <div
             style={{
-              fontSize: 32,
-              fontWeight: 760,
-              letterSpacing: -1.1,
+              fontSize: 24,
+              fontWeight: 650,
+              letterSpacing: -0.65,
               color: duoColors.text,
               lineHeight: 1,
             }}
@@ -99,43 +99,62 @@ function OnboardingOverlay({
 
         <div
           style={{
-            fontSize: 28,
-            fontWeight: 780,
-            letterSpacing: -0.85,
-            color: duoColors.text,
-            lineHeight: 1.08,
             textAlign: 'center',
-            marginBottom: 18,
-            whiteSpace: 'nowrap',
+            marginBottom: 16,
           }}
         >
-          Share responsibilities clearly
+          <div
+            style={{
+              fontSize: 23,
+              fontWeight: 620,
+              letterSpacing: -0.45,
+              color: duoColors.text,
+              lineHeight: 1.22,
+            }}
+          >
+            Share responsibilities
+          </div>
+
+          <div
+            style={{
+              fontSize: 23,
+              fontWeight: 620,
+              letterSpacing: -0.45,
+              color: duoColors.text,
+              lineHeight: 1.22,
+              marginTop: 7,
+            }}
+          >
+            clearly
+          </div>
         </div>
 
         <div
           style={{
-            fontSize: 15,
-            lineHeight: 1.62,
+            fontSize: 13.5,
+            lineHeight: 1.65,
             color: duoColors.muted,
-            fontWeight: 500,
+            fontWeight: 450,
             textAlign: 'center',
-            marginBottom: 30,
+            marginBottom: 26,
+            padding: '0 6px',
           }}
         >
-          Duo helps two people handle everyday responsibilities without turning everything into a conversation.
+          Duo helps two people handle everyday responsibilities
+          without turning everything into a conversation.
         </div>
 
         <div
           style={{
-            borderRadius: 26,
+            borderRadius: 24,
             background:
-              'rgba(255,255,255,0.86)',
+              'rgba(250,251,253,0.96)',
             border:
-              '1px solid rgba(24,32,44,0.07)',
+              '1px solid rgba(24,32,44,0.06)',
             boxShadow:
-              '0 16px 46px rgba(31,41,55,0.055)',
-            padding: '6px 20px',
-            marginBottom: 28,
+              'inset 0 1px 0 rgba(255,255,255,0.7)',
+            padding: '6px 16px',
+            marginBottom: 24,
           }}
         >
           {items.map(
@@ -148,24 +167,25 @@ function OnboardingOverlay({
                   key={item.title}
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
-                    gap: 16,
+                    alignItems:
+                      'flex-start',
+                    gap: 14,
                     padding:
-                      '19px 0',
+                      '16px 0',
                     borderBottom:
                       index ===
                       items.length - 1
                         ? 'none'
-                        : '1px solid rgba(24,32,44,0.07)',
+                        : '1px solid rgba(24,32,44,0.06)',
                   }}
                 >
                   <div
                     style={{
-                      width: 58,
-                      height: 58,
-                      borderRadius: 20,
+                      width: 48,
+                      height: 48,
+                      borderRadius: 16,
                       background:
-                        'rgba(47,125,246,0.08)',
+                        'rgba(47,125,246,0.075)',
                       display: 'flex',
                       alignItems:
                         'center',
@@ -174,11 +194,12 @@ function OnboardingOverlay({
                       color:
                         duoColors.blue,
                       flexShrink: 0,
+                      marginTop: 2,
                     }}
                   >
                     <Icon
-                      size={27}
-                      strokeWidth={2.25}
+                      size={22}
+                      strokeWidth={2}
                     />
                   </div>
 
@@ -189,12 +210,12 @@ function OnboardingOverlay({
                   >
                     <div
                       style={{
-                        fontSize: 17,
-                        fontWeight: 720,
+                        fontSize: 14.5,
+                        fontWeight: 600,
                         color:
                           duoColors.text,
-                        lineHeight: 1.2,
-                        marginBottom: 6,
+                        lineHeight: 1.3,
+                        marginBottom: 4,
                       }}
                     >
                       {item.title}
@@ -202,11 +223,11 @@ function OnboardingOverlay({
 
                     <div
                       style={{
-                        fontSize: 14,
-                        lineHeight: 1.45,
+                        fontSize: 12.5,
+                        lineHeight: 1.55,
                         color:
                           duoColors.muted,
-                        fontWeight: 500,
+                        fontWeight: 450,
                       }}
                     >
                       {item.text}
@@ -222,17 +243,17 @@ function OnboardingOverlay({
           onClick={onComplete}
           style={{
             width: '100%',
-            height: 58,
-            borderRadius: 20,
+            height: 54,
+            borderRadius: 18,
             border: 'none',
             background:
-              'linear-gradient(180deg, #283242 0%, #111722 100%)',
+              'linear-gradient(180deg, #273347 0%, #121b2a 100%)',
             color: '#fff',
-            fontSize: 16,
-            fontWeight: 720,
+            fontSize: 15,
+            fontWeight: 620,
             cursor: 'pointer',
             boxShadow:
-              '0 16px 34px rgba(24,32,44,0.18)',
+              '0 14px 30px rgba(24,32,44,0.18)',
           }}
         >
           Start using Duo
