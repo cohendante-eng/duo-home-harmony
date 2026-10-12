@@ -1,0 +1,14 @@
+name: Duo upcoming reminders
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger reminder check
+        run: |
+          curl --fail --silent --show-error             --request POST             --header "Authorization: Bearer ${{ secrets.CRON_SECRET }}"             https://duo-home-harmony.vercel.app/api/send-due-reminders
