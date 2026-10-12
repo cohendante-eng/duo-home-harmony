@@ -8,119 +8,11 @@ import {
 } from '../store/useCards';
 
 import {
-  getAcceptedReminderEligibleCards,
-} from '../lib/duoViews';
-
-import {
-  getCardTitle,
-} from '../lib/cards';
-
-import {
   expireSupabaseCard,
-  markSupabaseReminderSent,
 } from '../lib/supabaseCards';
-
-import {
-  showBrowserNotification,
-} from '../lib/browserNotifications';
 
 const ONE_DAY =
   1000 * 60 * 60 * 24;
-
-function getReminderMessage(card: any) {
-  const title =
-    getCardTitle(card);
-
-  if (!title) {
-    return 'Upcoming responsibility';
-  }
-
-  return `Upcoming: ${title}`;
-}
-
-function sendReminderForCard({
-  card,
-  processingRef,
-}: {
-  card: any;
-
-  processingRef: React.MutableRefObject<
-    Set<string>
-  >;
-}) {
-  const key =
-    `reminder:${card.id}`;
-
-  if (
-    processingRef.current.has(key)
-  ) {
-    return;
-  }
-
-  processingRef.current.add(key);
-
-  const reminderMessage =
-    getReminderMessage(card);
-
-  const state =
-    useCards.getState();
-
-  state.showToast(
-    reminderMessage,
-    undefined,
-    card.id
-  );
-
-  showBrowserNotification({
-    title: 'Duo',
-
-    body: reminderMessage,
-
-    cardId: card.id,
-  });
-
-  state.markReminderSent(card.id);
-
-  markSupabaseReminderSent({
-    cardId: card.id,
-  }).catch((error) => {
-    console.error(
-      'Could not mark Supabase reminder as sent',
-      error
-    );
-
-    processingRef.current.delete(
-      key
-    );
-  });
-}
-
-function checkReminderCards(
-  processingRef: React.MutableRefObject<
-    Set<string>
-  >
-) {
-  const state =
-    useCards.getState();
-
-  const eligibleCards =
-    getAcceptedReminderEligibleCards(
-      state.activeCards,
-      state.currentUser
-    );
-
-  if (
-    eligibleCards.length === 0
-  ) {
-    return;
-  }
-
-  sendReminderForCard({
-    card: eligibleCards[0],
-
-    processingRef,
-  });
-}
 
 export function useDuoLifecycle() {
   const processingRef =
@@ -130,9 +22,6 @@ export function useDuoLifecycle() {
 
   const activeCards =
     useCards((s) => s.activeCards);
-
-  const currentUser =
-    useCards((s) => s.currentUser);
 
   const expireOverdueRequestedCards =
     useCards(
@@ -257,10 +146,6 @@ export function useDuoLifecycle() {
               });
           }
         );
-
-        checkReminderCards(
-          processingRef
-        );
       }, 1000 * 60);
 
     return () => {
@@ -269,27 +154,4 @@ export function useDuoLifecycle() {
       );
     };
   }, []);
-
-  useEffect(() => {
-    const eligibleCards =
-      getAcceptedReminderEligibleCards(
-        activeCards,
-        currentUser
-      );
-
-    if (
-      eligibleCards.length === 0
-    ) {
-      return;
-    }
-
-    sendReminderForCard({
-      card: eligibleCards[0],
-
-      processingRef,
-    });
-  }, [
-    activeCards,
-    currentUser,
-  ]);
 }
