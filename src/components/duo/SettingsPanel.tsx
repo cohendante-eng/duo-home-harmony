@@ -1280,6 +1280,19 @@ export default function SettingsPanel({
                     : 'Send test notification'}
                 </button>
 
+                <div
+                  style={{
+                    marginTop: -4,
+                    fontSize: 12,
+                    color:
+                      duoColors.softMuted,
+                    lineHeight: 1.4,
+                    fontWeight: 500,
+                  }}
+                >
+                  Sends an immediate test push to this device. It does not test reminder timing.
+                </div>
+
                 {testPushStatus ===
                   'sent' && (
                   <div
