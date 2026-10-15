@@ -19,7 +19,7 @@ type CardRow = {
     | 'acquire'
     | 'appointment'
     | 'maintenance';
-  state: 'accepted';
+  state: 'accepted' | 'delayed';
   owner_id: string;
   payload: any;
   due_at: string;
@@ -178,7 +178,10 @@ export default async function handler(
       .select(
         'id, type, state, owner_id, payload, due_at, reminder_sent_at'
       )
-      .eq('state', 'accepted')
+      .in('state', [
+        'accepted',
+        'delayed',
+      ])
       .not('due_at', 'is', null)
       .is('reminder_sent_at', null)
       .gte(
@@ -219,9 +222,98 @@ export default async function handler(
     let sentCount = 0;
     const results = [];
 
+    const reminderLeadTimeCache =
+      new Map<string, number>();
+
+    async function getReminderLeadTimeMinutes(
+      userId: string
+    ) {
+      const cached =
+        reminderLeadTimeCache.get(
+          userId
+        );
+
+      if (cached) {
+        return cached;
+      }
+
+      const {
+        data,
+        error,
+      } =
+        await serviceClient.auth.admin.getUserById(
+          userId
+        );
+
+      if (error) {
+        throw error;
+      }
+
+      const raw =
+        data.user?.user_metadata
+          ?.reminder_lead_time_minutes;
+
+      const parsed =
+        typeof raw === 'number'
+          ? raw
+          : typeof raw === 'string'
+            ? Number(raw)
+            : NaN;
+
+      const minutes =
+        parsed === 15 ||
+        parsed === 30 ||
+        parsed === 60
+          ? parsed
+          : 60;
+
+      reminderLeadTimeCache.set(
+        userId,
+        minutes
+      );
+
+      return minutes;
+    }
+
     for (const rawCard of dueCards) {
       const card =
         rawCard as CardRow;
+
+      let reminderLeadTimeMinutes =
+        60;
+
+      try {
+        reminderLeadTimeMinutes =
+          await getReminderLeadTimeMinutes(
+            card.owner_id
+          );
+      } catch {
+        results.push({
+          cardId: card.id,
+          ok: false,
+          reason:
+            'Could not load reminder preference',
+        });
+
+        continue;
+      }
+
+      const dueAt =
+        new Date(
+          card.due_at
+        ).getTime();
+
+      const timeUntilDue =
+        dueAt - now.getTime();
+
+      if (
+        timeUntilDue >
+        reminderLeadTimeMinutes *
+          60 *
+          1000
+      ) {
+        continue;
+      }
 
       const claimedAt =
         new Date().toISOString();
@@ -236,7 +328,7 @@ export default async function handler(
             claimedAt,
         })
         .eq('id', card.id)
-        .eq('state', 'accepted')
+        .eq('state', card.state)
         .is(
           'reminder_sent_at',
           null
