@@ -44,6 +44,7 @@ import {
 import {
   formatReminderLeadTime,
   getReminderLeadTimeMinutes,
+  loadReminderLeadTimeMinutes,
   REMINDER_LEAD_TIME_OPTIONS,
   ReminderLeadTimeMinutes,
   setReminderLeadTimeMinutes,
@@ -394,6 +395,22 @@ export default function SettingsPanel({
   ]);
 
   useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    loadReminderLeadTimeMinutes()
+      .then((minutes) => {
+        setReminderLeadTime(
+          minutes
+        );
+      })
+      .catch(() => {
+        // Keep the local preference if the profile cannot be loaded.
+      });
+  }, [user]);
+
+  useEffect(() => {
     refreshPartnerState().catch(
       () => {
         // Keep Settings quiet for now.
@@ -560,16 +577,20 @@ export default function SettingsPanel({
     }
   }
 
-  function handleReminderLeadTimeChange(
+  async function handleReminderLeadTimeChange(
     minutes: ReminderLeadTimeMinutes
   ) {
-    setReminderLeadTimeMinutes(
-      minutes
-    );
+    try {
+      await setReminderLeadTimeMinutes(
+        minutes
+      );
 
-    setReminderLeadTime(
-      minutes
-    );
+      setReminderLeadTime(
+        minutes
+      );
+    } catch {
+      // Keep the previous selection if saving fails.
+    }
   }
 
   async function handleInvitePartner() {
@@ -1416,7 +1437,7 @@ export default function SettingsPanel({
                   fontWeight: 500,
                 }}
               >
-                Due-soon background reminders will be connected after push sending works.
+                Duo will remind you once before a responsibility is due.
               </div>
             </div>
           </section>
