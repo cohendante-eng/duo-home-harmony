@@ -136,10 +136,6 @@ export async function loadReminderLeadTimeMinutes():
 export async function setReminderLeadTimeMinutes(
   minutes: ReminderLeadTimeMinutes
 ) {
-  writeLocalReminderLeadTime(
-    minutes
-  );
-
   const {
     error,
   } =
@@ -153,6 +149,10 @@ export async function setReminderLeadTimeMinutes(
   if (error) {
     throw error;
   }
+
+  writeLocalReminderLeadTime(
+    minutes
+  );
 }
 
 export function getReminderLeadTimeMs() {
